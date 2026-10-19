@@ -20,14 +20,23 @@ export function Hero() {
     <section id="top" aria-labelledby="hero-title" className="container-page pt-12 pb-16 sm:pt-20 sm:pb-24">
       <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between md:gap-12">
         <div className="relative size-24 shrink-0 overflow-hidden rounded-full border border-line md:order-last md:h-[22rem] md:w-[16.5rem] md:rounded-2xl">
+          {/* The full portrait is too small to read in the mobile circle, so mobile gets a head-and-shoulders crop. */}
           <Image
-            src="/images/rama.jpg"
-            alt="Rama Raihan at night in a cap, holding a fish up to his ear like a phone"
+            src="/images/rama-avatar.jpg"
+            alt="Rama Raihan in a black tuxedo and bow tie"
             fill
             loading="eager"
             fetchPriority="high"
-            sizes="(min-width: 768px) 264px, 96px"
-            className="object-cover object-[50%_45%] md:object-center"
+            sizes="96px"
+            className="object-cover md:hidden"
+          />
+          <Image
+            src="/images/rama.jpg"
+            alt="Rama Raihan in a black tuxedo and bow tie, standing in a garden"
+            fill
+            loading="eager"
+            sizes="264px"
+            className="hidden object-cover md:block"
           />
         </div>
 
