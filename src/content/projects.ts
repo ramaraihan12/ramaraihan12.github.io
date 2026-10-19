@@ -7,6 +7,9 @@ export type Project = {
   href: string;
 };
 
+/** No href means the code isn't public, so the name is shown without a link. */
+export type OtherProject = Omit<Project, "flow" | "href"> & { href?: string };
+
 const repo = (name: string) => `https://github.com/ramaraihan12/${name}`;
 
 export const aiProjects: Project[] = [
@@ -75,13 +78,12 @@ export const aiProjects: Project[] = [
   },
 ];
 
-export const otherProjects: Project[] = [
+export const otherProjects: OtherProject[] = [
   {
     name: "project-clipper",
     summary:
-      "Desktop app I use for my own channel. It turns a long video into vertical short clips: transcribes, picks segments, crops to 9:16 and burns in subtitles.",
-    stack: ["CLI", "YouTube Data API"],
-    href: repo("project-clipper"),
+      "Python pipeline I run for my own channel. It turns a long video into vertical 9:16 clips: faster-whisper transcribes, Gemini picks the highlights, OpenCV tracks faces for the crop and ffmpeg burns in subtitles. The code is private for now.",
+    stack: ["Python", "faster-whisper", "Gemini", "OpenCV", "ffmpeg"],
   },
   {
     name: "ralaexV2.0",

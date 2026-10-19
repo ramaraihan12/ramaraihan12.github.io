@@ -14,14 +14,20 @@ export function OtherProjects() {
             key={project.name}
             className="grid gap-2 border-t border-line py-5 md:grid-cols-[13rem_1fr] md:gap-8"
           >
-            <a
-              href={project.href}
-              className="inline-flex items-center gap-1.5 self-start font-mono text-[0.95rem] font-semibold text-ink underline decoration-line underline-offset-4 transition-colors hover:decoration-indigo"
-            >
-              {project.name}
-              <span className="sr-only"> on GitHub</span>
-              <ArrowUpRightIcon className="size-3.5 text-muted" />
-            </a>
+            {project.href ? (
+              <a
+                href={project.href}
+                className="inline-flex items-center gap-1.5 self-start font-mono text-[0.95rem] font-semibold text-ink underline decoration-line underline-offset-4 transition-colors hover:decoration-indigo"
+              >
+                {project.name}
+                <span className="sr-only"> on GitHub</span>
+                <ArrowUpRightIcon className="size-3.5 text-muted" />
+              </a>
+            ) : (
+              <span className="self-start font-mono text-[0.95rem] font-semibold text-ink">
+                {project.name}
+              </span>
+            )}
             <div>
               <p className="max-w-2xl text-pretty text-muted">{project.summary}</p>
               <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="Stack">
