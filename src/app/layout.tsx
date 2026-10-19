@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Archivo, Geist_Mono, Instrument_Sans } from "next/font/google";
 import type { ReactNode } from "react";
 import { site } from "@/content/site";
+import { ogImage } from "@/lib/og";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -33,11 +34,13 @@ export const metadata: Metadata = {
     title: `${site.name} · ${site.role}`,
     description: site.description,
     locale: "en_US",
+    images: [ogImage],
   },
   twitter: {
     card: "summary_large_image",
     title: `${site.name} · ${site.role}`,
     description: site.description,
+    images: [ogImage],
   },
 };
 

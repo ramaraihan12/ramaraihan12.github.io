@@ -2,12 +2,13 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { site } from "@/content/site";
+import { ogImage } from "@/lib/og";
 
-export const alt = `${site.name}, ${site.role.toLowerCase()} in ${site.location}`;
-export const size = { width: 1200, height: 630 };
-export const contentType = "image/png";
+// A route handler instead of opengraph-image.tsx: the static export writes that one out
+// without a file extension, and GitHub Pages would then serve it as a download, not a PNG.
+export const dynamic = "force-static";
 
-export default async function OpengraphImage() {
+export async function GET() {
   const photo = await readFile(join(process.cwd(), "public/images/rama.jpg"));
   const photoSrc = `data:image/jpeg;base64,${photo.toString("base64")}`;
 
@@ -48,6 +49,6 @@ export default async function OpengraphImage() {
         />
       </div>
     ),
-    size,
+    { width: ogImage.width, height: ogImage.height },
   );
 }
