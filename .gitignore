@@ -1,0 +1,21 @@
+# deps
+node_modules/
+
+# next.js
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# env
+.env
+.env*.local
+
+# misc
+.DS_Store
+*.log
+.vercel
+.claude/
+
+# original photo, the site uses public/images/rama.jpg
+WhatsApp Image *.jpeg
