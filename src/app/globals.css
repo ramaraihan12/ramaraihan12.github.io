@@ -107,6 +107,24 @@
       color: var(--muted);
     }
   }
+
+  /* A request's path through an app: steps joined by turmeric arrows. */
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    row-gap: 0.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--ink);
+
+    & > li:not(:last-child)::after {
+      content: "→";
+      margin-inline: 0.45rem;
+      color: var(--kunyit);
+    }
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -117,6 +135,15 @@
   .rise {
     animation: rise 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
     animation-delay: var(--delay, 0ms);
+  }
+
+  /* Scroll reveal without JavaScript. Browsers without view timelines just show the content. */
+  @supports (animation-timeline: view()) {
+    [data-reveal] {
+      animation: rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 90%;
+    }
   }
 }
 
