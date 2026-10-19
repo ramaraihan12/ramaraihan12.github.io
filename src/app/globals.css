@@ -66,6 +66,8 @@
     background-color: var(--paper);
     color-scheme: light;
     -webkit-text-size-adjust: 100%;
+    /* Keeps anchor jumps and keyboard focus clear of the sticky header. */
+    scroll-padding-top: 5rem;
   }
 
   html.dark {
@@ -80,10 +82,6 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  [id] {
-    scroll-margin-top: 5rem;
-  }
-
   ::selection {
     background-color: color-mix(in oklab, var(--kunyit) 30%, transparent);
   }
@@ -95,7 +93,11 @@
 }
 
 @layer components {
-  /* Inline list separated by middle dots, wraps cleanly on small screens. */
+  /*
+    Inline list separated by middle dots, wraps cleanly on small screens.
+    The separators here and in .flow have empty alt text (the / "" part) so screen readers
+    don't announce them. The plain content line is for browsers without that syntax.
+  */
   .dot-list {
     display: flex;
     flex-wrap: wrap;
@@ -103,6 +105,7 @@
 
     & > li:not(:last-child)::after {
       content: "·";
+      content: "·" / "";
       margin-left: 0.65rem;
       color: var(--muted);
     }
@@ -121,6 +124,7 @@
 
     & > li:not(:last-child)::after {
       content: "→";
+      content: "→" / "";
       margin-inline: 0.45rem;
       color: var(--kunyit);
     }
