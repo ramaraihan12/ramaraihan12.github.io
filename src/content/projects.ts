@@ -60,9 +60,9 @@ export const aiProjects: Project[] = [
   {
     name: "issue-triage-action",
     summary:
-      "GitHub Action that labels new issues, looks for duplicates and leaves a comment. Runs free on GitHub Models.",
+      "GitHub Action that labels new issues, flags likely duplicates (TF-IDF) and leaves one comment. Defaults to Gemini's free tier, and any OpenAI-compatible endpoint works too, Ollama included.",
     flow: ["new issue", "labels", "duplicate check", "comment"],
-    stack: ["TypeScript", "GitHub Actions", "GitHub Models"],
+    stack: ["TypeScript", "GitHub Actions", "Gemini", "zod"],
     href: repo("issue-triage-action"),
   },
   {
