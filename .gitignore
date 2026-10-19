@@ -16,6 +16,3 @@ next-env.d.ts
 *.log
 .vercel
 .claude/
-
-# original photo, the site uses public/images/rama.jpg
-WhatsApp Image *.jpeg
