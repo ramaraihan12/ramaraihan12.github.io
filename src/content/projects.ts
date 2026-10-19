@@ -66,12 +66,12 @@ export const aiProjects: Project[] = [
     href: repo("issue-triage-action"),
   },
   {
-    name: "ai-lokal",
+    name: "local-ai-coding-setup",
     summary:
-      "My free, fully local AI coding setup on a laptop with a 6 GB RTX 3060. No subscription and no API bill.",
-    flow: ["llama.cpp + ollama", "model on a 6 GB gpu", "agent in the terminal"],
-    stack: ["llama.cpp", "Ollama", "PowerShell"],
-    href: repo("ai-lokal"),
+      "My free, fully local AI coding setup on a laptop with a 6 GB RTX 3060: a coding agent in the terminal and autocomplete in VS Code. No subscription and no API bill.",
+    flow: ["llama-server + ollama", "moe experts split gpu / ram", "pi agent behind a permission gate"],
+    stack: ["llama.cpp", "Ollama", "Pi", "PowerShell"],
+    href: repo("local-ai-coding-setup"),
   },
 ];
 
