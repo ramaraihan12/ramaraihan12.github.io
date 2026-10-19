@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { site } from "@/content/site";
-import { motionVars } from "@/lib/style";
+import { riseDelay } from "@/lib/style";
 import { ArrowUpRightIcon, GitHubIcon, MailIcon } from "./icons";
 
 const now = [
@@ -35,7 +35,7 @@ export function Hero() {
           <h1
             id="hero-title"
             className="rise type-display mt-3 text-[clamp(3.25rem,12vw,7.5rem)] leading-[0.9] text-ink"
-            style={motionVars({ delay: 80 })}
+            style={riseDelay(80)}
           >
             Rama
             <br />
@@ -43,14 +43,14 @@ export function Hero() {
           </h1>
           <p
             className="rise mt-6 max-w-xl text-lg text-pretty text-ink/85 sm:text-xl"
-            style={motionVars({ delay: 160 })}
+            style={riseDelay(160)}
           >
             I build and run web apps in Laravel and Next.js. Lately I&apos;ve been
             building AI apps: RAG, agents, chatbots and workflow automation.
           </p>
           <div
             className="rise mt-8 flex flex-wrap gap-3"
-            style={motionVars({ delay: 240 })}
+            style={riseDelay(240)}
           >
             <a
               href={`mailto:${site.email}`}
