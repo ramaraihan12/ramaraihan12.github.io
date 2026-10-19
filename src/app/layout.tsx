@@ -3,6 +3,7 @@ import { Archivo, Geist_Mono, Instrument_Sans } from "next/font/google";
 import type { ReactNode } from "react";
 import { site } from "@/content/site";
 import { ogImage } from "@/lib/og";
+import { themeColors } from "@/lib/theme";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -46,18 +47,25 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f5f8" },
-    { media: "(prefers-color-scheme: dark)", color: "#0e1022" },
+    { media: "(prefers-color-scheme: light)", color: themeColors.light },
+    { media: "(prefers-color-scheme: dark)", color: themeColors.dark },
   ],
 };
 
-// Runs before first paint so the page never flashes the wrong theme.
+// Runs before first paint so the page never flashes the wrong theme. A saved choice also gets
+// its own theme-color tag, see ThemeToggle.
 const themeScript = `(() => {
   const root = document.documentElement;
   let theme = null;
   try { theme = localStorage.getItem("theme"); } catch {}
   const dark = theme ? theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
   root.classList.toggle("dark", dark);
+  if (theme) {
+    const meta = document.createElement("meta");
+    meta.name = "theme-color";
+    meta.content = dark ? "${themeColors.dark}" : "${themeColors.light}";
+    document.head.prepend(meta);
+  }
 })();`;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
