@@ -86,10 +86,11 @@ export const otherProjects: OtherProject[] = [
     stack: ["Python", "faster-whisper", "Gemini", "OpenCV", "ffmpeg"],
   },
   {
-    name: "ralaexV2.0",
-    summary: "Household finance PWA with charts and PDF and Excel export.",
+    name: "ralaex",
+    summary:
+      "Household finance PWA my wife and I log our spending in from our phones. Budgets with alerts, receipt photos, charts, and PDF and Excel export.",
     stack: ["Next.js", "TypeScript", "Supabase", "Recharts"],
-    href: repo("ralaexV2.0"),
+    href: repo("ralaex"),
   },
   {
     name: "chaBubbleTwitch",
