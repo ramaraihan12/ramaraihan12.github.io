@@ -25,13 +25,34 @@ export const metadata: Metadata = {
     "Full-stack developer in Salatiga, Indonesia. Laravel and Next.js web apps, and now AI apps: RAG, agents, chatbots and workflow automation.",
 };
 
+// Runs before first paint so the page never flashes the wrong theme.
+const themeScript = `(() => {
+  const root = document.documentElement;
+  let theme = null;
+  try { theme = localStorage.getItem("theme"); } catch {}
+  const dark = theme ? theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  root.classList.toggle("dark", dark);
+})();`;
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"
       className={`${archivo.variable} ${instrumentSans.variable} ${geistMono.variable}`}
+      suppressHydrationWarning
     >
-      <body>{children}</body>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      <body>
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-ink focus:px-3 focus:py-2 focus:text-sm focus:text-paper"
+        >
+          Skip to content
+        </a>
+        {children}
+      </body>
     </html>
   );
 }
