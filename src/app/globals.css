@@ -1181,6 +1181,23 @@
     &:hover {
       --w: 118;
     }
+
+    /* The address itself is the label, so the copy shows up as a tag after it. */
+    &[data-copied]::after {
+      content: "copied";
+      display: inline-block;
+      margin-left: 0.6rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 0.3rem;
+      background: var(--nila);
+      color: var(--kunyit);
+      font-family: var(--font-mono);
+      font-variation-settings: "wdth" 87.5;
+      font-size: 0.75rem;
+      font-weight: 400;
+      letter-spacing: 0;
+      vertical-align: middle;
+    }
   }
 
   .contact-row {

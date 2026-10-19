@@ -4,7 +4,8 @@ import { type MouseEvent, useEffect, useRef, useSyncExternalStore } from "react"
 import { site } from "@/content/site";
 import { stages, type StageId } from "@/content/story";
 import { getStage, goToStage, subscribeStage } from "@/lib/stage";
-import { MailIcon } from "./icons";
+import { EmailLink } from "./email-link";
+import { CheckIcon, MailIcon } from "./icons";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -80,10 +81,18 @@ export function SiteHeader() {
           <span className="eyebrow-n">{pad(index + 1)}</span> {stages[index].label}
         </p>
 
-        <a href={`mailto:${site.email}`} className="header-email">
+        <EmailLink
+          className="header-email"
+          copiedLabel={
+            <>
+              <CheckIcon className="size-4" />
+              Copied
+            </>
+          }
+        >
           <MailIcon className="size-4" />
           Email me
-        </a>
+        </EmailLink>
       </div>
       <span className="scroll-bar" aria-hidden="true">
         <span ref={barRef} />

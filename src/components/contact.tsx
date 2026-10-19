@@ -1,5 +1,6 @@
 import { site } from "@/content/site";
-import { ArrowUpRightIcon, GitHubIcon, MailIcon } from "./icons";
+import { EmailLink } from "./email-link";
+import { ArrowUpRightIcon, CheckIcon, GitHubIcon, MailIcon } from "./icons";
 import { SalatigaClock } from "./salatiga-clock";
 
 export function Contact() {
@@ -14,15 +15,21 @@ export function Contact() {
           Want to talk about a project, AI or plain web? Email is the best way to reach me.
         </p>
 
-        <a href={`mailto:${site.email}`} className="contact-email">
-          {site.email}
-        </a>
+        <EmailLink className="contact-email">{site.email}</EmailLink>
 
         <div className="contact-row">
-          <a href={`mailto:${site.email}`} className="btn btn-solid">
+          <EmailLink
+            className="btn btn-solid"
+            copiedLabel={
+              <>
+                <CheckIcon className="size-4" />
+                Copied
+              </>
+            }
+          >
             <MailIcon className="size-4" />
             Email me
-          </a>
+          </EmailLink>
           <a href={site.github} className="btn btn-line">
             <GitHubIcon className="size-4" />
             GitHub
