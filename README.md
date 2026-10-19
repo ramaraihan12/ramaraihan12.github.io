@@ -64,4 +64,4 @@ There's no test suite, it's static content. The build type-checks everything, an
 
 ## License
 
-MIT
+The code is MIT, so take whatever helps. My photo and the written content (bio and project write-ups) aren't covered by it, so please don't reuse those.
