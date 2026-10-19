@@ -22,21 +22,19 @@ export async function GET() {
           alignItems: "center",
           justifyContent: "space-between",
           padding: "72px 80px",
-          background: "#0e1022",
-          color: "#e7e9f3",
+          background: "#0f1a47",
+          color: "#efe9dc",
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", maxWidth: 680 }}>
-          <div style={{ fontSize: 28, color: "#a0a5c0" }}>{`${site.role} · ${site.location}`}</div>
-          <div style={{ fontSize: 112, lineHeight: 1, letterSpacing: "-0.03em", marginTop: 24 }}>
-            {site.name}
+          <div style={{ fontSize: 26, color: "#9aa3c7" }}>{`${site.role} · ${site.location}`}</div>
+          <div style={{ display: "flex", flexDirection: "column", fontSize: 104, lineHeight: 1, letterSpacing: "-0.03em", marginTop: 28 }}>
+            <span>Who is</span>
+            <span style={{ color: "#f4b223" }}>Rama Raihan?</span>
           </div>
-          <div style={{ fontSize: 34, lineHeight: 1.35, color: "#c9cde3", marginTop: 32 }}>
+          <div style={{ fontSize: 32, lineHeight: 1.35, color: "#c9cde3", marginTop: 32 }}>
             Laravel and Next.js web apps. Now building AI apps: RAG, agents, chatbots and
             workflow automation.
-          </div>
-          <div style={{ display: "flex", fontSize: 26, color: "#f0b43c", marginTop: 40 }}>
-            github.com/ramaraihan12
           </div>
         </div>
         {/* eslint-disable-next-line @next/next/no-img-element -- ImageResponse renders plain img, not next/image */}
@@ -45,7 +43,7 @@ export async function GET() {
           alt=""
           width={330}
           height={440}
-          style={{ objectFit: "cover", borderRadius: 24, border: "2px solid #272c4b" }}
+          style={{ objectFit: "cover", borderRadius: 16, border: "6px solid #f4b223" }}
         />
       </div>
     ),

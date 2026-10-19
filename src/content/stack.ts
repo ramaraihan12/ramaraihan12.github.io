@@ -1,5 +1,7 @@
 export type StackGroup = {
   name: string;
+  /** Written like a tool name an agent would call. */
+  key: string;
   items: string[];
   note: string;
 };
@@ -7,6 +9,7 @@ export type StackGroup = {
 export const stack: StackGroup[] = [
   {
     name: "AI and LLMs",
+    key: "llms",
     items: [
       "OpenAI",
       "Gemini",
@@ -23,21 +26,25 @@ export const stack: StackGroup[] = [
   },
   {
     name: "Frontend",
+    key: "frontend",
     items: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Vite"],
     note: "Most of my apps run on Next.js. I write everything in TypeScript now.",
   },
   {
     name: "Backend",
+    key: "backend",
     items: ["Laravel", "PHP", "Node.js", "Python", "FastAPI", "Hono", "Midtrans"],
     note: "Laravel for APIs, queues and auth. Python and FastAPI on the AI side. Midtrans for payments on Indonesian projects.",
   },
   {
     name: "Data",
+    key: "data",
     items: ["PostgreSQL", "pgvector", "MySQL", "MongoDB", "Drizzle"],
     note: "Postgres is my default, and pgvector keeps the embeddings in the same database as everything else.",
   },
   {
     name: "Shipping",
+    key: "shipping",
     items: ["Docker", "GitHub Actions", "Coolify", "Git", "PHPUnit"],
     note: "Docker so the app behaves the same on my laptop as on the server. Coolify deploys it to my own VPS.",
   },

@@ -1,38 +1,93 @@
-import { site } from "@/content/site";
-import { ThemeToggle } from "./theme-toggle";
+"use client";
 
-// Stack is the first link to go on very narrow phones; the section is right below the hero anyway.
-const links = [
-  { href: "#stack", label: "Stack", className: "max-[22rem]:hidden" },
-  { href: "#projects", label: "Projects" },
-  { href: "#contact", label: "Contact" },
-];
+import { type MouseEvent, useEffect, useRef, useSyncExternalStore } from "react";
+import { site } from "@/content/site";
+import { stages, type StageId } from "@/content/story";
+import { getStage, goToStage, subscribeStage } from "@/lib/stage";
+import { MailIcon } from "./icons";
+
+const pad = (n: number) => String(n).padStart(2, "0");
 
 export function SiteHeader() {
+  const active = useSyncExternalStore(subscribeStage, getStage, () => "query" as StageId);
+  const index = stages.findIndex((s) => s.id === active);
+  const navRef = useRef<HTMLOListElement>(null);
+  const dotRef = useRef<HTMLSpanElement>(null);
+  const barRef = useRef<HTMLSpanElement>(null);
+
+  // The dot slides under whichever stage is active.
+  useEffect(() => {
+    const place = () => {
+      const link = navRef.current?.querySelector<HTMLElement>('[aria-current="step"]');
+      if (!link || !dotRef.current) return;
+      dotRef.current.style.translate = `${link.offsetLeft + link.offsetWidth / 2}px 0`;
+    };
+    place();
+    window.addEventListener("resize", place);
+    document.fonts?.ready.then(place);
+    return () => window.removeEventListener("resize", place);
+  }, [active]);
+
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      barRef.current?.style.setProperty("scale", `${max > 0 ? window.scrollY / max : 0} 1`);
+    };
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
+  // Stages inside a pinned scene have no element to jump to, so the scenes say where they are.
+  const jump = (id: StageId) => (e: MouseEvent) => {
+    if (goToStage(id)) e.preventDefault();
+  };
+
   return (
-    <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/85 backdrop-blur-md">
-      <div className="container-page flex h-14 items-center justify-between gap-3">
-        <a href="#top" className="type-display shrink-0 text-[0.9rem] tracking-normal whitespace-nowrap text-ink sm:text-[0.95rem]">
+    <header className="site-header">
+      <div className="site-header-inner container-page">
+        <a href="#top" onClick={jump("query")} className="brand">
           {site.name}
         </a>
-        <nav aria-label="Main">
-          <ul className="flex items-center gap-0.5 text-[0.8125rem] sm:gap-1 sm:text-sm">
-            {links.map((link) => (
-              <li key={link.href} className={link.className}>
+
+        <nav aria-label="Sections" className="stage-nav">
+          <ol ref={navRef}>
+            {stages.map((stage) => (
+              <li key={stage.id}>
                 <a
-                  href={link.href}
-                  className="rounded-md px-1 py-1.5 text-muted transition-colors hover:text-ink sm:px-3"
+                  href={stage.href}
+                  onClick={jump(stage.id)}
+                  aria-current={stage.id === active ? "step" : undefined}
                 >
-                  {link.label}
+                  {stage.label}
                 </a>
               </li>
             ))}
-            <li className="sm:ml-1">
-              <ThemeToggle />
-            </li>
-          </ul>
+          </ol>
+          <span ref={dotRef} className="stage-dot" aria-hidden="true" />
         </nav>
+
+        <p className="stage-now" aria-hidden="true">
+          <span className="eyebrow-n">{pad(index + 1)}</span> {stages[index].label}
+        </p>
+
+        <a href={`mailto:${site.email}`} className="header-email">
+          <MailIcon className="size-4" />
+          Email me
+        </a>
       </div>
+      <span className="scroll-bar" aria-hidden="true">
+        <span ref={barRef} />
+      </span>
     </header>
   );
 }

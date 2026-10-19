@@ -1,25 +1,25 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, Geist_Mono, Instrument_Sans } from "next/font/google";
+import { Anybody, Martian_Mono, Schibsted_Grotesk } from "next/font/google";
 import type { ReactNode } from "react";
 import { site } from "@/content/site";
 import { ogImage } from "@/lib/og";
-import { themeColors } from "@/lib/theme";
 import "./globals.css";
 
-const archivo = Archivo({
+const anybody = Anybody({
   subsets: ["latin"],
   axes: ["wdth"],
-  variable: "--font-archivo",
+  variable: "--font-anybody",
 });
 
-const instrumentSans = Instrument_Sans({
+const schibsted = Schibsted_Grotesk({
   subsets: ["latin"],
-  variable: "--font-instrument",
+  variable: "--font-schibsted",
 });
 
-const geistMono = Geist_Mono({
+const martian = Martian_Mono({
   subsets: ["latin"],
-  variable: "--font-geist-mono",
+  axes: ["wdth"],
+  variable: "--font-martian",
 });
 
 export const metadata: Metadata = {
@@ -46,43 +46,34 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: themeColors.light },
-    { media: "(prefers-color-scheme: dark)", color: themeColors.dark },
-  ],
+  themeColor: "#0f1a47",
 };
 
-// Runs before first paint so the page never flashes the wrong theme. A saved choice also gets
-// its own theme-color tag, see ThemeToggle.
-const themeScript = `(() => {
+/*
+  Runs before first paint. "js" lets the canvas map show at all, since it's an empty box without
+  scripts. With motion allowed, "scrolly" switches the scenes to their pinned layout right away
+  instead of flashing the plain one first. If the scripts never start (blocked, offline), that
+  class comes off again after a few seconds so nothing stays hidden.
+*/
+const scrollyScript = `(() => {
   const root = document.documentElement;
-  let theme = null;
-  try { theme = localStorage.getItem("theme"); } catch {}
-  const dark = theme ? theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
-  root.classList.toggle("dark", dark);
-  if (theme) {
-    const meta = document.createElement("meta");
-    meta.name = "theme-color";
-    meta.content = dark ? "${themeColors.dark}" : "${themeColors.light}";
-    document.head.prepend(meta);
-  }
+  root.classList.add("js");
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) root.classList.add("scrolly");
+  setTimeout(() => { if (!root.dataset.engine) root.classList.remove("scrolly"); }, 6000);
 })();`;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"
-      className={`${archivo.variable} ${instrumentSans.variable} ${geistMono.variable}`}
+      className={`${anybody.variable} ${schibsted.variable} ${martian.variable}`}
       suppressHydrationWarning
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: scrollyScript }} />
       </head>
       <body>
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-ink focus:px-3 focus:py-2 focus:text-sm focus:text-paper"
-        >
+        <a href="#main" className="skip-link">
           Skip to content
         </a>
         {children}

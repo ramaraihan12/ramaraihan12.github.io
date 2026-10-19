@@ -1,5 +1,7 @@
 export type Project = {
   name: string;
+  /** What kind of AI app it is, shown as a tag on the panel. */
+  kind: string;
   summary: string;
   /** Short steps showing how a request moves through the app. */
   flow?: string[];
@@ -8,13 +10,14 @@ export type Project = {
 };
 
 /** No href means the code isn't public, so the name is shown without a link. */
-export type OtherProject = Omit<Project, "flow" | "href"> & { href?: string };
+export type OtherProject = Omit<Project, "flow" | "href" | "kind"> & { href?: string };
 
 const repo = (name: string) => `https://github.com/ramaraihan12/${name}`;
 
 export const aiProjects: Project[] = [
   {
     name: "docs-rag-assistant",
+    kind: "RAG",
     summary: "Chat with your own PDFs and docs. Every answer cites the page it came from.",
     flow: ["upload pdf", "chunk + embed", "pgvector search", "answer with page cite"],
     stack: ["Python", "FastAPI", "LlamaIndex", "pgvector"],
@@ -22,6 +25,7 @@ export const aiProjects: Project[] = [
   },
   {
     name: "research-agent",
+    kind: "Agent",
     summary:
       "A LangGraph agent that plans the research, waits for you to approve the plan, then searches the web and writes a cited report.",
     flow: ["plan", "you approve", "web search", "cited report"],
@@ -30,6 +34,7 @@ export const aiProjects: Project[] = [
   },
   {
     name: "shop-support-bot",
+    kind: "Chatbot",
     summary:
       "Support chatbot for a small coffee bean shop. It answers FAQ and checks orders through tool calls, on the web and in Telegram.",
     flow: ["web or telegram", "faq search / order lookup", "answer"],
@@ -38,6 +43,7 @@ export const aiProjects: Project[] = [
   },
   {
     name: "llm-gateway",
+    kind: "Gateway",
     summary:
       "One OpenAI-compatible endpoint in front of OpenAI, Gemini, Anthropic and Ollama, with fallback, retries, rate limits and cost logs.",
     flow: ["request", "rate limit", "provider", "retry / fallback", "cost log"],
@@ -46,6 +52,7 @@ export const aiProjects: Project[] = [
   },
   {
     name: "invoice-flow",
+    kind: "Extraction",
     summary:
       "Laravel app that pulls invoice data out with an LLM, checks the math, and holds it for review and approval before export.",
     flow: ["upload", "llm extract", "math check", "review + approve", "export / webhook"],
@@ -54,6 +61,7 @@ export const aiProjects: Project[] = [
   },
   {
     name: "text-to-sql-chat",
+    kind: "Text to SQL",
     summary:
       "Ask a sales database questions in English or Bahasa Indonesia, with guardrails on the generated SQL. Also ships an MCP server.",
     flow: ["question", "generate sql", "guardrails", "run + answer"],
@@ -62,6 +70,7 @@ export const aiProjects: Project[] = [
   },
   {
     name: "issue-triage-action",
+    kind: "Automation",
     summary:
       "GitHub Action that labels new issues, flags likely duplicates (TF-IDF) and leaves one comment. Defaults to Gemini's free tier, and any OpenAI-compatible endpoint works too, Ollama included.",
     flow: ["new issue", "labels", "duplicate check", "comment"],
@@ -70,8 +79,9 @@ export const aiProjects: Project[] = [
   },
   {
     name: "local-ai-coding-setup",
+    kind: "Local models",
     summary:
-      "My free, fully local AI coding setup on a laptop with a 6 GB RTX 3060: a coding agent in the terminal and autocomplete in VS Code. No subscription and no API bill.",
+      "My fully local AI coding setup on a laptop with a 6 GB RTX 3060: a coding agent in the terminal and autocomplete in VS Code. No subscription and no API bill.",
     flow: ["llama-server + ollama", "moe experts split gpu / ram", "pi agent behind a permission gate"],
     stack: ["llama.cpp", "Ollama", "Pi", "PowerShell"],
     href: repo("local-ai-coding-setup"),
