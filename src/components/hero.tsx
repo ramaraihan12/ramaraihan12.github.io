@@ -24,7 +24,8 @@ export function Hero() {
             src="/images/rama.jpg"
             alt="Rama Raihan at night in a cap, holding a fish up to his ear like a phone"
             fill
-            priority
+            loading="eager"
+            fetchPriority="high"
             sizes="(min-width: 768px) 264px, 96px"
             className="object-cover object-[50%_45%] md:object-center"
           />
