@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Archivo, Geist_Mono, Instrument_Sans } from "next/font/google";
 import type { ReactNode } from "react";
+import { site } from "@/content/site";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -20,9 +21,31 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Rama Raihan · Full-stack developer",
-  description:
-    "Full-stack developer in Salatiga, Indonesia. Laravel and Next.js web apps, and now AI apps: RAG, agents, chatbots and workflow automation.",
+  metadataBase: new URL(site.url),
+  title: `${site.name} · ${site.role}`,
+  description: site.description,
+  authors: [{ name: site.name, url: site.github }],
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: site.name,
+    title: `${site.name} · ${site.role}`,
+    description: site.description,
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${site.name} · ${site.role}`,
+    description: site.description,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4f5f8" },
+    { media: "(prefers-color-scheme: dark)", color: "#0e1022" },
+  ],
 };
 
 // Runs before first paint so the page never flashes the wrong theme.
