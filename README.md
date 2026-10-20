@@ -1,6 +1,6 @@
 # ramaraihan12.github.io
 
-Live at **https://ramaraihan12.github.io**
+Live at **https://ramaraihan.is-a.dev**
 
 My personal site. It answers one question, "Who is Rama Raihan?", the way a RAG app would. As you scroll, the question gets tokenized, turned into an embedding, matched against short notes I wrote about myself, and answered with citations. My stack and AI projects come up along the way.
 
