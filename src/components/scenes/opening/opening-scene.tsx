@@ -9,6 +9,7 @@ import { intro, retrieval, steps } from "@/content/story";
 import { EmbeddingMap, type Frame } from "@/lib/embedding-map";
 import { MOBILE_MQ, PRIORITY, REDUCE_MQ, SCENE_MQ, scrollyOn } from "@/lib/scroll";
 import { elementMarker, setMarkers } from "@/lib/stage";
+import { chipDrag } from "./chip-drag";
 import { landRig } from "./land-rig";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
@@ -33,6 +34,8 @@ const SCROLL = 5.5;
 const T = {
   tokens: 0.5,
   tokenized: 1.6,
+  /** While the playhead is in here, the chips can be dragged. */
+  drag: [1.45, 2.05],
   collapse: 2.15,
   embed: 2.4,
   embedded: 3.9,
@@ -210,6 +213,7 @@ export function OpeningScene({ land }: { land: ReactNode }) {
         const splash = q(".qs-splash");
 
         const rig = landRig(landBox);
+        const drag = chipDrag(chips, title);
 
         const resize = () => {
           map.resize();
@@ -270,7 +274,10 @@ export function OpeningScene({ land }: { land: ReactNode }) {
             onToggle: (self) => play(self.isActive),
           },
           // The scrub keeps easing for a moment after the scene leaves the screen.
-          onUpdate: () => map.draw(performance.now()),
+          onUpdate: () => {
+            map.draw(performance.now());
+            drag.set(tl.time() >= T.drag[0] && tl.time() <= T.drag[1]);
+          },
         });
 
         // Query → tokens. The headline condenses and splits into the tokenizer's pieces, the land
@@ -363,6 +370,7 @@ export function OpeningScene({ land }: { land: ReactNode }) {
           ScrollTrigger.removeEventListener("refreshInit", resize);
           window.removeEventListener("pointermove", onPoint);
           rig.kill();
+          drag.kill();
           removeHover();
           removeMarkers();
         };
