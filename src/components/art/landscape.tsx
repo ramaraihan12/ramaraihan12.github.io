@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, ReactNode, SVGProps } from "react";
 import { dot, nums, type Pt, smooth, taper } from "./draw";
 import { hash, rng, wobble } from "./rng";
 
@@ -44,11 +44,20 @@ export type LandscapeProps = {
   plume?: boolean;
   /** "xMidYMax slice" by default: fills the box, keeps the ground, crops the sides. */
   preserveAspectRatio?: string;
+  /**
+   * Where the drawing's shapes come from. "inline" (default) draws them here. Two landscapes on
+   * one page can share them, since the mountains are the same in both: one "define"s them
+   * (with ids, in its defs) and the other "reuse"s them through <use>, so the page carries the
+   * paths once. A "reuse" landscape draws nothing without a "define" one on the page.
+   */
+  shapes?: LandscapeShapes;
   className?: string;
   style?: CSSProperties;
   /** Prefix for the gradient ids. Derived from the colors when left out. */
   id?: string;
 };
+
+export type LandscapeShapes = "inline" | "define" | "reuse";
 
 const NIGHT = ["#050a22", "#0b1438", "#1b2766"];
 
@@ -356,6 +365,22 @@ const GEOMETRY = (() => {
   };
 })();
 
+/** Every path the drawing uses, by name. The same for every Landscape. */
+const SHAPES = { ...GEOMETRY, stars: STARS.small, bigStars: STARS.big, sparkle: STARS.sparkle };
+type ShapeName = keyof typeof SHAPES;
+const shapeId = (name: string) => `art-land-${name}`;
+
+type ShapeProps = Omit<SVGProps<SVGPathElement>, "d" | "ref"> & { name: ShapeName; shapes: LandscapeShapes };
+
+/** One of the shapes, painted here: as a path, or as a <use> of the shared one. */
+function Shape({ name, shapes, ...paint }: ShapeProps) {
+  return shapes === "inline" ? (
+    <path d={SHAPES[name]} {...paint} />
+  ) : (
+    <use href={`#${shapeId(name)}`} {...(paint as SVGProps<SVGUseElement>)} />
+  );
+}
+
 /* ---------- component ---------- */
 
 const mix = (ink: string, haze: string, pct: number) => `color-mix(in oklab, ${ink} ${pct}%, ${haze})`;
@@ -375,6 +400,7 @@ export function Landscape({
   stars = 0,
   plume = true,
   preserveAspectRatio = "xMidYMax slice",
+  shapes = "inline",
   className,
   style,
   id,
@@ -384,7 +410,6 @@ export function Landscape({
   const glow = sky[sky.length - 1];
   const wax = mix("var(--mori, #efe9dc)", fade, 40);
   const uid = id ?? `ls${hash([...sky, fade, ink, sunColor].join()).toString(36)}`;
-  const g = GEOMETRY;
   const showSun = sun && sun.visible !== false;
   const sunR = sun?.r ?? 24;
 
@@ -415,15 +440,18 @@ export function Landscape({
           <stop offset="0.3" stopColor={sunColor} stopOpacity="0.4" />
           <stop offset="1" stopColor={sunColor} stopOpacity="0" />
         </radialGradient>
+        {shapes === "define"
+          ? Object.entries(SHAPES).map(([name, d]) => <path key={name} id={shapeId(name)} d={d} />)
+          : null}
       </defs>
 
       <g data-depth="0" data-layer="sky">
         <rect x={-W} y={-H} width={W * 3} height={H * 2} fill={`url(#${uid}-sky)`} />
         {stars > 0 ? (
           <g opacity={Math.min(1, stars)} stroke="var(--mori, #efe9dc)" strokeLinecap="round" fill="none">
-            <path d={STARS.small} strokeWidth="2.2" opacity="0.7" />
-            <path d={STARS.big} strokeWidth="3.6" />
-            <path d={STARS.sparkle} strokeWidth="1.2" opacity="0.8" />
+            <Shape shapes={shapes} name="stars" strokeWidth="2.2" opacity="0.7" />
+            <Shape shapes={shapes} name="bigStars" strokeWidth="3.6" />
+            <Shape shapes={shapes} name="sparkle" strokeWidth="1.2" opacity="0.8" />
           </g>
         ) : null}
       </g>
@@ -439,35 +467,44 @@ export function Landscape({
       </g>
 
       <g data-depth="0.15" data-layer="merapi">
-        {plume ? <path d={g.plume} fill={`url(#${uid}-smoke)`} opacity="0.7" /> : null}
-        <path d={g.merapi} fill={mix(ink, fade, 38)} stroke={wax} strokeWidth="1.5" strokeOpacity="0.55" />
-        <path d={g.merapiDots} fill="none" stroke={wax} strokeWidth="2.6" strokeLinecap="round" strokeDasharray="0 9" opacity="0.55" />
+        {plume ? <Shape shapes={shapes} name="plume" fill={`url(#${uid}-smoke)`} opacity="0.7" /> : null}
+        <Shape shapes={shapes} name="merapi" fill={mix(ink, fade, 38)} stroke={wax} strokeWidth="1.5" strokeOpacity="0.55" />
+        <Shape
+          shapes={shapes}
+          name="merapiDots"
+          fill="none"
+          stroke={wax}
+          strokeWidth="2.6"
+          strokeLinecap="round"
+          strokeDasharray="0 9"
+          opacity="0.55"
+        />
       </g>
 
       <g data-depth="0.3" data-layer="merbabu">
-        <path d={g.merbabu} fill={mix(ink, fade, 54)} stroke={wax} strokeWidth="1.6" strokeOpacity="0.6" />
+        <Shape shapes={shapes} name="merbabu" fill={mix(ink, fade, 54)} stroke={wax} strokeWidth="1.6" strokeOpacity="0.6" />
         <g fill="none" stroke={wax} strokeLinecap="round">
-          <path d={g.gullies} strokeWidth="1.6" opacity="0.4" />
-          <path d={g.merbabuDots} strokeWidth="2.8" strokeDasharray="0 10" opacity="0.6" />
+          <Shape shapes={shapes} name="gullies" strokeWidth="1.6" opacity="0.4" />
+          <Shape shapes={shapes} name="merbabuDots" strokeWidth="2.8" strokeDasharray="0 10" opacity="0.6" />
         </g>
         <rect y="470" width={W} height="160" fill={`url(#${uid}-mist)`} />
       </g>
 
       <g data-depth="0.5" data-layer="ridge">
-        <path d={g.ridge} fill={mix(ink, fade, 70)} stroke={wax} strokeWidth="1.5" strokeOpacity="0.35" />
+        <Shape shapes={shapes} name="ridge" fill={mix(ink, fade, 70)} stroke={wax} strokeWidth="1.5" strokeOpacity="0.35" />
         <rect y="560" width={W} height="90" fill={`url(#${uid}-mist)`} opacity="0.6" />
       </g>
 
       <g data-depth="0.72" data-layer="hills">
-        <path d={g.hills} fill={mix(ink, fade, 86)} />
+        <Shape shapes={shapes} name="hills" fill={mix(ink, fade, 86)} />
       </g>
 
       <g data-depth="1" data-layer="front" fill={ink}>
-        <path d={g.front} />
-        <path d={g.crowns} />
-        <path d={g.trunks} fill="none" stroke={ink} strokeWidth="6.5" strokeLinecap="round" />
-        <path d={g.fronds} fill="none" stroke={ink} strokeWidth="5" strokeLinecap="round" />
-        <path d={g.terraces} fill="none" stroke={mix(ink, fade, 78)} strokeWidth="2" strokeLinecap="round" />
+        <Shape shapes={shapes} name="front" />
+        <Shape shapes={shapes} name="crowns" />
+        <Shape shapes={shapes} name="trunks" fill="none" stroke={ink} strokeWidth="6.5" strokeLinecap="round" />
+        <Shape shapes={shapes} name="fronds" fill="none" stroke={ink} strokeWidth="5" strokeLinecap="round" />
+        <Shape shapes={shapes} name="terraces" fill="none" stroke={mix(ink, fade, 78)} strokeWidth="2" strokeLinecap="round" />
       </g>
     </svg>
   );
