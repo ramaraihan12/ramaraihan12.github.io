@@ -18,9 +18,10 @@ export const REDUCE_MQ = "(prefers-reduced-motion: reduce)";
   ScrollTrigger refreshes triggers in the order they were made. A resize can rebuild one scene's
   triggers while the scenes below keep theirs, and then the lower ones would be measured before
   the pins above them exist. A priority per scene, highest at the top of the page, keeps the
-  page order no matter what was rebuilt.
+  page order no matter what was rebuilt. Sections that don't pin (play, tools) get a slot too, so
+  every trigger on the page refreshes in page order.
 */
-export const PRIORITY = { query: 4, tools: 3, work: 2, answer: 1 } as const;
+export const PRIORITY = { query: 5, play: 4, tools: 3, work: 2, answer: 1 } as const;
 
 /**
  * Whether the scenes get their pinned, animated layout: motion is allowed, and the scripts

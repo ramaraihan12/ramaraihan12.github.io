@@ -12,6 +12,7 @@ export const stages = [
   { id: "tokens", label: "tokens", href: "#tokens" },
   { id: "embed", label: "embed", href: "#embed" },
   { id: "retrieve", label: "retrieve", href: "#retrieve" },
+  { id: "play", label: "play", href: "#play" },
   { id: "tools", label: "tools", href: "#tools" },
   { id: "work", label: "work", href: "#work" },
   { id: "answer", label: "answer", href: "#answer" },
