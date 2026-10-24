@@ -61,7 +61,9 @@ export function QueryScene() {
       const cards = gsap.utils.toArray<HTMLElement>(".qs-card", section);
       const mm = gsap.matchMedia();
 
-      mm.add({ scene: SCENE_MQ, mobile: MOBILE_MQ, reduce: REDUCE_MQ }, (ctx) => {
+      // "all" always matches, so the callback runs on every screen, including landscape phones
+      // that match none of the others, and builds the plain page there.
+      mm.add({ scene: SCENE_MQ, mobile: MOBILE_MQ, reduce: REDUCE_MQ, any: "all" }, (ctx) => {
         const { scene, mobile, reduce } = ctx.conditions as Record<string, boolean>;
         const scrolly = scrollyOn() && scene && !reduce;
 
