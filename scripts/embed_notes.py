@@ -7,7 +7,8 @@
 Embeds every note in scripts/notes.json (with a one-line context header) and the question with a
 local model through Ollama, ranks the notes by cosine similarity, and squashes all the vectors
 down to 2D with PCA so they can be drawn on a canvas. The question's tokens come from the same
-model's tokenizer. The tokens, numbers and scores on the site are the real ones from this run.
+model's tokenizer, and its whole embedding is saved too (queryVector). The tokens, numbers and
+scores on the site are the real ones from this run.
 
     ollama pull qwen3-embedding:0.6b
     uv run scripts/embed_notes.py
@@ -79,6 +80,9 @@ def main() -> None:
         "dims": int(docs.shape[1]),
         "tokens": tokens,
         "queryHead": [round(float(v), 4) for v in query[:VECTOR_HEAD]],
+        # All of the question's numbers, for art drawn from the real vector. Rounded to keep
+        # the file small; the scores above use the full precision.
+        "queryVector": [round(float(v), 4) for v in query],
         "query": {"x": round(float(q2[0]), 4), "y": round(float(q2[1]), 4)},
         "points": [
             {
