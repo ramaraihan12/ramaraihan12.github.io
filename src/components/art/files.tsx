@@ -1,13 +1,16 @@
 import type { CSSProperties } from "react";
 import { aiProjects, otherProjects, webProjects } from "@/content/projects";
+import { stack } from "@/content/stack";
 import { svgMarkup } from "./markup";
 import { type BatikKind, type BatikUriOptions, batikSvg, batikTileSize } from "./patterns";
 import { Postcard, type PostcardTone } from "./postcard";
+import { hash } from "./rng";
+import { CapFramePaths, capFrame } from "./stamp";
 
 /*
   Art that ships as .svg files instead of inside the page. Anything React renders on the server
   is written into the HTML twice, once as markup and once in the payload the page hydrates from,
-  so the big still pieces (the batik grounds, the postcards) are drawn once
+  so the big still pieces (the batik grounds, the postcards, the stamp frames) are drawn once
   at build time into /art/*.svg by src/app/art/[name]/route.ts and the page only points at them.
 
   Server and build only: this pulls in the drawing code, which must not reach the browser.
@@ -106,6 +109,30 @@ export function PostcardImage({ name, tone = "mori", className }: PostcardImageP
   );
 }
 
+/* ---------- cap stamps ---------- */
+
+/** Stamps whose frames live in the sprite: every tool on the stack. */
+const STAMPS = stack.flatMap((group) => group.items);
+const STAMP_SET = new Set(STAMPS);
+const stampId = (seed: string) => `c${hash(seed).toString(36)}`;
+
+/** The frame for a rect stamp with this seed, as a fragment of the shared sprite. Undefined if it isn't in it. */
+export function capStampHref(seed: string) {
+  return STAMP_SET.has(seed) ? `/art/cap-stamps.svg#${stampId(seed)}` : undefined;
+}
+
+function capStampSprite() {
+  const frames = STAMPS.map((seed) => {
+    const { outer, inner } = capFrame(seed, "rect");
+    return (
+      <g key={seed} id={stampId(seed)}>
+        <CapFramePaths outer={outer} inner={inner} />
+      </g>
+    );
+  });
+  return `<svg ${SVG_NS} viewBox="0 0 100 40"><defs>${svgMarkup(frames)}</defs></svg>`;
+}
+
 /* ---------- the files ---------- */
 
 /** File name (with .svg) to a function that draws it. */
@@ -117,4 +144,5 @@ export const ART_FILES: Record<string, () => string> = {
     }),
   ),
   ...Object.fromEntries(POSTCARDS.map(({ name, tone }) => [postcardFile(name, tone), () => postcardSvg(name, tone)])),
+  "cap-stamps.svg": capStampSprite,
 };
