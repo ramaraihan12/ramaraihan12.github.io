@@ -24,7 +24,7 @@
 
   { "source": "project-clipper", "group": "side projects", "text": "project-clipper turns a long video into vertical clips for my YouTube channel: faster-whisper transcribes, Gemini picks the highlights, OpenCV tracks faces and ffmpeg burns in subtitles. Then it uploads them through the YouTube Data API." },
   { "source": "ralaex", "group": "side projects", "text": "ralaex is the household finance app my wife and I log our spending in. Budgets with alerts, receipt photos, charts and exports." },
-  { "source": "chaBubbleTwitch", "group": "side projects", "text": "chaBubbleTwitch is a free Twitch chat overlay for OBS that shows chat as bubbles, with emotes and username colors." },
+  { "source": "chaBubbleTwitch", "group": "side projects", "text": "chaBubbleTwitch is a free Twitch chat overlay for OBS that shows chat as wooden speech bubbles, with Twitch emotes." },
 
   { "source": "stack/next.js", "group": "frontend", "text": "Next.js: most of my apps run on it. App Router, server components, the usual setup." },
   { "source": "stack/react", "group": "frontend", "text": "React for building the interface. Components, hooks, client state." },
