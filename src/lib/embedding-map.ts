@@ -1,4 +1,5 @@
 import type retrievalData from "@/content/retrieval.json";
+import { cssColor, rgba } from "./tokens";
 
 type Retrieval = typeof retrievalData;
 type Point = { x: number; y: number };
@@ -18,13 +19,6 @@ export type MapState = {
   hits: { v: number }[];
 };
 
-const COLORS = {
-  mori: "239 233 220",
-  pudar: "154 163 199",
-  kunyit: "244 178 35",
-};
-
-const rgba = (rgb: string, a: number) => `rgb(${rgb} / ${a})`;
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
@@ -46,6 +40,8 @@ export class EmbeddingMap {
   private far: Camera = { cx: 0, cy: 0, s: 1 };
   private reach = 1;
   private font = "monospace";
+  /** The page's tokens, as channels for rgba(). */
+  private colors = { mori: cssColor("--mori"), pudar: cssColor("--pudar"), kunyit: cssColor("--kunyit") };
   private groups: { name: string; x: number; y: number }[];
   private bounds: { minX: number; maxX: number; minY: number; maxY: number };
   private hitIndex: number[];
@@ -136,7 +132,7 @@ export class EmbeddingMap {
   }
 
   draw(time = 0) {
-    const { ctx, state, data } = this;
+    const { ctx, state, data, colors } = this;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     ctx.clearRect(0, 0, this.w, this.h);
     if (state.alpha <= 0 && state.query <= 0) return;
@@ -148,7 +144,7 @@ export class EmbeddingMap {
     const seen = (p: Point) => state.alpha * clamp01((radius - Math.hypot(p.x - q.x, p.y - q.y)) / 0.3);
 
     // Faint plus marks every quarter unit, so the space reads as a plot and not a starfield.
-    ctx.strokeStyle = rgba(COLORS.pudar, 0.18);
+    ctx.strokeStyle = rgba(colors.pudar, 0.18);
     ctx.lineWidth = 1;
     ctx.beginPath();
     const { minX, maxX, minY, maxY } = this.bounds;
@@ -179,7 +175,7 @@ export class EmbeddingMap {
         if (Math.abs(p.x - s.x) < (p.w + w) / 2 && Math.abs(p.y - y) < 16) y = p.y + 16;
       }
       placed.push({ x: s.x, y, w });
-      ctx.fillStyle = rgba(COLORS.pudar, 0.75 * a);
+      ctx.fillStyle = rgba(colors.pudar, 0.75 * a);
       ctx.fillText(g.name, s.x, y);
     }
 
@@ -191,7 +187,7 @@ export class EmbeddingMap {
       const hot = i === this.highlight;
       ctx.beginPath();
       ctx.arc(s.x, s.y, hot ? 4.5 : 3, 0, Math.PI * 2);
-      ctx.fillStyle = rgba(COLORS.mori, (hot ? 1 : 0.62) * a);
+      ctx.fillStyle = rgba(colors.mori, (hot ? 1 : 0.62) * a);
       ctx.fill();
     });
 
@@ -203,7 +199,7 @@ export class EmbeddingMap {
       ctx.beginPath();
       ctx.moveTo(qs.x, qs.y);
       ctx.lineTo(qs.x + (p.x - qs.x) * t, qs.y + (p.y - qs.y) * t);
-      ctx.strokeStyle = rgba(COLORS.kunyit, 0.75);
+      ctx.strokeStyle = rgba(colors.kunyit, 0.75);
       ctx.lineWidth = 1.25;
       ctx.stroke();
 
@@ -211,12 +207,12 @@ export class EmbeddingMap {
         const hot = this.hitIndex[rank] === this.highlight;
         ctx.beginPath();
         ctx.arc(p.x, p.y, hot ? 8 : 6, 0, Math.PI * 2);
-        ctx.strokeStyle = rgba(COLORS.kunyit, 1);
+        ctx.strokeStyle = rgba(colors.kunyit, 1);
         ctx.lineWidth = 1.5;
         ctx.stroke();
         ctx.font = `500 11px ${this.font}`;
         ctx.textAlign = "left";
-        ctx.fillStyle = rgba(COLORS.kunyit, 1);
+        ctx.fillStyle = rgba(colors.kunyit, 1);
         ctx.fillText(String(rank + 1), p.x + 11, p.y - 9);
       }
     });
@@ -225,21 +221,21 @@ export class EmbeddingMap {
     if (state.query > 0) {
       const r = 5.5 * state.query;
       const glow = ctx.createRadialGradient(qs.x, qs.y, 0, qs.x, qs.y, r * 6);
-      glow.addColorStop(0, rgba(COLORS.kunyit, 0.35 * state.query));
-      glow.addColorStop(1, rgba(COLORS.kunyit, 0));
+      glow.addColorStop(0, rgba(colors.kunyit, 0.35 * state.query));
+      glow.addColorStop(1, rgba(colors.kunyit, 0));
       ctx.fillStyle = glow;
       ctx.fillRect(qs.x - r * 6, qs.y - r * 6, r * 12, r * 12);
 
       ctx.beginPath();
       ctx.arc(qs.x, qs.y, r, 0, Math.PI * 2);
-      ctx.fillStyle = rgba(COLORS.kunyit, 1);
+      ctx.fillStyle = rgba(colors.kunyit, 1);
       ctx.fill();
 
       if (time > 0 && state.query >= 1) {
         const f = (time % 1800) / 1800;
         ctx.beginPath();
         ctx.arc(qs.x, qs.y, r + 4 + f * 26, 0, Math.PI * 2);
-        ctx.strokeStyle = rgba(COLORS.kunyit, 0.5 * (1 - f));
+        ctx.strokeStyle = rgba(colors.kunyit, 0.5 * (1 - f));
         ctx.lineWidth = 1;
         ctx.stroke();
       }
