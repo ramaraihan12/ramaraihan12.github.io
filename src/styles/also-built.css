@@ -1,5 +1,5 @@
 @layer components {
-  /* ---------- Other projects ---------- */
+  /* ---------- Other projects: a row each, with a small postcard ---------- */
 
   .also {
     padding-block: clamp(4rem, 10vh, 7rem) 4rem;
@@ -20,24 +20,52 @@
 
   .also-row {
     display: grid;
-    gap: 0.6rem;
-    padding-block: 1.5rem;
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+    grid-template-areas: "card name" "body body";
+    align-items: center;
+    gap: 1rem 1.1rem;
+    padding-block: 1.6rem;
     border-top: 1px solid var(--line);
 
     @media (width >= 48rem) {
-      grid-template-columns: 15rem 1fr;
+      grid-template-columns: 8.5rem 13rem minmax(0, 1fr);
+      grid-template-areas: "card name body";
+      align-items: start;
       gap: 2rem;
     }
   }
 
+  .also-card {
+    grid-area: card;
+    display: block;
+    border-radius: 2.5% / 3.333%;
+    box-shadow: 0 14px 22px -14px rgb(0 0 0 / 0.8);
+    rotate: var(--tilt, 0deg);
+    transition:
+      rotate 0.45s cubic-bezier(0.2, 0.7, 0.2, 1),
+      translate 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  /* The card straightens up when you go for the row's link. */
+  .also-row:has(a:hover, a:focus-visible) .also-card {
+    rotate: 0deg;
+    translate: 0 -0.2rem;
+  }
+
   .also-name {
+    grid-area: name;
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    align-self: start;
+    justify-self: start;
     font-family: var(--font-mono);
     font-size: 0.92rem;
     font-weight: 600;
+    overflow-wrap: anywhere;
+
+    @media (width >= 48rem) {
+      padding-top: 0.2rem;
+    }
   }
 
   a.also-name {
@@ -51,15 +79,33 @@
     }
   }
 
+  .also-body {
+    grid-area: body;
+  }
+
   .also-summary {
     max-width: 42rem;
     color: var(--pudar);
     text-wrap: pretty;
   }
 
+  .also-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+    margin-top: 0.85rem;
+  }
+
   .also-note {
     margin-top: 1.5rem;
     font-size: 0.9rem;
     color: var(--pudar);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .also-card {
+      transition: none;
+    }
   }
 }
