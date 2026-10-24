@@ -205,12 +205,6 @@ export const otherProjects: OtherProject[] = [
       "Household finance PWA my wife and I log our spending in from our phones. Budgets that warn at 80% and 100%, receipt photos, charts, and PDF and Excel export. Recurring bills don't post on their own yet.",
     stack: ["Next.js", "TypeScript", "Supabase", "Recharts"],
     href: repo("ralaex"),
-    image: shot(
-      "ralaex",
-      "The finance dashboard for this month: income, spending and what's left, a budget warning, and spending per category in a donut chart.",
-      1280,
-      843,
-    ),
   },
   {
     name: "chaBubbleTwitch",
