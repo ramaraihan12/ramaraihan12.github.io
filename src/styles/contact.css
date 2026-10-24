@@ -2,7 +2,7 @@
   /* ---------- follow-up: contact, then the footer ---------- */
 
   .contact {
-    padding-block: clamp(5rem, 14vh, 9rem) clamp(4rem, 10vh, 6rem);
+    padding-top: clamp(5rem, 14vh, 9rem);
     background: var(--kunyit);
     color: var(--nila);
 
@@ -85,14 +85,70 @@
     }
   }
 
+  /* The clock, and a line on what I'm likely doing at that hour. */
+  .contact-time {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+
+    @media (width >= 40rem) {
+      align-items: flex-end;
+      margin-left: auto;
+      text-align: right;
+    }
+  }
+
   .contact-clock {
     font-family: var(--font-mono);
     font-variation-settings: "wdth" 87.5;
     font-size: 0.72rem;
     color: var(--on-kunyit-muted);
+  }
 
-    @media (width >= 40rem) {
-      margin-left: auto;
+  /* Holds its line before the time is known, so nothing moves when it fills in. */
+  .contact-sky-caption {
+    min-height: 1lh;
+    font-size: 0.92rem;
+    font-weight: 500;
+  }
+
+  /*
+    The sky over Merbabu, at the bottom of the turmeric. SkyBand sets these variables to the
+    sky at the current time; these defaults are the undyed sky shown before that and without
+    scripts.
+  */
+  .contact-sky {
+    --sky-top: var(--kunyit);
+    --sky-mid: var(--kunyit);
+    --sky-low: var(--kunyit);
+    --sun-x: 0;
+    --sun-y: 0;
+    --sun-on: 0;
+    --stars: 0;
+    position: relative;
+    /* Proportional to the width, so the same part of the drawing shows on every screen and
+       the sun's arc (sky-band.tsx) stays in view. Phones get the whole drawing. */
+    height: max(12rem, 32vw);
+    margin-top: clamp(3.5rem, 9vh, 6rem);
+    transition:
+      --sky-top 1.8s ease,
+      --sky-mid 1.8s ease,
+      --sky-low 1.8s ease,
+      --stars 1.8s ease,
+      --sun-on 1.2s ease 0.6s;
+
+    & .art-sun {
+      translate: calc(var(--sun-x) * 1600px) calc(var(--sun-y) * 700px);
+      opacity: var(--sun-on);
+    }
+
+    /* The stars, drawn always and shown by the hour. */
+    & [data-layer="sky"] > g {
+      opacity: var(--stars);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
     }
   }
 
@@ -118,4 +174,35 @@
       text-underline-offset: 0.25em;
     }
   }
+}
+
+/* Registered, so the sky fades from one color to the next instead of jumping. */
+@property --sky-top {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #f4b223;
+}
+
+@property --sky-mid {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #f4b223;
+}
+
+@property --sky-low {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #f4b223;
+}
+
+@property --stars {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@property --sun-on {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
 }

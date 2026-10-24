@@ -1,7 +1,8 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { clockCopy } from "@/content/copy";
 import { site } from "@/content/site";
+import { useMinute } from "./scenes/closing/salatiga-time";
 
 const format = new Intl.DateTimeFormat("en-GB", {
   timeZone: site.timeZone,
@@ -9,21 +10,14 @@ const format = new Intl.DateTimeFormat("en-GB", {
   minute: "2-digit",
 });
 
-function subscribe(onChange: () => void) {
-  const timer = setInterval(onChange, 15_000);
-  return () => clearInterval(timer);
-}
-
-const now = () => format.format(new Date());
-
 /** Local time in Salatiga, so someone in another time zone knows if I'm likely awake. */
 export function SalatigaClock() {
-  const time = useSyncExternalStore(subscribe, now, () => null);
-  return time ? (
+  const now = useMinute();
+  return now ? (
     <>
-      It&apos;s <time>{time}</time> in Salatiga (UTC+7)
+      {clockCopy.before} <time dateTime={now.toISOString()}>{format.format(now)}</time> {clockCopy.after}
     </>
   ) : (
-    <>Salatiga, UTC+7</>
+    <>{clockCopy.fallback}</>
   );
 }
