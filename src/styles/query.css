@@ -439,6 +439,25 @@
       opacity: 0;
     }
 
+    /* On the tokenized state the chips can be picked up (see chip-drag.ts). pan-y leaves
+       vertical swipes to the browser, so a phone still scrolls from on top of a chip. */
+    & .qs-title.is-draggable .tok {
+      cursor: grab;
+      pointer-events: auto;
+      touch-action: pan-y;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    /* Lifted off the line: a solid ground, so the chips it passes over don't show through. */
+    & .qs-title .tok.is-held {
+      z-index: 2;
+      cursor: grabbing;
+      background: var(--nila-2);
+      box-shadow: inset 0 0 0 calc(var(--chip) * 0.022em) var(--kunyit);
+    }
+
     & .qs-steps {
       z-index: 1;
       grid-area: 1 / 1;
