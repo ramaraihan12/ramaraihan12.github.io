@@ -21,6 +21,9 @@
     --nn-lift: 0 14px 28px -16px rgb(0 0 0 / 0.75);
     --nn-ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
     --nn-ease-spring: cubic-bezier(0.3, 1.6, 0.5, 1);
+    /* The night sky behind the map: a truntum tile from the art kit (batikDataUri("truntum"),
+       ink #323b6c, scale 0.75), baked in so the poster costs no script. */
+    --nn-sky: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 96 96'%3E%3Cdefs%3E%3Cg id='b-t0'%3E%3Cpath d='M9.3 .2C9.3 .8 8 1.8 6.3 1.7S3.5 .6 3.5 .1S4.9-1.4 6.4-1.4S9.3-.3 9.3 .2ZM4.3 4.6C4 4.9 3 4.8 2.5 4.2S2 2.7 2.2 2.4S3.5 2.1 4.1 2.7S4.5 4.4 4.3 4.6ZM.3 8.8C-.2 8.9-1.2 7.7-1.3 6.1S-.3 3.4 .1 3.4S1.6 4.5 1.7 6S.8 8.8 .3 8.8ZM-4.3 3.9C-4.5 3.6-4.7 2.6-4.2 2.1S-2.8 1.9-2.5 2.2S-2.1 3.4-2.6 3.9S-4 4.2-4.3 3.9ZM-9.6 0C-9.6-.5-8.2-1.5-6.4-1.5S-3.2-.5-3.2 0S-4.8 1.6-6.4 1.6S-9.6 .4-9.6 0ZM-3.9-4.3C-3.5-4.6-2.6-4.7-2.1-4.2S-1.9-2.8-2.2-2.5S-3.4-2.2-3.8-2.7S-4.2-4.1-3.9-4.3ZM-.2-9.4C.3-9.4 1.4-8.1 1.5-6.4S.4-3.5-.1-3.5S-1.5-4.6-1.6-6.3S-.7-9.4-.2-9.4ZM4.2-4.8C4.5-4.5 4.6-3.5 4-2.8S2.5-2.2 2.2-2.5S1.6-3.7 2.2-4.4S3.9-5 4.2-4.8Z' fill='none' stroke='%23323b6c' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M-2.2-.2a2.2 2.2 0 1 0 4.4 0a2.2 2.2 0 1 0 -4.4 0' fill='none' stroke='%23323b6c' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M-.9 0a1 1 0 1 0 1.9 0a1 1 0 1 0 -1.9 0M5.1 6a.8 .8 0 1 0 1.6 0a.8 .8 0 1 0 -1.6 0M-6.6 6.2a.9 .9 0 1 0 1.9 0a.9 .9 0 1 0 -1.9 0M-7.1-5.5a.8 .8 0 1 0 1.5 0a.8 .8 0 1 0 -1.5 0M4.8-6.1a1 1 0 1 0 1.9 0a1 1 0 1 0 -1.9 0' fill='%23323b6c'/%3E%3C/g%3E%3Cg id='b-t1'%3E%3Cpath d='M8.9 .2C8.9 .7 7.7 1.7 6.2 1.6S3.1 .5 3.1 .1S4.7-1.4 6.2-1.4S8.9-.3 8.9 .2ZM4 4.5C3.7 4.7 2.8 4.8 2.3 4.3S1.9 2.7 2.2 2.5S3.4 2.2 3.9 2.8S4.3 4.3 4 4.5ZM.6 9.3C.1 9.3-1.1 8-1.1 6.5S-.3 3.2 .2 3.1S1.8 4.7 1.9 6.3S1.1 9.3 .6 9.3ZM-4.2 4.5C-4.4 4.2-4.6 3.3-4 2.7S-2.4 2.1-2.2 2.3S-1.8 3.7-2.4 4.3S-3.9 4.7-4.2 4.5ZM-8.6-.2C-8.6-.7-7.4-1.7-6-1.6S-3.4-.6-3.4-.1S-4.6 1.5-6 1.5S-8.6 .3-8.6-.2ZM-4-3.8C-3.8-4-2.9-4.2-2.5-3.8S-2.2-2.6-2.4-2.3S-3.6-1.7-4.1-2.1S-4.2-3.5-4-3.8ZM-.3-9.7C.3-9.7 1.4-8.2 1.5-6.5S.4-3.5-.1-3.5S-1.6-4.5-1.7-6.4S-.9-9.7-.3-9.7ZM4-4.7C4.3-4.4 4.5-3.4 3.9-2.8S2.5-2.3 2.2-2.5S1.7-3.7 2.2-4.3S3.8-4.9 4-4.7Z' fill='none' stroke='%23323b6c' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M-2.2 0a2.2 2.2 0 1 0 4.3 0a2.2 2.2 0 1 0 -4.3 0' fill='none' stroke='%23323b6c' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M-.9 0a1 1 0 1 0 1.9 0a1 1 0 1 0 -1.9 0M5.5 5.5a.8 .8 0 1 0 1.7 0a.8 .8 0 1 0 -1.7 0M-6.7 5.9a.8 .8 0 1 0 1.5 0a.8 .8 0 1 0 -1.5 0M-6.7-6.1a.9 .9 0 1 0 1.7 0a.9 .9 0 1 0 -1.7 0M5.1-6a.8 .8 0 1 0 1.7 0a.8 .8 0 1 0 -1.7 0' fill='%23323b6c'/%3E%3C/g%3E%3Cg id='b-t2'%3E%3Cpath d='M8.9 0C8.9 .5 7.6 1.5 6.2 1.5S3.3 .5 3.3 0S4.8-1.6 6.2-1.6S8.9-.5 8.9 0ZM4.4 4.2C4.2 4.5 3.2 4.6 2.7 4.1S2.1 2.4 2.3 2.2S3.6 2 4.2 2.5S4.6 4 4.4 4.2ZM-.6 8.9C-1.1 8.8-2.1 7.5-2 6.1S-.7 3.2-.2 3.2S1.3 4.7 1.2 6.3S-.1 8.9-.6 8.9ZM-4.4 3.9C-4.7 3.6-4.8 2.6-4.3 2.2S-2.7 1.9-2.5 2.2S-2.2 3.4-2.8 3.9S-4.2 4.2-4.4 3.9ZM-9.1 .4C-9.1-.1-7.7-1.1-6.2-1.2S-3.2-.3-3.2 .1S-4.3 1.8-6 1.9S-9.1 .9-9.1 .4ZM-4.7-4.1C-4.5-4.4-3.5-4.6-2.8-4S-2.3-2.4-2.5-2.2S-3.7-1.8-4.3-2.3S-5-3.8-4.7-4.1ZM-.6-9.1C-.1-9.1 1-7.9 1.1-6.2S.2-3.2-.2-3.1S-2-4.5-2.1-6S-1.1-9.1-.6-9.1ZM4.3-4.3C4.5-4 4.7-3 4.1-2.5S2.6-2.1 2.3-2.3S2-3.5 2.5-4S4-4.5 4.3-4.3Z' fill='none' stroke='%23323b6c' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M-2.4 .1a2.4 2.4 0 1 0 4.8 0a2.4 2.4 0 1 0 -4.8 0' fill='none' stroke='%23323b6c' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M-.9 0a1 1 0 1 0 1.9 0a1 1 0 1 0 -1.9 0M4.6 6.4a.9 .9 0 1 0 1.7 0a.9 .9 0 1 0 -1.7 0M-6.3 6.5a.9 .9 0 1 0 1.9 0a.9 .9 0 1 0 -1.9 0M-7.1-5.7a1 1 0 1 0 1.9 0a1 1 0 1 0 -1.9 0M5.4-5.7a.8 .8 0 1 0 1.5 0a.8 .8 0 1 0 -1.5 0' fill='%23323b6c'/%3E%3C/g%3E%3C/defs%3E%3Cuse href='%23b-t0' transform='translate(12.3 25.1) rotate(43) scale(0.97)'/%3E%3Cuse href='%23b-t1' transform='translate(10.6 72.6) rotate(26) scale(1.05)'/%3E%3Cuse href='%23b-t1' transform='translate(106.6 72.6) rotate(26) scale(1.05)'/%3E%3Cuse href='%23b-t2' transform='translate(35.1 .3) rotate(17) scale(1.01)'/%3E%3Cuse href='%23b-t2' transform='translate(35.1 96.3) rotate(17) scale(1.01)'/%3E%3Cuse href='%23b-t0' transform='translate(36.2 47.6) rotate(7) scale(0.95)'/%3E%3Cuse href='%23b-t1' transform='translate(59.6 23) rotate(15) scale(0.95)'/%3E%3Cuse href='%23b-t2' transform='translate(60.9 71.9) rotate(10) scale(0.92)'/%3E%3Cuse href='%23b-t0' transform='translate(-11.4 -.7) rotate(36) scale(0.97)'/%3E%3Cuse href='%23b-t0' transform='translate(-11.4 95.3) rotate(36) scale(0.97)'/%3E%3Cuse href='%23b-t0' transform='translate(84.6 -.7) rotate(36) scale(0.97)'/%3E%3Cuse href='%23b-t0' transform='translate(84.6 95.3) rotate(36) scale(0.97)'/%3E%3Cuse href='%23b-t1' transform='translate(82.8 48.3) rotate(40) scale(0.89)'/%3E%3Cpath d='M0 12.3a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0 -2.2 0M-1.1 35.5a1.2 1.2 0 1 0 2.3 0a1.2 1.2 0 1 0 -2.3 0M94.9 35.5a1.2 1.2 0 1 0 2.3 0a1.2 1.2 0 1 0 -2.3 0M-.8 58.5a.8 .8 0 1 0 1.5 0a.8 .8 0 1 0 -1.5 0M95.2 58.5a.8 .8 0 1 0 1.5 0a.8 .8 0 1 0 -1.5 0M-3.6 82.9a1.1 1.1 0 1 0 2.3 0a1.1 1.1 0 1 0 -2.3 0M92.4 82.9a1.1 1.1 0 1 0 2.3 0a1.1 1.1 0 1 0 -2.3 0M22.9 12.8a.7 .7 0 1 0 1.4 0a.7 .7 0 1 0 -1.4 0M24.6 34.2a1 1 0 1 0 2.1 0a1 1 0 1 0 -2.1 0M23.4 59.5a.8 .8 0 1 0 1.7 0a.8 .8 0 1 0 -1.7 0M22.1 85.1a.9 .9 0 1 0 1.8 0a.9 .9 0 1 0 -1.8 0M47.8 11.2a.9 .9 0 1 0 1.8 0a.9 .9 0 1 0 -1.8 0M45.5 35.5a1.2 1.2 0 1 0 2.4 0a1.2 1.2 0 1 0 -2.4 0M48.2 59.7a1 1 0 1 0 2.1 0a1 1 0 1 0 -2.1 0M48.9 82.8a.9 .9 0 1 0 1.8 0a.9 .9 0 1 0 -1.8 0M71.4 9.6a1 1 0 1 0 2 0a1 1 0 1 0 -2 0M68.4 33.7a1.2 1.2 0 1 0 2.3 0a1.2 1.2 0 1 0 -2.3 0M73.2 59.4a1 1 0 1 0 1.9 0a1 1 0 1 0 -1.9 0M73 82.7a.8 .8 0 1 0 1.6 0a.8 .8 0 1 0 -1.6 0' fill='%23323b6c'/%3E%3C/svg%3E") 0 0 / 72px 72px, var(--malam);
     --nn-kawung: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-10 -10 20 20'%3E%3Cg transform='rotate(45)'%3E%3Cellipse cx='0' cy='-5.2' rx='3.6' ry='4.8'/%3E%3Cellipse cx='0' cy='5.2' rx='3.6' ry='4.8'/%3E%3Cellipse cx='-5.2' cy='0' rx='4.8' ry='3.6'/%3E%3Cellipse cx='5.2' cy='0' rx='4.8' ry='3.6'/%3E%3C/g%3E%3C/svg%3E");
     padding-block: clamp(5rem, 13vh, 9rem) clamp(3rem, 8vh, 5rem);
     color: var(--nn-ink);
@@ -91,7 +94,7 @@
     }
   }
 
-  /* ---------- Poster ---------- */
+  /* ---------- Poster: a truntum night, the question as its turmeric flower ---------- */
 
   .nn-poster {
     display: grid;
@@ -99,7 +102,7 @@
     overflow: hidden;
     border: 1px solid var(--nn-line);
     border-radius: calc(var(--nn-radius) * 1.5);
-    background: var(--nn-surface);
+    background: var(--malam);
 
     @media (width >= 48rem) {
       grid-template-columns: 1.4fr 1fr;
@@ -111,44 +114,56 @@
     width: 100%;
     height: auto;
     aspect-ratio: 400 / 280;
-    background: var(--nn-bg);
+    background: var(--nn-sky);
   }
 
+  /* Three rings out from the question, fainter and looser as they go: a line, dashes, dots. */
   .nn-poster-ring {
     fill: none;
     stroke: var(--nn-accent);
-    stroke-dasharray: 2 5;
-    stroke-opacity: 0.5;
+    stroke-width: 1.3;
+    stroke-linecap: round;
+    stroke-opacity: 0.7;
 
     &[data-i="1"] {
-      stroke-opacity: 0.3;
+      stroke-dasharray: 9 6;
+      stroke-opacity: 0.42;
     }
 
     &[data-i="2"] {
-      stroke-opacity: 0.16;
+      stroke-dasharray: 0.1 6;
+      stroke-width: 1.6;
+      stroke-opacity: 0.3;
     }
   }
 
   .nn-poster-dots circle {
     fill: var(--nn-ink);
-    opacity: 0.55;
+    opacity: 0.8;
   }
 
-  .nn-poster-q {
+  .nn-poster-flower {
     fill: var(--nn-accent);
-    font-family: var(--font-display);
-    font-size: 18px;
-    font-weight: 800;
+    stroke: var(--malam);
+    stroke-width: 1.1;
+    stroke-linejoin: round;
+
+    & circle {
+      fill: var(--malam);
+      stroke: none;
+    }
+
+    & .nn-poster-flower-eye {
+      fill: var(--nn-accent);
+    }
   }
 
   .nn-poster-body {
-    position: relative;
-    isolation: isolate;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
-    gap: 0.85rem;
+    gap: 0.9rem;
     padding: 1.5rem 1.25rem 1.75rem;
     border-top: 1px solid var(--nn-line);
 
@@ -156,20 +171,6 @@
       padding: 2.5rem;
       border-top: 0;
       border-left: 1px solid var(--nn-line);
-    }
-
-    /* A corner of kawung, the batik motif the confetti is made of. */
-    &::before {
-      content: "";
-      position: absolute;
-      right: -0.6rem;
-      bottom: -0.6rem;
-      z-index: -1;
-      width: 9rem;
-      height: 9rem;
-      background: var(--nn-accent);
-      opacity: 0.09;
-      mask: var(--nn-kawung) 0 0 / 2.25rem 2.25rem repeat;
     }
   }
 
@@ -180,13 +181,25 @@
     color: var(--nn-accent);
   }
 
-  .nn-poster-name {
+  /* The question as the opening scene asked it, caret and all. */
+  .nn-poster-question {
     font-family: var(--font-display);
     font-weight: 800;
-    font-variation-settings: "wdth" 112;
-    font-size: clamp(2rem, 4.4vw, 3.4rem);
-    line-height: 0.95;
-    letter-spacing: -0.025em;
+    font-variation-settings: "wdth" 100;
+    font-size: clamp(2rem, 3.6vw, 3rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+
+    &::after {
+      content: "";
+      display: inline-block;
+      width: 0.08em;
+      height: 0.8em;
+      margin-left: 0.1em;
+      vertical-align: -0.05em;
+      background: var(--nn-accent);
+    }
   }
 
   .nn-poster-stats {
@@ -361,11 +374,13 @@
 
   /* ---------- Map ---------- */
 
+  /* The same night as the poster, so pressing Play doesn't change the sky. Labels haloed in malam. */
   .nn-mapbox {
+    --nn-bg: var(--malam);
     overflow: hidden;
     border: 1px solid var(--nn-line);
     border-radius: var(--nn-radius);
-    background: var(--nn-bg);
+    background: var(--nn-sky);
   }
 
   .nn-map {
