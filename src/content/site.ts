@@ -7,7 +7,7 @@ export const site = {
   github: "https://github.com/ramaraihan12",
   source: "https://github.com/ramaraihan12/ramaraihan12.github.io",
   description:
-    "Full-stack developer in Salatiga, Indonesia. Laravel and Next.js web apps, and now AI apps: RAG, agents, chatbots and workflow automation.",
+    "Full-stack developer in Salatiga, Indonesia. I build web apps in Laravel and Next.js, and lately AI apps: RAG, agents, chatbots and automation.",
   // Base for the absolute URLs in the Open Graph tags, canonical link and sitemap.
   url: "https://ramaraihan.is-a.dev",
 };
