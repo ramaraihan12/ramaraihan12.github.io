@@ -57,7 +57,9 @@ const NIGHT = ["#050a22", "#0b1438", "#1b2766"];
 const r = rng(2930);
 const rough = (pts: Pt[], amount: number): Pt[] =>
   pts.map(([x, y], i): Pt => (i === 0 || i === pts.length - 1 ? [x, y] : [x + wobble(r, amount), y + wobble(r, amount)]));
-const ground = (ridge: Pt[]) => `${smooth(ridge, false, 0)}L${W} ${H}L0 ${H}Z`;
+// Closed just outside the box, so a stroke on the silhouette never shows on the sides.
+const ground = (ridge: Pt[]) =>
+  `${smooth(ridge, false, 0)}L${W + 20} ${ridge[ridge.length - 1][1]}V${H + 20}H-20V${ridge[0][1]}Z`;
 
 // Merapi: steeper, a notched crater top. Mostly hidden by Merbabu.
 const MERAPI: Pt[] = rough(
@@ -194,18 +196,25 @@ function yAt(ridge: Pt[], x: number) {
 
 function treeline() {
   let d = `M0 ${H}L0 ${Math.round(yAt(HILLS, 0))}`;
+  const isOpen = (x: number) => Math.sin(x / 150) + Math.sin(x / 53) > 0.9;
   let x = 0;
+  let lastPoint = 0;
   while (x < W) {
     const step = 12 + r() * 22;
     const nx = Math.min(W, x + step);
     const y = yAt(HILLS, nx);
     // Some stretches are open field, the rest a row of crowns, now and then a tall one.
-    const open = Math.sin(nx / 150) + Math.sin(nx / 53) > 0.9;
-    if (open) d += `L${nums([nx, y + 3], 0)}`;
-    else {
+    if (isOpen(nx)) {
+      // Open ground only needs a point every so often, and where the field ends.
+      if (nx - lastPoint >= 70 || !isOpen(nx + 30) || nx === W) {
+        d += `L${nums([nx, y + 3], 0)}`;
+        lastPoint = nx;
+      }
+    } else {
       const rx = Math.round(step * (0.5 + r() * 0.15));
       const ry = Math.round(rx * (r() < 0.15 ? 2.2 : 0.8 + r() * 0.5));
       d += `A${rx} ${ry} 0 0 1 ${nums([nx, y - r() * 6], 0)}`;
+      lastPoint = nx;
     }
     x = nx;
   }
@@ -232,8 +241,8 @@ const FRONT: Pt[] = [
 
 function terraces() {
   let d = "";
-  for (let k = 1; k <= 7; k++) {
-    const end = 640 - k * 52;
+  for (let k = 1; k <= 6; k++) {
+    const end = 640 - k * 56;
     const pts: Pt[] = [];
     for (let x = -10; x <= end; x += 110) {
       pts.push([x, yAt(FRONT, Math.max(0, x)) + k * 15 + k * k * 0.9 + wobble(r, 1.5)]);
@@ -318,12 +327,10 @@ const GEOMETRY = (() => {
   return {
     merapi: ground(MERAPI),
     merbabu: ground(MERBABU),
-    // The silhouettes' top edges again, as open lines for the wax outline, plus cecek.
-    merapiEdge: smooth(MERAPI.slice(2, 14), false, 0),
+    // Cecek following the summits. The wax outline itself is the silhouette's own stroke:
+    // the closing edges it also strokes are hidden behind the nearer layers.
     merapiDots: cecek(MERAPI.slice(0, 13), 12, 470),
-    merbabuEdge: smooth(MERBABU.slice(1), false, 0),
     merbabuDots: cecek(MERBABU, 13, 470),
-    ridgeEdge: smooth(RIDGE.slice(6), false, 0),
     gullies: GULLIES.map((g) => smooth(rough(g, 3), false, 0)).join(""),
     ridge: ground(RIDGE),
     hills: treeline(),
@@ -433,26 +440,21 @@ export function Landscape({
 
       <g data-depth="0.15" data-layer="merapi">
         {plume ? <path d={g.plume} fill={`url(#${uid}-smoke)`} opacity="0.7" /> : null}
-        <path d={g.merapi} fill={mix(ink, fade, 38)} />
-        <g fill="none" stroke={wax} strokeLinecap="round" opacity="0.55">
-          <path d={g.merapiEdge} strokeWidth="1.5" />
-          <path d={g.merapiDots} strokeWidth="2.6" strokeDasharray="0 9" />
-        </g>
+        <path d={g.merapi} fill={mix(ink, fade, 38)} stroke={wax} strokeWidth="1.5" strokeOpacity="0.55" />
+        <path d={g.merapiDots} fill="none" stroke={wax} strokeWidth="2.6" strokeLinecap="round" strokeDasharray="0 9" opacity="0.55" />
       </g>
 
       <g data-depth="0.3" data-layer="merbabu">
-        <path d={g.merbabu} fill={mix(ink, fade, 54)} />
+        <path d={g.merbabu} fill={mix(ink, fade, 54)} stroke={wax} strokeWidth="1.6" strokeOpacity="0.6" />
         <g fill="none" stroke={wax} strokeLinecap="round">
           <path d={g.gullies} strokeWidth="1.6" opacity="0.4" />
-          <path d={g.merbabuEdge} strokeWidth="1.6" opacity="0.6" />
           <path d={g.merbabuDots} strokeWidth="2.8" strokeDasharray="0 10" opacity="0.6" />
         </g>
         <rect y="470" width={W} height="160" fill={`url(#${uid}-mist)`} />
       </g>
 
       <g data-depth="0.5" data-layer="ridge">
-        <path d={g.ridge} fill={mix(ink, fade, 70)} />
-        <path d={g.ridgeEdge} fill="none" stroke={wax} strokeWidth="1.5" strokeLinecap="round" opacity="0.35" />
+        <path d={g.ridge} fill={mix(ink, fade, 70)} stroke={wax} strokeWidth="1.5" strokeOpacity="0.35" />
         <rect y="560" width={W} height="90" fill={`url(#${uid}-mist)`} opacity="0.6" />
       </g>
 
