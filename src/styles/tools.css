@@ -8,8 +8,10 @@
 @layer components {
   /* ---------- tools: the stack, stamped on like a batik cap ---------- */
 
+  /* Clipped sideways: a lifted stamp (scaled up, waiting to be pressed) mustn't widen a phone's page. */
   .tools {
     padding-block: clamp(6rem, 16vh, 11rem) clamp(4rem, 10vh, 7rem);
+    overflow-x: clip;
   }
 
   .tools-list {
