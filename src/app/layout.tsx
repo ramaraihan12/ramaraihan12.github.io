@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { site } from "@/content/site";
 import { ogImage } from "@/lib/og";
 import "./globals.css";
+import { DuotoneFilter } from "@/components/art/duotone";
 import { Extras } from "@/components/extras/extras";
 
 const anybody = Anybody({
@@ -84,6 +85,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <a href="#main" className="skip-link">
           Skip to content
         </a>
+        {/* The nila and kunyit duotone, once for the page (.duotone and <Duotone> use it). */}
+        <DuotoneFilter />
         {children}
         <Extras />
       </body>
