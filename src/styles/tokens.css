@@ -2,6 +2,12 @@
   Two dyes on cotton. Nila (indigo) is the page, kunyit (turmeric) is the query: the dot, the
   lines it draws, and the answer it floods the screen with at the end. Mori is the unbleached
   cotton batik is drawn on, used here for text.
+
+  For the art: soga is the brown of classic sogan batik, from the soga tree's bark. It clears 3:1
+  on nila (3.5), nila-2 (3.1) and mori (4.0), so it works for shapes and large type on either,
+  not for body text. soga-2 is a lighter soga for fills (6.0:1 on nila). Malam is the wax that
+  keeps the dye out, and the word for night: a night sky darker than nila, with mori at 15.7:1
+  and kunyit at 10.1:1 on it.
 */
 :root {
   --nila: #0f1a47;
@@ -9,6 +15,9 @@
   --mori: #efe9dc;
   --pudar: #9aa3c7;
   --kunyit: #f4b223;
+  --soga: #9c6633;
+  --soga-2: #c4915a;
+  --malam: #080e2b;
   --line: rgb(239 233 220 / 0.14);
   --on-kunyit-muted: color-mix(in oklab, var(--nila) 78%, var(--kunyit));
   --header-h: 3.75rem;

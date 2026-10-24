@@ -13,6 +13,9 @@
   --color-mori: var(--mori);
   --color-pudar: var(--pudar);
   --color-kunyit: var(--kunyit);
+  --color-soga: var(--soga);
+  --color-soga-2: var(--soga-2);
+  --color-malam: var(--malam);
 
   --font-sans: var(--font-schibsted), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-martian), ui-monospace, monospace;
