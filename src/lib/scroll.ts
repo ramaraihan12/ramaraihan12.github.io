@@ -22,9 +22,22 @@ export const REDUCE_MQ = "(prefers-reduced-motion: reduce)";
 */
 export const PRIORITY = { query: 4, tools: 3, work: 2, answer: 1 } as const;
 
-/** Set before first paint by the inline script in layout.tsx. */
+/**
+ * Whether the scenes get their pinned, animated layout: motion is allowed, and the scripts
+ * started before layout.tsx's fallback gave up on them (data-engine="late"). Once the plain page
+ * has been shown, it stays plain for this page view.
+ *
+ * It also puts html.scrolly in step before returning, so the stylesheet already matches when the
+ * scene that asked starts measuring. The inline script sets the class before first paint; after
+ * that, this is the one place that decides it. That keeps the CSS and the scenes in agreement
+ * whichever runs first after a reduced-motion change, gsap.matchMedia rebuilding the scenes or
+ * the engine's own listener.
+ */
 export function scrollyOn() {
-  return document.documentElement.classList.contains("scrolly");
+  const root = document.documentElement;
+  const on = root.dataset.engine !== "late" && !matchMedia(REDUCE_MQ).matches;
+  root.classList.toggle("scrolly", on);
+  return on;
 }
 
 let lenis: Lenis | null = null;
@@ -38,8 +51,11 @@ export function startEngine() {
   const root = document.documentElement;
   const reduce = matchMedia(REDUCE_MQ);
 
+  // Tells layout.tsx's fallback the scripts made it. If it already gave up, "late" stays.
+  root.dataset.engine ??= "on";
+
   const sync = () => {
-    root.classList.toggle("scrolly", !reduce.matches);
+    scrollyOn();
     if (!reduce.matches && !lenis) {
       lenis = new Lenis({ lerp: 0.11 });
       lenis.on("scroll", ScrollTrigger.update);
@@ -54,7 +70,6 @@ export function startEngine() {
 
   sync();
   reduce.addEventListener("change", sync);
-  root.dataset.engine = "on";
 
   // Fallback fonts have different widths, and the pinned scenes measure text.
   document.fonts?.ready.then(() => ScrollTrigger.refresh());
