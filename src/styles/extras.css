@@ -1,0 +1,450 @@
+/*
+  The easter eggs in src/components/extras: achievement toasts and batik mode. Colors are the
+  batik dyes, with fallbacks in case a token moves.
+*/
+
+/* The radius of the dye as it floods out. Registered so it can be animated. */
+@property --rr-dip-r {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+@layer components {
+  :root {
+    /* Uneven ink, the same speckle as the art kit's cap stamps: a cap that didn't quite meet
+       the cloth everywhere. */
+    --rr-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -7 0 0 0 5.1'/%3E%3C/filter%3E%3Crect width='90' height='90' filter='url(%23g)'/%3E%3C/svg%3E");
+  }
+
+  .rr-live {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Seven quick taps on the name start batik mode. This keeps iOS from reading two of them
+     as a double-tap zoom. */
+  .site-header .brand {
+    touch-action: manipulation;
+  }
+
+  /* ---------- achievement toast ---------- */
+
+  .rr-toast {
+    --rr-toast-from: 1.25rem;
+    position: fixed;
+    z-index: 80;
+    left: max(1.25rem, env(safe-area-inset-left));
+    bottom: max(1.25rem, env(safe-area-inset-bottom));
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 0.95rem;
+    width: min(23rem, calc(100vw - 2.5rem));
+    padding: 1rem 1.15rem 1.15rem 1rem;
+    overflow: hidden;
+    border: 1px solid rgb(239 233 220 / 0.14);
+    border-radius: 0.8rem;
+    background: var(--nila-2, #16235c);
+    color: var(--mori, #efe9dc);
+    box-shadow:
+      0 0 0 1px rgb(10 17 48 / 0.5),
+      0 24px 48px -20px rgb(0 0 0 / 0.85);
+    animation: rr-toast-in 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+
+    &[data-leaving] {
+      animation: rr-toast-out 0.3s ease-in both;
+    }
+
+    /* Phones and small tablets: the game's dock is pinned to the bottom there, so the card
+       comes down from under the header instead. */
+    @media (width < 60rem) {
+      --rr-toast-from: -1rem;
+      top: calc(var(--header-h, 3.75rem) + 0.5rem);
+      bottom: auto;
+      left: max(1rem, env(safe-area-inset-left));
+      width: min(26rem, calc(100vw - 2rem));
+    }
+  }
+
+  /* A kawung flower in a ring, pressed on like a cap stamp. */
+  .rr-toast-mark {
+    display: grid;
+    place-items: center;
+    width: 2.85rem;
+    height: 2.85rem;
+    margin-top: 0.1rem;
+    border: 1.5px solid var(--kunyit, #f4b223);
+    border-radius: 50%;
+    rotate: -8deg;
+    -webkit-mask: var(--rr-grain) 0 0 / 90px 90px;
+    mask: var(--rr-grain) 0 0 / 90px 90px;
+    animation: rr-stamp 0.55s 0.2s cubic-bezier(0.3, 0.7, 0.3, 1) both;
+
+    & > span {
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 50%;
+      background-color: var(--nila, #0f1a47);
+      background-size: 66px 66px;
+      background-position: calc(1.125rem - 16.5px) calc(1.125rem - 16.5px);
+    }
+  }
+
+  .rr-toast-text {
+    padding-top: 0.05rem;
+  }
+
+  /* The first two lines leave room for the close button; the body runs under it. */
+  .rr-toast-eyebrow,
+  .rr-toast-title {
+    padding-right: 1.6rem;
+  }
+
+  .rr-toast-eyebrow {
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.66rem;
+    line-height: 1.4;
+    color: var(--pudar, #9aa3c7);
+
+    & span {
+      color: var(--kunyit, #f4b223);
+    }
+  }
+
+  .rr-toast-title {
+    margin-top: 0.2rem;
+    font-family: var(--font-display, var(--font-anybody, sans-serif));
+    font-weight: 800;
+    font-variation-settings: "wdth" 112;
+    font-size: 1.15rem;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  .rr-toast-body {
+    margin-top: 0.3rem;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    color: rgb(239 233 220 / 0.78);
+    text-wrap: pretty;
+  }
+
+  .rr-toast-close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.4rem;
+    color: var(--pudar, #9aa3c7);
+    cursor: pointer;
+    transition:
+      color 0.2s,
+      background-color 0.2s;
+
+    &:hover {
+      color: var(--mori, #efe9dc);
+      background-color: rgb(239 233 220 / 0.08);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--kunyit, #f4b223);
+      outline-offset: -2px;
+    }
+
+    & svg {
+      width: 1rem;
+      height: 1rem;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+    }
+  }
+
+  /* The fuse: when it runs out, the card goes. Paused while it's hovered or focused. */
+  .rr-toast-timer {
+    position: absolute;
+    inset: auto 0 0;
+    height: 2px;
+    background: var(--kunyit, #f4b223);
+    transform-origin: left;
+    animation: rr-toast-timer 5s linear both;
+  }
+
+  .rr-toast:hover .rr-toast-timer,
+  .rr-toast:focus-within .rr-toast-timer {
+    animation-play-state: paused;
+  }
+
+  /* ---------- batik mode ---------- */
+
+  .rr-dip {
+    --rr-dip-r: 75vmax;
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: grid;
+    place-items: center;
+    padding: 1.25rem;
+    pointer-events: none;
+    background-color: var(--nila, #0f1a47);
+    background-size: clamp(7.5rem, 11vw, 11rem);
+    background-position: 50% 50%;
+    clip-path: circle(var(--rr-dip-r) at 50% 50%);
+    /* Opaque now; the rinse slides the clear top half of this down over the page. */
+    -webkit-mask: linear-gradient(transparent 30%, #000 56%) 0 100% / 100% 300% no-repeat;
+    mask: linear-gradient(transparent 30%, #000 56%) 0 100% / 100% 300% no-repeat;
+
+    /* The wet edge: dye is darkest where it's still spreading. */
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        circle at 50% 50%,
+        transparent calc(var(--rr-dip-r) - 14vmax),
+        rgb(10 17 48 / 0.45) calc(var(--rr-dip-r) - 3vmax),
+        rgb(10 17 48 / 0.85) calc(var(--rr-dip-r) - 0.4vmax)
+      );
+      opacity: 0;
+      transition: opacity 0.9s ease-out;
+    }
+
+    /* Where the cloth was held under longest, the dye pools darker. It sets the label off
+       from the pattern. */
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        ellipse 38rem 22rem at 50% 50%,
+        rgb(10 17 48 / 0.78),
+        rgb(10 17 48 / 0.4) 55%,
+        transparent
+      );
+      opacity: 0;
+      transition: opacity 1s ease-out;
+    }
+
+    &[data-phase="hold"]::after,
+    &[data-phase="rinse"]::after {
+      opacity: 1;
+    }
+
+    &[data-phase="flood"] {
+      animation: rr-dip-flood 1.15s cubic-bezier(0.5, 0.05, 0.3, 1) both;
+
+      &::before {
+        opacity: 1;
+        transition: none;
+      }
+    }
+
+    &[data-phase="rinse"] {
+      animation: rr-dip-rinse 1.5s cubic-bezier(0.45, 0, 0.6, 1) both;
+    }
+  }
+
+  /* A patch of kawung cloth with the label pressed on it. */
+  .rr-dip-card {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    justify-items: center;
+    gap: 0.7rem;
+    max-width: 100%;
+    padding: 1.9rem 2.4rem 1.8rem;
+
+    @media (width < 40rem) {
+      padding: 1.5rem 1.6rem 1.4rem;
+    }
+    background-color: var(--nila, #0f1a47);
+    background-size: 84px 84px;
+    background-position: 50% 50%;
+    color: var(--kunyit, #f4b223);
+    text-align: center;
+    rotate: -2deg;
+    box-shadow: 0 30px 60px -24px rgb(0 0 0 / 0.75);
+    opacity: 0;
+  }
+
+  .rr-dip-frame {
+    position: absolute;
+    inset: 0.55rem;
+    width: calc(100% - 1.1rem);
+    height: calc(100% - 1.1rem);
+    overflow: visible;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Pressed, not printed: the grain knocks a little ink out of the label and its frame. */
+  .rr-dip-frame,
+  .rr-dip-title {
+    -webkit-mask: var(--rr-grain) 0 0 / 90px 90px;
+    mask: var(--rr-grain) 0 0 / 90px 90px;
+  }
+
+  .rr-dip-title {
+    position: relative;
+    font-family: var(--font-display, var(--font-anybody, sans-serif));
+    font-weight: 800;
+    font-variation-settings: "wdth" 125;
+    font-size: clamp(2.1rem, 7vw, 4.25rem);
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    text-shadow:
+      0 0 0.6px currentColor,
+      0.03em 0.02em 0 color-mix(in oklab, currentColor 30%, transparent);
+  }
+
+  .rr-dip-line {
+    position: relative;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.8rem;
+    color: var(--mori, #efe9dc);
+  }
+
+  .rr-dip[data-phase="hold"] .rr-dip-card {
+    opacity: 1;
+    animation: rr-stamp 0.6s cubic-bezier(0.3, 0.7, 0.3, 1) both;
+  }
+
+  .rr-dip[data-phase="rinse"] .rr-dip-card {
+    opacity: 1;
+    animation: rr-dip-card-out 1.1s cubic-bezier(0.5, 0, 0.75, 0) both;
+  }
+
+  /* ---------- reduced motion: fades only ---------- */
+
+  @media (prefers-reduced-motion: reduce) {
+    .rr-toast {
+      --rr-toast-from: 0px;
+    }
+
+    .rr-toast-mark {
+      animation: none;
+    }
+
+    /* Still keeps time, just without the moving line. */
+    .rr-toast-timer {
+      opacity: 0;
+    }
+
+    .rr-dip {
+      clip-path: none;
+      -webkit-mask: none;
+      mask: none;
+
+      &::before {
+        display: none;
+      }
+
+      &[data-phase="flood"] {
+        animation: rr-fade-in 0.5s ease-out both;
+      }
+
+      &[data-phase="rinse"] {
+        animation: rr-fade-out 0.8s ease-in both;
+      }
+    }
+
+    .rr-dip .rr-dip-card,
+    .rr-dip[data-phase] .rr-dip-card {
+      opacity: 1;
+      animation: none;
+    }
+  }
+}
+
+@keyframes rr-toast-in {
+  from {
+    opacity: 0;
+    translate: 0 var(--rr-toast-from);
+  }
+}
+
+@keyframes rr-toast-out {
+  to {
+    opacity: 0;
+    translate: 0 calc(var(--rr-toast-from) * 0.5);
+  }
+}
+
+@keyframes rr-toast-timer {
+  to {
+    scale: 0 1;
+  }
+}
+
+/* The press of a cap: drops in a little big, squashes, settles. Same feel as the art kit's. */
+@keyframes rr-stamp {
+  0% {
+    opacity: 0;
+    scale: 1.45;
+  }
+
+  55% {
+    opacity: 1;
+    scale: 0.95;
+  }
+
+  78% {
+    scale: 1.02;
+  }
+
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes rr-dip-flood {
+  from {
+    --rr-dip-r: 0px;
+  }
+}
+
+@keyframes rr-dip-rinse {
+  to {
+    -webkit-mask-position: 0 0;
+    mask-position: 0 0;
+    background-position: 50% calc(50% + 6rem);
+  }
+}
+
+@keyframes rr-dip-card-out {
+  to {
+    opacity: 0;
+    translate: 0 3rem;
+  }
+}
+
+@keyframes rr-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes rr-fade-out {
+  to {
+    opacity: 0;
+  }
+}

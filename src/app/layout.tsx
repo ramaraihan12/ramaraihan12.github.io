@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { site } from "@/content/site";
 import { ogImage } from "@/lib/og";
 import "./globals.css";
+import { Extras } from "@/components/extras/extras";
 
 const anybody = Anybody({
   subsets: ["latin"],
@@ -84,6 +85,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           Skip to content
         </a>
         {children}
+        <Extras />
       </body>
     </html>
   );
