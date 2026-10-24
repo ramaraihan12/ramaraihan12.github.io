@@ -1,23 +1,18 @@
 import type { CSSProperties } from "react";
-import { batikDataUri, batikTileSize } from "@/components/art";
+import { batikTile } from "@/components/art/files";
 import { webCopy } from "@/content/copy";
-
-// A data URI can't read CSS variables, so the dyes are spelled out: soga ground, mori blades,
-// malam (wax) lines. Same values as tokens.css.
-const SOGA = "#9c6633";
-const MORI = "#efe9dc";
-const MALAM = "#080e2b";
-const SCALE = 0.5;
 
 /**
  * Where the AI apps end and the web apps start, marked the way a sarong marks its kepala: a
  * band of a different motif across the cloth, here parang in soga, with a row of tumpal
- * teeth pointing into the next part.
+ * teeth pointing into the next part. The cloth is the "web-kepala" tile in art/files.tsx: soga
+ * ground, mori blades, malam (wax) lines.
  */
 export function WebDivider() {
+  const kepala = batikTile("web-kepala");
   const style = {
-    "--kepala": batikDataUri("parang", { ink: MALAM, ground: SOGA, tint: MORI, scale: SCALE }),
-    "--kepala-tile": `${batikTileSize("parang", SCALE)}px`,
+    "--kepala": kepala.css,
+    "--kepala-tile": `${kepala.size}px`,
   } as CSSProperties;
 
   return (

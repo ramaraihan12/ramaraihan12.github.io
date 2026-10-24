@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 import { Fragment } from "react";
 import { BatikFrame } from "@/components/art/batik-frame";
 import { Duotone } from "@/components/art/duotone";
-import { batikDataUri, batikTileSize } from "@/components/art/patterns";
+import { batikTile } from "@/components/art/files";
 import { answerCopy } from "@/content/copy";
 import { site } from "@/content/site";
 import { answer, retrieval, sourceLinks } from "@/content/story";
@@ -20,13 +20,13 @@ const notesUrl = `${site.source}/blob/main/scripts/notes.json`;
 
 /*
   The turmeric flood is a dyed cloth: a kawung ground, its lines in a turmeric a little deeper
-  than the page. Faint on purpose: nila text is 8.9:1 on kunyit and still 7.5:1 right on a
-  line, the muted text 5.7:1 and 4.8:1.
+  than the page (the "answer-ground" tile in art/files.tsx). Faint on purpose: nila text is
+  8.9:1 on kunyit and still 7.5:1 right on a line, the muted text 5.7:1 and 4.8:1.
 */
-const GROUND_SCALE = 1.5;
+const groundTile = batikTile("answer-ground");
 const ground = {
-  "--answer-ground": batikDataUri("kawung", { ink: "#e3a21a", ground: "none", scale: GROUND_SCALE }),
-  "--answer-ground-size": `${batikTileSize("kawung", GROUND_SCALE)}px`,
+  "--answer-ground": groundTile.css,
+  "--answer-ground-size": `${groundTile.size}px`,
 } as CSSProperties;
 
 /** Splits the answer into words, with "[n]" turned into a citation link. */
@@ -70,15 +70,7 @@ export function AnswerScene() {
           <div className="answer-photo">
             {/* Parang in nila, soga and a turmeric wax line, around a photo dyed in the same
                 two colors as the page. It comes back to its own colors on hover. */}
-            <BatikFrame
-              motif="parang"
-              ink="#f4b223"
-              ground="#0f1a47"
-              tint="#9c6633"
-              width="var(--answer-frame-w)"
-              scale={0.4}
-              radius="0.5rem"
-            >
+            <BatikFrame tile="photo-frame" width="var(--answer-frame-w)" radius="0.5rem">
               <Duotone>
                 {/* A head-and-shoulders crop on phones, where the full portrait would be tiny. */}
                 <Image

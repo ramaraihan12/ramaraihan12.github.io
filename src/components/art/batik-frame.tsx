@@ -1,8 +1,14 @@
 import type { CSSProperties, ReactNode } from "react";
+import { type BatikTileName, batikTile } from "./files";
 import { type BatikKind, batikDataUri, batikTileSize } from "./patterns";
 
 export type BatikFrameProps = {
   children: ReactNode;
+  /**
+   * One of the prebuilt grounds in files.tsx (BATIK_TILES), loaded as a file. Its motif, colors
+   * and scale win over the props below, which otherwise draw the border into a data URI.
+   */
+  tile?: BatikTileName;
   /** The border's motif. Parang by default; kawung and truntum work too. */
   motif?: BatikKind;
   /** Border thickness, any CSS length. Default 0.9rem. */
@@ -23,11 +29,13 @@ export type BatikFrameProps = {
 
 /**
  * Wraps a photo (or anything) in a batik border, with a thin wax line between the border and
- * the picture. Server-friendly: it's a styled box with a data-URI background. The inner line
- * and image sizing come from art.css (.art-frame, .art-frame-inner).
+ * the picture. Server-friendly: it's a styled box with a batik background, a prebuilt file
+ * (`tile`) or a data URI. The inner line and image sizing come from art.css (.art-frame,
+ * .art-frame-inner).
  */
 export function BatikFrame({
   children,
+  tile: tileName,
   motif = "parang",
   width = "0.9rem",
   ink = "#efe9dc",
@@ -39,19 +47,23 @@ export function BatikFrame({
   className,
   style,
 }: BatikFrameProps) {
-  const tile = batikTileSize(motif, scale);
+  const file = tileName ? batikTile(tileName) : null;
+  const spec = file?.spec ?? { kind: motif, ink, ground, tint: tint === "none" ? undefined : tint, scale };
+  const line = spec.ink ?? ink;
+  const cloth = spec.ground ?? ground;
+  const tile = batikTileSize(spec.kind, spec.scale);
   return (
     <Tag
       className={className ? `art-frame ${className}` : "art-frame"}
       style={
         {
           "--art-frame-w": width,
-          "--art-frame-ink": ink,
-          "--art-frame-ground": ground,
+          "--art-frame-ink": line,
+          "--art-frame-ground": cloth,
           padding: width,
           borderRadius: radius,
-          backgroundColor: ground,
-          backgroundImage: batikDataUri(motif, { ink, ground, tint: tint === "none" ? undefined : tint, scale }),
+          backgroundColor: cloth,
+          backgroundImage: file ? file.css : batikDataUri(spec.kind, spec),
           backgroundSize: `${tile}px ${tile}px`,
           backgroundPosition: "center",
           ...style,
