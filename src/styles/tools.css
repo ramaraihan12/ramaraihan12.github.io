@@ -1,5 +1,12 @@
+/* The width the stamped names spread to as the cap lands. Registered so it can animate. */
+@property --tw {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 100;
+}
+
 @layer components {
-  /* ---------- tools ---------- */
+  /* ---------- tools: the stack, stamped on like a batik cap ---------- */
 
   .tools {
     padding-block: clamp(6rem, 16vh, 11rem) clamp(4rem, 10vh, 7rem);
@@ -12,7 +19,7 @@
 
   .tool-row {
     display: grid;
-    gap: 0.5rem;
+    gap: 0.75rem;
     padding-block: 1.6rem 1.75rem;
     border-bottom: 1px solid var(--line);
 
@@ -32,32 +39,76 @@
   .tool-items {
     display: flex;
     flex-wrap: wrap;
-    column-gap: 0.5em;
-    row-gap: 0.05em;
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: clamp(1.45rem, 3.3vw, 2.7rem);
-    line-height: 1.15;
-    letter-spacing: -0.015em;
+    gap: 0.55rem 0.5rem;
 
-    & li {
-      --w: 100;
-      font-variation-settings: "wdth" var(--w);
+    @media (width >= 48rem) {
+      gap: 0.7rem 0.65rem;
+    }
+  }
+
+  /* The cap, scaled up for display type. The frame stretches to whatever the label measures. */
+  .tool-stamp {
+    padding: 0.3em 0.62em 0.26em;
+    font-family: var(--font-display);
+    font-variation-settings: normal;
+    font-weight: 700;
+    font-size: clamp(1.2rem, 2.5vw, 2.05rem);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+
+    & .cap-stamp-label {
+      display: inline-grid;
     }
 
-    & li:not(:last-child)::after {
-      content: "/";
-      content: "/" / "";
-      margin-left: 0.5em;
-      font-weight: 300;
-      color: rgb(154 163 199 / 0.5);
+    & .cap-stamp-label > * {
+      grid-area: 1 / 1;
+    }
+  }
+
+  .tool-name-size {
+    visibility: hidden;
+    font-variation-settings: "wdth" 100;
+  }
+
+  .tool-name {
+    justify-self: center;
+    font-variation-settings: "wdth" var(--tw);
+  }
+
+  /* Each stamp in a row waits its turn (--d, set by the motion), then the letters spread. */
+  .tool-stamp[data-state="pressed"] {
+    animation-delay: var(--d, 0s);
+
+    &::after {
+      animation-delay: var(--d, 0s);
+    }
+
+    & .tool-name {
+      animation: tool-spread 0.85s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+      animation-delay: calc(var(--d, 0s) + 0.2s);
     }
   }
 
   .tool-note {
     max-width: 42rem;
-    margin-top: 0.8rem;
+    margin-top: 0.9rem;
     color: var(--pudar);
     text-wrap: pretty;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tool-stamp .tool-name {
+      animation: none;
+    }
+  }
+}
+
+@keyframes tool-spread {
+  from {
+    --tw: 62;
+  }
+
+  to {
+    --tw: 100;
   }
 }
