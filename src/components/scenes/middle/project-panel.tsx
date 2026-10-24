@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
-import { hash, Postcard } from "@/components/art";
+import { hash } from "@/components/art";
+import { PostcardImage } from "@/components/art/files";
 import { ArrowUpRightIcon } from "@/components/icons";
 import { Pipeline } from "@/components/pipeline";
 import { workCopy } from "@/content/copy";
@@ -67,7 +68,7 @@ function ProjectArt({ project }: { project: Project }) {
         <span className="project-back project-cloth" aria-hidden="true" />
       )}
       <span className="project-card">
-        <Postcard name={project.name} tone="mori" />
+        <PostcardImage name={project.name} tone="mori" />
       </span>
     </div>
   );

@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { Postcard } from "@/components/art";
+import { PostcardImage } from "@/components/art/files";
 import { alsoCopy, workCopy } from "@/content/copy";
 import { otherProjects } from "@/content/projects";
 import { ArrowUpRightIcon } from "./icons";
@@ -20,7 +20,7 @@ export function AlsoBuilt() {
           {otherProjects.map((project, i) => (
             <li key={project.name} className="also-row" data-reveal>
               <span className="also-card" style={{ "--tilt": `${i % 2 ? 2.5 : -2.5}deg` } as CSSProperties} aria-hidden="true">
-                <Postcard name={project.name} tone="mori" />
+                <PostcardImage name={project.name} tone="mori" />
               </span>
               {project.href ? (
                 <a href={project.href} className="also-name">
