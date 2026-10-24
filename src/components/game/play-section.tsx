@@ -3,7 +3,6 @@
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { type ComponentType, type ReactNode, useEffect, useRef, useState } from "react";
 import retrieval from "@/content/retrieval.json";
-import type { StageId } from "@/content/story";
 import { elementMarker, setMarker } from "@/lib/stage";
 import type { NearestNeighborsProps } from "./nearest-neighbors";
 import { Poster } from "./poster";
@@ -14,10 +13,6 @@ import { strings as S } from "./strings";
   Play button. The game itself is a separate chunk, fetched once the section is a screen away
   (so pressing Play feels instant) and mounted only when someone presses Play.
 */
-
-// TODO: drop the double cast once "play" is in `stages` in src/content/story.ts. Until then the
-// marker is stored but the header never lights it up.
-const PLAY_STAGE = "play" as string as StageId;
 
 type Game = ComponentType<NearestNeighborsProps>;
 
@@ -55,7 +50,7 @@ export function PlaySection({ id = "play", className, renderPoster, game }: Play
 
   useEffect(() => {
     const section = root.current!;
-    const removeMarker = setMarker(PLAY_STAGE, elementMarker(section));
+    const removeMarker = setMarker("play", elementMarker(section));
 
     // Warm the chunk a screen ahead. It's small and gsap is already loaded, and it means the
     // game appears the moment Play is pressed. Nothing runs until then.

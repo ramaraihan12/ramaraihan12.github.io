@@ -1,6 +1,7 @@
 import { AlsoBuilt } from "@/components/also-built";
 import { AnswerScene } from "@/components/answer-scene";
 import { Contact } from "@/components/contact";
+import { PlaySection } from "@/components/game/play-section";
 import { QueryScene } from "@/components/query-scene";
 import { RunSection } from "@/components/run-section";
 import { ScrollEngine } from "@/components/scroll-engine";
@@ -17,6 +18,7 @@ export default function Home() {
       <SiteHeader />
       <main id="main">
         <QueryScene />
+        <PlaySection />
         <ToolsSection />
         <RunSection />
         <AlsoBuilt />

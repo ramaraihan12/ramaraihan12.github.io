@@ -24,8 +24,10 @@
 
 @import "../styles/tokens.css";
 @import "../styles/base.css";
+@import "../styles/art.css";
 @import "../styles/header.css";
 @import "../styles/query.css";
+@import "../styles/game.css";
 @import "../styles/tools.css";
 @import "../styles/run.css";
 @import "../styles/pipeline.css";
