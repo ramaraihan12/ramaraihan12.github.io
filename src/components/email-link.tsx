@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
+import { emailLinkCopy } from "@/content/copy";
 import { site } from "@/content/site";
 
 type EmailLinkProps = {
@@ -39,7 +40,7 @@ export function EmailLink({ className, children, copiedLabel }: EmailLinkProps) 
         {copied && copiedLabel ? copiedLabel : children}
       </a>
       <span className="sr-only" role="status">
-        {copied ? "Email address copied" : ""}
+        {copied ? emailLinkCopy.copiedStatus : ""}
       </span>
     </>
   );
