@@ -52,14 +52,21 @@ export const viewport: Viewport = {
 /*
   Runs before first paint. "js" lets the canvas map show at all, since it's an empty box without
   scripts. With motion allowed, "scrolly" switches the scenes to their pinned layout right away
-  instead of flashing the plain one first. If the scripts never start (blocked, offline), that
-  class comes off again after a few seconds so nothing stays hidden.
+  instead of flashing the plain one first. If the scripts haven't started after a few seconds
+  (blocked, offline, a slow connection), that class comes off so nothing stays hidden, and
+  data-engine="late" keeps it off for the rest of this page view: when the scripts do turn up,
+  the scenes build their plain versions too, rather than rearranging a page someone's already
+  reading. See scrollyOn() in src/lib/scroll.ts.
 */
 const scrollyScript = `(() => {
   const root = document.documentElement;
   root.classList.add("js");
   if (!matchMedia("(prefers-reduced-motion: reduce)").matches) root.classList.add("scrolly");
-  setTimeout(() => { if (!root.dataset.engine) root.classList.remove("scrolly"); }, 6000);
+  setTimeout(() => {
+    if (root.dataset.engine) return;
+    root.classList.remove("scrolly");
+    root.dataset.engine = "late";
+  }, 6000);
 })();`;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
