@@ -67,7 +67,7 @@ const scrollyScript = `(() => {
   if (!matchMedia("(prefers-reduced-motion: reduce)").matches) root.classList.add("scrolly");
   setTimeout(() => {
     if (root.dataset.engine) return;
-    root.classList.remove("scrolly");
+    root.classList.remove("scrolly", "js");
     root.dataset.engine = "late";
   }, 6000);
 })();`;
