@@ -1,4 +1,5 @@
 import { CapStamp } from "@/components/art";
+import { capStampHref } from "@/components/art/files";
 import { toolsCopy } from "@/content/copy";
 import { stack } from "@/content/stack";
 import { ToolsMotion } from "./scenes/middle/tools-motion";
@@ -33,7 +34,7 @@ export function ToolsSection() {
                 <ul className="tool-items">
                   {group.items.map((item) => (
                     <li key={item}>
-                      <CapStamp ink="mori" seed={item} className="tool-stamp">
+                      <CapStamp ink="mori" seed={item} frameHref={capStampHref(item)} className="tool-stamp">
                         <span className="tool-name-size" aria-hidden="true">
                           {item}
                         </span>

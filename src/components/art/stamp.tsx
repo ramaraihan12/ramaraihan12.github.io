@@ -26,6 +26,11 @@ export type CapStampProps = {
   state?: CapStampState;
   /** Seed for the frame's wobble and the tilt. Defaults to the text of children. */
   seed?: string;
+  /**
+   * The frame as a fragment of a shared sprite, e.g. capStampHref(seed) from files.ts, instead
+   * of drawn inline. It must be the frame this seed and shape would draw.
+   */
+  frameHref?: string;
   className?: string;
   style?: CSSProperties;
 };
@@ -43,25 +48,38 @@ function textOf(node: ReactNode): string {
   return "";
 }
 
-/** A stamped label. The label text stays real text; the frame is aria-hidden. */
-export function CapStamp({ children, ink = "kunyit", shape = "rect", state = "stamped", seed, className, style }: CapStampProps) {
-  const key = seed ?? (textOf(children) || "cap");
-  const r = rng(hash(key));
+/** A stamp's tilt and its frame, two hand-drawn outlines in a 100 × 40 box, from its seed. */
+export function capFrame(seed: string, shape: "rect" | "round" = "rect") {
+  const r = rng(hash(seed));
   const tilt = Math.round(wobble(r, 2.6) * 10) / 10;
-  // Drawn in a 100 × 40 box and stretched to the label; non-scaling strokes keep the line even.
   const outer = shape === "round" ? roundFrame(r, 2) : handRect(2, 2, 96, 36, r, { wave: 1.1, over: 1.6 });
   const inner = shape === "round" ? roundFrame(r, 6) : handRect(5.5, 7, 89, 26, r, { wave: 0.8 });
+  return { tilt, outer, inner };
+}
+
+/** The frame's two outlines. Stretched to the label; non-scaling strokes keep the line even. */
+export function CapFramePaths({ outer, inner }: { outer: string; inner: string }) {
+  return (
+    <>
+      <path d={outer} vectorEffect="non-scaling-stroke" strokeWidth="1.7" />
+      <path d={inner} vectorEffect="non-scaling-stroke" strokeWidth="0.9" />
+    </>
+  );
+}
+
+/** A stamped label. The label text stays real text; the frame is aria-hidden. */
+export function CapStamp({ children, ink = "kunyit", shape = "rect", state = "stamped", seed, frameHref, className, style }: CapStampProps) {
+  const frame = capFrame(seed ?? (textOf(children) || "cap"), shape);
 
   return (
     <span
       className={className ? `cap-stamp ${className}` : "cap-stamp"}
       data-state={state}
       data-shape={shape}
-      style={{ "--cap-ink": INKS[ink] ?? ink, "--cap-tilt": `${tilt}deg`, ...style } as CSSProperties}
+      style={{ "--cap-ink": INKS[ink] ?? ink, "--cap-tilt": `${frame.tilt}deg`, ...style } as CSSProperties}
     >
       <svg className="cap-stamp-frame" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-        <path d={outer} vectorEffect="non-scaling-stroke" strokeWidth="1.7" />
-        <path d={inner} vectorEffect="non-scaling-stroke" strokeWidth="0.9" />
+        {frameHref ? <use href={frameHref} /> : <CapFramePaths outer={frame.outer} inner={frame.inner} />}
       </svg>
       <span className="cap-stamp-label">{children}</span>
     </span>
