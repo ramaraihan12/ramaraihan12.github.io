@@ -6,8 +6,8 @@ gsap.registerPlugin(ScrollTrigger);
 
 /*
   The pinned scenes need some room. Below these sizes, or with reduced motion, the page is a
-  plain document and every scene shows its content in normal flow. globals.css uses the same
-  queries, so keep them in sync.
+  plain document and every scene shows its content in normal flow. The pinned layouts in
+  src/styles/ use the same queries, so keep them in sync.
 */
 export const SCENE_MQ = "(min-height: 520px)";
 export const RAIL_MQ = "(min-width: 768px) and (min-height: 560px)";

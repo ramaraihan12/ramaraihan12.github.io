@@ -1,0 +1,63 @@
+@layer components {
+  /* ---------- tools ---------- */
+
+  .tools {
+    padding-block: clamp(6rem, 16vh, 11rem) clamp(4rem, 10vh, 7rem);
+  }
+
+  .tools-list {
+    margin-top: clamp(2.5rem, 6vh, 4rem);
+    border-top: 1px solid var(--line);
+  }
+
+  .tool-row {
+    display: grid;
+    gap: 0.5rem;
+    padding-block: 1.6rem 1.75rem;
+    border-bottom: 1px solid var(--line);
+
+    @media (width >= 48rem) {
+      grid-template-columns: 10rem 1fr;
+      gap: 2rem;
+    }
+  }
+
+  .tool-key {
+    padding-top: 0.55em;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--kunyit);
+  }
+
+  .tool-items {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 0.5em;
+    row-gap: 0.05em;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.45rem, 3.3vw, 2.7rem);
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+
+    & li {
+      --w: 100;
+      font-variation-settings: "wdth" var(--w);
+    }
+
+    & li:not(:last-child)::after {
+      content: "/";
+      content: "/" / "";
+      margin-left: 0.5em;
+      font-weight: 300;
+      color: rgb(154 163 199 / 0.5);
+    }
+  }
+
+  .tool-note {
+    max-width: 42rem;
+    margin-top: 0.8rem;
+    color: var(--pudar);
+    text-wrap: pretty;
+  }
+}

@@ -1,0 +1,147 @@
+@layer components {
+  /*
+    The pipeline. Steps stacked on phones, a row on wider screens, with the wire running beside
+    them and a tick from each step down to it. --p moves the packet along the wire; each step's
+    --lit goes from 0 to 1 just as the packet reaches it.
+  */
+  .pipe {
+    --p: 0;
+    --wire: 0.45rem;
+    position: relative;
+    margin-top: 1.75rem;
+
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      top: 1.375rem;
+      bottom: 1.375rem;
+      left: var(--wire);
+      width: 2px;
+      translate: -1px 0;
+    }
+
+    &::before {
+      background: rgb(239 233 220 / 0.2);
+    }
+
+    &::after {
+      background: var(--kunyit);
+      transform-origin: top;
+      scale: 1 var(--p);
+    }
+  }
+
+  .pipe-steps {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-auto-rows: 2.75rem;
+    row-gap: 0.75rem;
+    padding-left: 1.6rem;
+  }
+
+  .pipe-node {
+    --lit: clamp(0, (var(--p) * (var(--n) - 1) - var(--i)) * 3 + 1, 1);
+    --lit-line: color-mix(in oklab, var(--kunyit) calc(var(--lit) * 100%), rgb(239 233 220 / 0.22));
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-inline: 0.9rem;
+    border: 1px solid var(--lit-line);
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--kunyit) calc(var(--lit) * 100%), var(--nila));
+    color: color-mix(in oklab, var(--nila) calc(var(--lit) * 100%), var(--mori));
+    color: color-mix(in oklab, var(--nila) calc(round(var(--lit)) * 100%), var(--mori));
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.7rem;
+    line-height: 1.3;
+    text-align: center;
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: 100%;
+      width: calc(1.6rem - var(--wire));
+      height: 1px;
+      background: var(--lit-line);
+    }
+  }
+
+  /* One step is a 2.75rem row plus a 0.75rem gap. */
+  .pipe-packet {
+    position: absolute;
+    top: 1.375rem;
+    left: var(--wire);
+    z-index: 2;
+    width: 0.8rem;
+    height: 0.8rem;
+    border: 2px solid var(--nila);
+    border-radius: 50%;
+    background: var(--kunyit);
+    box-shadow: 0 0 1.25rem 0.3rem rgb(244 178 35 / 0.45);
+    translate: -50% calc(-50% + var(--p) * (var(--n) - 1) * 3.5rem);
+    opacity: 0;
+  }
+
+  @media (width >= 48rem) {
+    .pipe {
+      container-type: inline-size;
+      padding-bottom: 1.5rem;
+
+      &::before,
+      &::after {
+        top: auto;
+        right: calc(50% / var(--n));
+        bottom: var(--wire);
+        left: calc(50% / var(--n));
+        width: auto;
+        height: 2px;
+        translate: 0 1px;
+      }
+
+      &::after {
+        transform-origin: left;
+        scale: var(--p) 1;
+      }
+    }
+
+    .pipe-steps {
+      grid-auto-flow: column;
+      grid-auto-columns: 1fr;
+      grid-auto-rows: auto;
+      row-gap: 0;
+      padding-left: 0;
+    }
+
+    .pipe-node {
+      min-height: 3.25rem;
+      margin-inline: 0.3rem;
+      padding: 0.5rem 0.8rem;
+
+      &::after {
+        top: 100%;
+        right: auto;
+        left: 50%;
+        width: 1px;
+        height: calc(1.5rem - var(--wire));
+      }
+    }
+
+    .pipe-packet {
+      top: auto;
+      bottom: var(--wire);
+      left: calc(50% / var(--n));
+      translate: calc(-50% + var(--p) * (100cqw - 100cqw / var(--n))) 50%;
+    }
+  }
+}
+
+.scrolly {
+  & .pipe-packet {
+    opacity: 1;
+  }
+}

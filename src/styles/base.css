@@ -1,0 +1,144 @@
+/* The page itself, and the type and small parts every section shares. */
+
+@utility container-page {
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+
+  @media (width >= 40rem) {
+    padding-inline: 2rem;
+  }
+}
+
+@layer base {
+  html {
+    background-color: var(--nila);
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: calc(var(--header-h) + 1rem);
+  }
+
+  body {
+    background-color: var(--nila);
+    color: var(--mori);
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background-color: var(--kunyit);
+    color: var(--nila);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--kunyit);
+    outline-offset: 3px;
+  }
+}
+
+@layer components {
+  /* ---------- Type ---------- */
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.72rem;
+    line-height: 1.4;
+    color: var(--pudar);
+  }
+
+  .eyebrow-n {
+    color: var(--kunyit);
+  }
+
+  .display-l {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-variation-settings: "wdth" 125;
+    font-size: clamp(2.1rem, 6vw, 5rem);
+    line-height: 0.95;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+
+  .lead {
+    max-width: 36rem;
+    font-size: 1.15rem;
+    color: rgb(239 233 220 / 0.8);
+    text-wrap: pretty;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+
+    & li {
+      padding: 0.2rem 0.5rem;
+      border: 1px solid var(--line);
+      border-radius: 0.3rem;
+      font-family: var(--font-mono);
+      font-variation-settings: "wdth" 87.5;
+      font-size: 0.66rem;
+      color: var(--pudar);
+    }
+  }
+
+  .code-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+    color: var(--kunyit);
+    text-decoration: underline;
+    text-decoration-color: rgb(244 178 35 / 0.4);
+    text-underline-offset: 0.25em;
+    transition: text-decoration-color 0.2s;
+
+    &:hover {
+      text-decoration-color: currentColor;
+    }
+  }
+
+  .skip-link {
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 100;
+    padding: 0.5rem 0.8rem;
+    border-radius: 0.4rem;
+    background: var(--kunyit);
+    color: var(--nila);
+    font-weight: 600;
+    translate: 0 -200%;
+
+    &:focus {
+      translate: 0 0;
+    }
+  }
+}
+
+/* Anything marked data-reveal rises in as it scrolls into view, where the browser can do it alone. */
+.scrolly {
+  @supports (animation-timeline: view()) {
+    & [data-reveal] {
+      animation: rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 80%;
+    }
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 0.9rem;
+  }
+}
