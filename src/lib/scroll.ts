@@ -36,6 +36,8 @@ export const PRIORITY = { query: 5, play: 4, tools: 3, work: 2, answer: 1 } as c
  */
 export function scrollyOn() {
   const root = document.documentElement;
+  // The scripts are running after all, even if the fallback gave up on the scrolly layout.
+  root.classList.add("js");
   const on = root.dataset.engine !== "late" && !matchMedia(REDUCE_MQ).matches;
   root.classList.toggle("scrolly", on);
   return on;
