@@ -122,8 +122,15 @@ export function AnswerScene() {
         };
         section.addEventListener("focusin", onFocus);
 
+        // This one reads the timeline's start and needs the answer's pin spacer in place to
+        // measure the contact block, so it has to refresh after the timeline. Without a trigger
+        // element it sorts by its own start, which is still 0 from its first refresh, so at the
+        // same priority it goes first. When fonts are cached, the one full refresh can come
+        // before the timeline was ever measured (a timeline's trigger waits a tick for that),
+        // and the header then turned turmeric from the top of the page. Half a step lower
+        // keeps it after every trigger of the answer scene.
         ScrollTrigger.create({
-          refreshPriority: PRIORITY.answer,
+          refreshPriority: PRIORITY.answer - 0.5,
           start: () => at("covered"),
           endTrigger: contact,
           end: () => `bottom ${headerHeight()}`,
