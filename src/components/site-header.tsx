@@ -1,6 +1,7 @@
 "use client";
 
 import { type MouseEvent, useEffect, useRef, useSyncExternalStore } from "react";
+import { headerCopy } from "@/content/copy";
 import { site } from "@/content/site";
 import { stages, type StageId } from "@/content/story";
 import { getStage, goToStage, subscribeStage } from "@/lib/stage";
@@ -60,7 +61,7 @@ export function SiteHeader() {
           {site.name}
         </a>
 
-        <nav aria-label="Sections" className="stage-nav">
+        <nav aria-label={headerCopy.navLabel} className="stage-nav">
           <ol ref={navRef}>
             {stages.map((stage) => (
               <li key={stage.id}>
@@ -86,12 +87,12 @@ export function SiteHeader() {
           copiedLabel={
             <>
               <CheckIcon className="size-4" />
-              Copied
+              {headerCopy.copied}
             </>
           }
         >
           <MailIcon className="size-4" />
-          Email me
+          {headerCopy.email}
         </EmailLink>
       </div>
       <span className="scroll-bar" aria-hidden="true">

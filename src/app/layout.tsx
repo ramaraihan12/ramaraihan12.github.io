@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Anybody, Martian_Mono, Schibsted_Grotesk } from "next/font/google";
 import type { ReactNode } from "react";
+import { layoutCopy } from "@/content/copy";
 import { site } from "@/content/site";
 import { ogImage } from "@/lib/og";
 import "./globals.css";
@@ -83,7 +84,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         <a href="#main" className="skip-link">
-          Skip to content
+          {layoutCopy.skipLink}
         </a>
         {/* The nila and kunyit duotone, once for the page (.duotone and <Duotone> use it). */}
         <DuotoneFilter />
