@@ -1,0 +1,121 @@
+@layer components {
+  /* ---------- follow-up: contact, then the footer ---------- */
+
+  .contact {
+    padding-block: clamp(5rem, 14vh, 9rem) clamp(4rem, 10vh, 6rem);
+    background: var(--kunyit);
+    color: var(--nila);
+
+    & .lead {
+      color: var(--on-kunyit-muted);
+    }
+  }
+
+  .contact-email {
+    --w: 110;
+    display: inline-block;
+    margin-top: 2.5rem;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-variation-settings: "wdth" var(--w);
+    font-size: clamp(1.35rem, 5.2vw - 0.2rem, 4.6rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    overflow-wrap: anywhere;
+    text-decoration: underline;
+    text-decoration-thickness: 0.06em;
+    text-underline-offset: 0.14em;
+    transition: font-variation-settings 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+
+    &:hover {
+      --w: 118;
+    }
+
+    /* The address itself is the label, so the copy shows up as a tag after it. */
+    &[data-copied]::after {
+      content: "copied";
+      display: inline-block;
+      margin-left: 0.6rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 0.3rem;
+      background: var(--nila);
+      color: var(--kunyit);
+      font-family: var(--font-mono);
+      font-variation-settings: "wdth" 87.5;
+      font-size: 0.75rem;
+      font-weight: 400;
+      letter-spacing: 0;
+      vertical-align: middle;
+    }
+  }
+
+  .contact-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    margin-top: 2.5rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.1rem;
+    border-radius: 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: background-color 0.2s;
+  }
+
+  .btn-solid {
+    background: var(--nila);
+    color: var(--kunyit);
+
+    &:hover {
+      background: var(--nila-2);
+    }
+  }
+
+  .btn-line {
+    border: 1.5px solid var(--nila);
+
+    &:hover {
+      background: rgb(15 26 71 / 0.08);
+    }
+  }
+
+  .contact-clock {
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.72rem;
+    color: var(--on-kunyit-muted);
+
+    @media (width >= 40rem) {
+      margin-left: auto;
+    }
+  }
+
+  .site-footer-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-block: 2rem;
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.68rem;
+    color: var(--pudar);
+
+    @media (width >= 48rem) {
+      flex-direction: row;
+      justify-content: space-between;
+      gap: 2rem;
+    }
+
+    & a {
+      color: var(--mori);
+      text-decoration: underline;
+      text-underline-offset: 0.25em;
+    }
+  }
+}

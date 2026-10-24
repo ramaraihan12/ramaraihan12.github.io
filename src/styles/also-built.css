@@ -1,0 +1,65 @@
+@layer components {
+  /* ---------- Other projects ---------- */
+
+  .also {
+    padding-block: clamp(4rem, 10vh, 7rem) 4rem;
+  }
+
+  .also-title {
+    font-family: var(--font-display);
+    font-weight: 750;
+    font-variation-settings: "wdth" 112;
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    letter-spacing: -0.015em;
+  }
+
+  .also-list {
+    margin-top: 2rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .also-row {
+    display: grid;
+    gap: 0.6rem;
+    padding-block: 1.5rem;
+    border-top: 1px solid var(--line);
+
+    @media (width >= 48rem) {
+      grid-template-columns: 15rem 1fr;
+      gap: 2rem;
+    }
+  }
+
+  .also-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    align-self: start;
+    font-family: var(--font-mono);
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+
+  a.also-name {
+    text-decoration: underline;
+    text-decoration-color: var(--line);
+    text-underline-offset: 0.3em;
+    transition: color 0.2s;
+
+    &:hover {
+      color: var(--kunyit);
+    }
+  }
+
+  .also-summary {
+    max-width: 42rem;
+    color: var(--pudar);
+    text-wrap: pretty;
+  }
+
+  .also-note {
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--pudar);
+  }
+}

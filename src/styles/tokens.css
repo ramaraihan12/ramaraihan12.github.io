@@ -1,0 +1,15 @@
+/*
+  Two dyes on cotton. Nila (indigo) is the page, kunyit (turmeric) is the query: the dot, the
+  lines it draws, and the answer it floods the screen with at the end. Mori is the unbleached
+  cotton batik is drawn on, used here for text.
+*/
+:root {
+  --nila: #0f1a47;
+  --nila-2: #16235c;
+  --mori: #efe9dc;
+  --pudar: #9aa3c7;
+  --kunyit: #f4b223;
+  --line: rgb(239 233 220 / 0.14);
+  --on-kunyit-muted: color-mix(in oklab, var(--nila) 78%, var(--kunyit));
+  --header-h: 3.75rem;
+}

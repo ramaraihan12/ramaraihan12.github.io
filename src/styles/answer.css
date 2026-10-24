@@ -1,0 +1,228 @@
+@layer components {
+  /* ---------- answer. Turmeric from here down, through contact.css. ---------- */
+
+  .answer {
+    position: relative;
+    isolation: isolate;
+    color: var(--nila);
+  }
+
+  .answer-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--kunyit);
+  }
+
+  .answer-inner {
+    position: relative;
+    padding-block: calc(var(--header-h) + 3rem) 3rem;
+  }
+
+  .answer,
+  .contact {
+    & .eyebrow {
+      color: var(--on-kunyit-muted);
+    }
+
+    & .eyebrow-n {
+      color: var(--nila);
+      font-weight: 600;
+    }
+
+    & :focus-visible {
+      outline-color: var(--nila);
+    }
+  }
+
+  .answer-grid {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 1.75rem;
+
+    @media (width >= 48rem) {
+      grid-template-columns: minmax(11rem, 19rem) 1fr;
+      gap: clamp(2rem, 5vw, 4.5rem);
+      align-items: center;
+    }
+  }
+
+  .answer-photo {
+    width: 5.5rem;
+    overflow: hidden;
+    border-radius: 0.5rem;
+
+    & img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    @media (width >= 48rem) {
+      width: auto;
+    }
+  }
+
+  .answer-photo-large {
+    display: none !important;
+
+    @media (width >= 48rem) {
+      display: block !important;
+    }
+  }
+
+  .answer-photo-small {
+    @media (width >= 48rem) {
+      display: none !important;
+    }
+  }
+
+  .answer-text {
+    max-width: 46rem;
+    font-size: clamp(1.25rem, 2.45vw, 2.1rem);
+    font-weight: 500;
+    line-height: 1.32;
+    letter-spacing: -0.01em;
+    text-wrap: pretty;
+  }
+
+  .cite {
+    position: relative;
+    top: -0.85em;
+    font-size: 0.5em;
+    line-height: 0;
+
+    & a {
+      display: inline-grid;
+      place-items: center;
+      min-width: 1.7em;
+      height: 1.7em;
+      margin-left: 0.2em;
+      padding-inline: 0.2em;
+      border: 1.5px solid currentColor;
+      border-radius: 0.3em;
+      font-family: var(--font-mono);
+      font-weight: 500;
+      transition:
+        background-color 0.2s,
+        color 0.2s;
+
+      &:hover {
+        background: var(--nila);
+        color: var(--kunyit);
+      }
+    }
+  }
+
+  .answer-sources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.4rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgb(15 26 71 / 0.22);
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.7rem;
+
+    & li {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    & a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      text-decoration: underline;
+      text-underline-offset: 0.25em;
+    }
+  }
+
+  .answer-source-n {
+    display: inline-grid;
+    place-items: center;
+    width: 1.45rem;
+    height: 1.45rem;
+    border: 1.5px solid currentColor;
+    border-radius: 0.25rem;
+    font-size: 0.62rem;
+  }
+
+  .answer-source-score {
+    color: var(--on-kunyit-muted);
+  }
+
+  .answer-note {
+    max-width: 44rem;
+    margin-top: 1rem;
+    font-size: 0.88rem;
+    color: var(--on-kunyit-muted);
+    text-wrap: pretty;
+
+    & a {
+      color: var(--nila);
+      font-weight: 600;
+      text-decoration: underline;
+      text-underline-offset: 0.2em;
+    }
+  }
+}
+
+/*
+  The pinned scene: the turmeric circle floods the screen, then the answer writes itself in.
+  Matches SCENE_MQ and MOBILE_MQ in src/lib/scroll.ts.
+*/
+@media (min-height: 520px) {
+  .scrolly {
+    & .answer {
+      height: 100vh;
+      height: 100svh;
+      overflow: clip;
+    }
+
+    & .answer-bg {
+      clip-path: circle(7px at 50% 50%);
+    }
+
+    & .answer-inner {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: 100%;
+      padding-block: calc(var(--header-h) + 1rem) 1.5rem;
+    }
+
+    & .answer-eyebrow,
+    & .answer-sources,
+    & .answer-note {
+      opacity: 0;
+    }
+
+    & .answer-photo {
+      clip-path: inset(100% 0 0 0);
+    }
+
+    & .answer-text .w {
+      opacity: 0.14;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .scrolly {
+      & .answer-text {
+        font-size: clamp(1.1rem, 5.2vw, 1.3rem);
+      }
+
+      & .answer-grid {
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+
+      & .answer-note {
+        font-size: 0.8rem;
+      }
+    }
+  }
+}
