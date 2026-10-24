@@ -82,9 +82,31 @@ export function startEngine() {
   };
 }
 
+/**
+ * Stops the page from scrolling with the wheel or touch, anywhere on it, for something that needs
+ * them itself, like the game. Keys and the scrollbar still scroll (base.css keeps the overflow,
+ * so nothing shifts), so preventDefault() the keys you use. A no-op when Lenis isn't running
+ * (reduced motion): the page scrolls natively then, and the game has to preventDefault() its
+ * own wheel and touch events.
+ *
+ * For the wheel or touch inside one element while the page keeps scrolling, mark that element
+ * data-lenis-prevent instead: Lenis leaves its events alone, so they're native there. To keep
+ * them from scrolling the page as well, preventDefault() them in a non-passive listener.
+ */
+export function pauseScroll() {
+  lenis?.stop();
+}
+
+/** Undoes pauseScroll(). A no-op when nothing is paused or Lenis isn't running. */
+export function resumeScroll() {
+  lenis?.start();
+}
+
+/** Smooth-scrolls to y. A jump from the nav or a focus change resumes a paused page first. */
 export function scrollToY(y: number) {
   const top = Math.max(0, Math.round(y));
   if (lenis) {
+    lenis.start();
     lenis.scrollTo(top, { duration: 1.4 });
   } else {
     window.scrollTo({ top, behavior: matchMedia(REDUCE_MQ).matches ? "auto" : "smooth" });

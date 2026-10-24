@@ -125,6 +125,16 @@
   }
 }
 
+/*
+  pauseScroll() in src/lib/scroll.ts stops Lenis, and lenis.css would then clip the page's
+  overflow. With classic scrollbars that hides the scrollbar and shifts everything sideways by up
+  to its width. Lenis already cancels the wheel and touch while it's stopped, so leave the
+  overflow alone. Outside @layer and more specific than lenis.css's rule, so it wins.
+*/
+html.lenis.lenis-stopped:not(.lenis-autoToggle) {
+  overflow: visible;
+}
+
 /* Anything marked data-reveal rises in as it scrolls into view, where the browser can do it alone. */
 .scrolly {
   @supports (animation-timeline: view()) {
