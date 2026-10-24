@@ -3,7 +3,8 @@
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { type CSSProperties, Fragment, type ReactNode, useRef } from "react";
+import { type CSSProperties, Fragment, type ReactNode, useRef, useState } from "react";
+import { KawungField, type KawungFieldHandle } from "@/components/art/kawung-field";
 import { queryCopy } from "@/content/copy";
 import { intro, retrieval, steps } from "@/content/story";
 import { EmbeddingMap, type Frame } from "@/lib/embedding-map";
@@ -24,7 +25,11 @@ const LINES = [
 ];
 const isName = (i: number) => i >= NAME && tokens[i].text !== "?";
 
+/** The question's 1,024 numbers. Module level, so the cloth lays itself out once. */
+const QUERY_VECTOR: readonly number[] = retrieval.queryVector;
+
 const formatNumber = (v: number) => v.toFixed(4);
+const round3 = (v: number) => Math.round(v * 1000) / 1000;
 
 /*
   The scene's timeline, in its own units. The pin is SCROLL screens tall, and the whole
@@ -75,12 +80,20 @@ function Token({ index, lineStart }: { index: number; lineStart: boolean }) {
 }
 
 /**
- * The opening: the question over Merbabu at dawn, its tokens, its embedding, and the map of
- * notes it's matched against. One pinned, scrubbed scene; a plain document
+ * The opening: the question over Merbabu at dawn, its tokens, its embedding drawn as a kawung
+ * cloth, and the map of notes it's matched against. One pinned, scrubbed scene; a plain document
  * with reduced motion or without scripts. `land` is the server-rendered landscape.
  */
 export function OpeningScene({ land }: { land: ReactNode }) {
   const root = useRef<HTMLElement>(null);
+  const cloth = useRef<KawungFieldHandle>(null);
+  // Where the canting starts on the cloth (the query dot, as fractions of the stage), and how
+  // drawn the cloth is when no timeline drives it: all of it on the plain page, none otherwise.
+  // Both are set a frame late from the scene below: a state update inside its layout effect
+  // would make React run every pending effect early, ScrollEngine's included, and change when
+  // ScrollTrigger first refreshes (the answer scene's header tone depends on that).
+  const [origin, setOrigin] = useState({ x: 0.5, y: 0.5 });
+  const [still, setStill] = useState(0);
 
   useGSAP(
     () => {
@@ -102,8 +115,8 @@ export function OpeningScene({ land }: { land: ReactNode }) {
         const title = q(".qs-title");
         const caret = q(".qs-caret");
 
-        // Where the question ends once it's in chips: the sun lands there, and the camera starts
-        // pulling back from there.
+        // Where the question ends once it's in chips: the sun lands there, and that's where the
+        // canting starts the cloth and the camera starts pulling back from.
         const anchorAt = (w: number, h: number) => {
           const keep = ["--wdth", "--chip"].map((p) => [p, title.style.getPropertyValue(p)] as const);
           title.style.setProperty("--wdth", "100");
@@ -180,6 +193,7 @@ export function OpeningScene({ land }: { land: ReactNode }) {
 
         if (!scrolly) {
           // The plain page: everything drawn, top to bottom.
+          const finish = requestAnimationFrame(() => setStill(1));
           map.complete();
           const draw = () => {
             map.resize();
@@ -195,6 +209,7 @@ export function OpeningScene({ land }: { land: ReactNode }) {
             ["retrieve", elementMarker(section.querySelector("#retrieve")!)],
           ]);
           return () => {
+            cancelAnimationFrame(finish);
             observer.disconnect();
             removeHover();
             removeMarkers();
@@ -211,15 +226,22 @@ export function OpeningScene({ land }: { land: ReactNode }) {
         const landBox = q(".qs-land");
         const sun = q(".qs-sun");
         const splash = q(".qs-splash");
+        const halo = q(".qs-halo");
+        const clothBox = q(".qs-cloth");
 
         const rig = landRig(landBox);
         const drag = chipDrag(chips, title);
 
+        const blank = requestAnimationFrame(() => setStill(0));
+        let originFrame = 0;
         const resize = () => {
           map.resize();
           rig.measure();
           const a = map.queryScreen();
-          gsap.set(splash, { x: a.x, y: a.y });
+          const next = { x: round3(a.x / (stage.clientWidth || 1)), y: round3(a.y / (stage.clientHeight || 1)) };
+          cancelAnimationFrame(originFrame);
+          originFrame = requestAnimationFrame(() => setOrigin((o) => (o.x === next.x && o.y === next.y ? o : next)));
+          gsap.set([splash, halo], { x: a.x, y: a.y });
         };
         resize();
         ScrollTrigger.addEventListener("refreshInit", resize);
@@ -260,6 +282,20 @@ export function OpeningScene({ land }: { land: ReactNode }) {
         const captionIn = { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" };
         const captionOut = { opacity: 0, y: -16, duration: 0.35, ease: "power2.in" };
         const sink = { v: 0 };
+        const weave = { p: 0 };
+        const drawCloth = () => cloth.current?.draw(weave.p);
+        // The cloth closes in on the dot like an iris. A clip, not a scale: the cloth measures
+        // itself with getBoundingClientRect, which a transform on its box would shrink.
+        const iris = { open: 1 };
+        const closeIris = () => {
+          if (iris.open >= 1) {
+            clothBox.style.clipPath = "";
+            return;
+          }
+          const a = map.queryScreen();
+          const reach = Math.hypot(Math.max(a.x, stage.clientWidth - a.x), Math.max(a.y, stage.clientHeight - a.y));
+          clothBox.style.clipPath = `circle(${(reach * iris.open).toFixed(1)}px at ${a.x.toFixed(1)}px ${a.y.toFixed(1)}px)`;
+        };
 
         const tl = gsap.timeline({
           defaults: { ease: "none" },
@@ -306,7 +342,8 @@ export function OpeningScene({ land }: { land: ReactNode }) {
           .addLabel("tokenized", T.tokenized)
           .to(stepTokens, captionOut, 2.0)
 
-          // Embed. The tokens go into the dot one after another, and the numbers stream out.
+          // Embed. The tokens go into the dot one after another, and the dot draws the answer
+          // back out as a kawung cloth: every petal one of the 1,024 numbers.
           .to(ids, { opacity: 0, duration: 0.2 }, 2.1)
           .fromTo(
             chips,
@@ -326,10 +363,17 @@ export function OpeningScene({ land }: { land: ReactNode }) {
           .to(sun, { scale: dotScale, duration: 0.3, ease: "power2.inOut" }, 3.1)
           .addLabel("embed", T.embed)
           .fromTo(embedBody, { opacity: 0, y: 16 }, captionIn, T.embed)
+          // A patch of plain cloth under the dot, so it still reads once the dye is all round it.
+          .fromTo(halo, { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.25, ease: "back.out(2)" }, T.embed - 0.05)
+          .fromTo(clothBox, { opacity: 0 }, { opacity: 1, duration: 0.1 }, T.embed)
+          .fromTo(weave, { p: 0 }, { p: 1, duration: T.embedded - T.embed, onUpdate: drawCloth }, T.embed)
           .fromTo(numbers, { opacity: 0 }, { opacity: 1, duration: 0.1, stagger: 0.06 }, 2.6)
           .addLabel("embedded", T.embedded)
 
-          // The canvas takes the dot over from the sun, and the map blooms out around it.
+          // The cloth closes into the dot: 1,024 numbers become one point among the notes. The
+          // canvas takes the dot over from the sun, and the map blooms out around it.
+          .fromTo(iris, { open: 1 }, { open: 0, duration: 0.6, ease: "power2.in", immediateRender: false, onUpdate: closeIris }, T.fold)
+          .to(halo, { opacity: 0, scale: 0.4, duration: 0.3, ease: "power2.in" }, T.fold + 0.3)
           .to(embedBody, captionOut, T.fold + 0.1)
           .to(sun, { opacity: 0, duration: 0.12 }, T.swap)
           .to(map.state, { query: 1, duration: 0.12 }, T.swap)
@@ -355,6 +399,11 @@ export function OpeningScene({ land }: { land: ReactNode }) {
         });
         tl.addLabel("done").to({}, { duration: 0.8 });
 
+        // A page loaded partway down: the cloth's own mount effect draws it blank after the
+        // timeline has rendered, so bring it in line once that's done, and after every refresh.
+        const settleCloth = requestAnimationFrame(drawCloth);
+        ScrollTrigger.addEventListener("refresh", drawCloth);
+
         const st = tl.scrollTrigger!;
         const at = (label: string) => () => st.start + (st.end - st.start) * (tl.labels[label] / tl.duration());
         const removeMarkers = setMarkers([
@@ -365,10 +414,15 @@ export function OpeningScene({ land }: { land: ReactNode }) {
         ]);
 
         return () => {
+          cancelAnimationFrame(settleCloth);
+          cancelAnimationFrame(originFrame);
+          cancelAnimationFrame(blank);
           play(false);
           stage.classList.remove("is-idle");
           ScrollTrigger.removeEventListener("refreshInit", resize);
+          ScrollTrigger.removeEventListener("refresh", drawCloth);
           window.removeEventListener("pointermove", onPoint);
+          clothBox.style.clipPath = "";
           rig.kill();
           drag.kill();
           removeHover();
@@ -445,6 +499,10 @@ export function OpeningScene({ land }: { land: ReactNode }) {
                 <span className="vec-n vec-more">{queryCopy.moreNumbers(retrieval.dims - retrieval.queryHead.length)}</span>]
               </p>
             </div>
+            {/* All 1,024 numbers as one kawung cloth: a petal per number, kunyit above zero, soga below. */}
+            <div className="qs-cloth" aria-hidden="true">
+              <KawungField ref={cloth} values={QUERY_VECTOR} progress={still} origin={origin} />
+            </div>
           </li>
           <li className="qs-step">
             <p className="eyebrow">{queryCopy.stepEyebrows.retrieve}</p>
@@ -452,6 +510,7 @@ export function OpeningScene({ land }: { land: ReactNode }) {
           </li>
         </ol>
 
+        <span className="qs-halo" aria-hidden="true" />
         <span className="qs-sun" aria-hidden="true" />
         <span className="qs-splash" aria-hidden="true" />
 

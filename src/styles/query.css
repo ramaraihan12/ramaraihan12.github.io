@@ -53,7 +53,8 @@
   /* The pinned scene's sun and the ring it makes when it lands. The plain page uses the
      landscape's own sun instead. */
   .qs-sun,
-  .qs-splash {
+  .qs-splash,
+  .qs-halo {
     display: none;
   }
 
@@ -235,6 +236,24 @@
     color: var(--kunyit);
   }
 
+  /* The query's embedding as a kawung cloth. A canvas, so not without scripts. On the plain
+     page it's a swatch under the numbers. */
+  .qs-cloth {
+    display: none;
+  }
+
+  .js .qs-cloth {
+    display: block;
+    width: 100%;
+    max-width: 32rem;
+    aspect-ratio: 16 / 10;
+    margin-top: 0.9rem;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 0.4rem;
+    background: var(--nila);
+  }
+
   .qs-map {
     position: relative;
     display: none;
@@ -361,9 +380,10 @@
   These rules only rearrange what's already there; without the class the scene reads top to
   bottom like a normal document. The queries match SCENE_MQ and MOBILE_MQ in src/lib/scroll.ts.
 
-  Back to front: the land and the map, the captions, the question, the cards, and the sun on
-  top, since the tokens fly into it. The captions are the stage's one grid item and everything
-  else is absolutely placed.
+  Back to front: the land and the map, the captions (with the cloth), the question, the cards,
+  and the sun on top, since the tokens fly into it. The captions are the stage's one grid item
+  and everything else is absolutely placed, so the cloth inside the embed caption can still fill
+  the whole stage.
 */
 @media (min-height: 520px) {
   .scrolly {
@@ -475,7 +495,7 @@
       opacity: 0;
     }
 
-    /* The embed caption is a small label of its own, and it fades by itself. */
+    /* The embed caption sits on the cloth like a label sewn on, so it fades by itself. */
     & .qs-step-embed {
       opacity: 1;
     }
@@ -494,6 +514,19 @@
         border: 0;
         background: none;
       }
+    }
+
+    & .qs-cloth {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      max-width: none;
+      aspect-ratio: auto;
+      margin: 0;
+      border: 0;
+      border-radius: 0;
+      background: none;
+      opacity: 0;
     }
 
     & .tok-row {
@@ -528,6 +561,23 @@
         border-radius: 50%;
         background: radial-gradient(closest-side, rgb(244 178 35 / 0.4) 30%, rgb(244 178 35 / 0));
       }
+    }
+
+    & .qs-halo {
+      --d: 2.4rem;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 4;
+      display: block;
+      width: var(--d);
+      height: var(--d);
+      margin: calc(var(--d) / -2) 0 0 calc(var(--d) / -2);
+      border: 1px solid rgb(239 233 220 / 0.5);
+      border-radius: 50%;
+      background: var(--nila);
+      opacity: 0;
+      pointer-events: none;
     }
 
     & .qs-splash {
