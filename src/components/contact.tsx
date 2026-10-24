@@ -49,9 +49,10 @@ export function Contact() {
       </div>
 
       {/* Merbabu from Salatiga, under the sky it has right now. The near hills are malam, the
-          night blue of the footer, so the ground runs straight on into it. */}
+          night blue of the footer, so the ground runs straight on into it. The shapes are the
+          hero's (hero-land.tsx defines them), painted in this sky's colors. */}
       <SkyBand>
-        <Landscape id="contact-sky" sky={SKY} sun={{ x: 0, y: 0, r: 22 }} stars={1} />
+        <Landscape id="contact-sky" sky={SKY} sun={{ x: 0, y: 0, r: 22 }} stars={1} shapes="reuse" />
       </SkyBand>
     </section>
   );
