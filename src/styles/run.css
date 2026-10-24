@@ -375,9 +375,9 @@
     }
 
     /* Moved every frame by the scrub, so each gets its own layer and nothing repaints. */
+    /* Squeezed by a short screen, never stretched by a tall one, so the two pieces still overlap. */
     & .project-art {
-      height: 100%;
-      aspect-ratio: auto;
+      max-height: 100%;
       will-change: transform;
     }
 
