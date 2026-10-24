@@ -215,7 +215,7 @@ export const otherProjects: OtherProject[] = [
   {
     name: "chaBubbleTwitch",
     summary:
-      "Free Twitch chat overlay for OBS that shows chat as bubbles, with emotes and username colors. It joins Twitch chat anonymously, so there's no login or token.",
+      "Free Twitch chat overlay for OBS that shows chat as wooden speech bubbles, with Twitch emotes. It joins Twitch chat anonymously, so there's no login or token.",
     stack: ["HTML", "JavaScript", "tmi.js"],
     href: repo("chaBubbleTwitch"),
     demo: "https://ramaraihan.is-a.dev/chaBubbleTwitch/",
