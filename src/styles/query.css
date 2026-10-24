@@ -12,16 +12,49 @@
     order: 1;
   }
 
-  .qs-steps {
+  .qs-land {
     order: 2;
   }
 
-  .qs-map {
+  .qs-steps {
     order: 3;
   }
 
-  .qs-results {
+  .qs-map {
     order: 4;
+  }
+
+  .qs-results {
+    order: 5;
+  }
+
+  /* ---------- the land: Merbabu at dawn ---------- */
+
+  /* On the plain page it's a band under the question. */
+  .qs-land {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 7;
+    max-height: 32rem;
+    margin-top: 3rem;
+    overflow: hidden;
+
+    /* The top of the sky melts into the page. */
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 28%;
+      background: linear-gradient(var(--nila), rgb(15 26 71 / 0));
+      pointer-events: none;
+    }
+  }
+
+  /* The pinned scene's sun and the ring it makes when it lands. The plain page uses the
+     landscape's own sun instead. */
+  .qs-sun,
+  .qs-splash {
+    display: none;
   }
 
   .qs-title {
@@ -122,7 +155,7 @@
     max-width: 34rem;
     margin-top: 2rem;
     font-size: 1.125rem;
-    color: rgb(239 233 220 / 0.82);
+    color: rgb(239 233 220 / 0.86);
     text-wrap: pretty;
   }
 
@@ -327,15 +360,44 @@
   The pinned scene. html.scrolly is set before paint when motion is allowed (see layout.tsx).
   These rules only rearrange what's already there; without the class the scene reads top to
   bottom like a normal document. The queries match SCENE_MQ and MOBILE_MQ in src/lib/scroll.ts.
+
+  Back to front: the land and the map, the captions, the question, the cards, and the sun on
+  top, since the tokens fly into it. The captions are the stage's one grid item and everything
+  else is absolutely placed.
 */
 @media (min-height: 520px) {
   .scrolly {
     & .qs-stage {
-      display: block;
+      display: grid;
+      grid-template: minmax(0, 1fr) / minmax(0, 1fr);
       height: 100vh;
       height: 100svh;
       padding: 0;
       overflow: clip;
+    }
+
+    /* Hangs a little below the stage, so Merbabu's summit sits under the question. */
+    & .qs-land {
+      position: absolute;
+      inset: auto 0 -10%;
+      height: 82%;
+      max-height: none;
+      margin: 0;
+      aspect-ratio: auto;
+
+      & .art-sun {
+        display: none;
+      }
+
+      /* Night still hangs on the side away from the sunrise, which is where the words are. */
+      &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        background: radial-gradient(ellipse 58% 48% at 16% 24%, rgb(15 26 71 / 0.8), rgb(15 26 71 / 0));
+        pointer-events: none;
+      }
     }
 
     & .qs-map {
@@ -353,10 +415,12 @@
     & .qs-hero {
       position: absolute;
       inset: 0;
+      z-index: 2;
       display: flex;
       flex-direction: column;
       justify-content: center;
       padding-top: var(--header-h);
+      padding-bottom: 14vh;
       pointer-events: none;
     }
 
@@ -376,12 +440,12 @@
     }
 
     & .qs-steps {
-      position: absolute;
-      right: 0;
-      bottom: clamp(1.5rem, 6vh, 3.5rem);
-      left: 0;
+      z-index: 1;
+      grid-area: 1 / 1;
+      align-self: end;
       display: grid;
       margin-top: 0;
+      margin-bottom: clamp(1.5rem, 6vh, 3.5rem);
       pointer-events: none;
     }
 
@@ -392,18 +456,81 @@
       opacity: 0;
     }
 
+    /* The embed caption is a small label of its own, and it fades by itself. */
+    & .qs-step-embed {
+      opacity: 1;
+    }
+
+    & .qs-step-body {
+      position: relative;
+      z-index: 1;
+      padding: 0.9rem 1.1rem 1rem;
+      border: 1px solid var(--line);
+      border-radius: 0.5rem;
+      background: var(--nila);
+      opacity: 0;
+
+      & .vec {
+        padding: 0;
+        border: 0;
+        background: none;
+      }
+    }
+
     & .tok-row {
       display: none;
     }
 
+    /* Over the sky, so a little brighter than the usual pudar. */
     & .qs-hint {
       display: block;
+      color: rgb(239 233 220 / 0.8);
+    }
+
+    & .qs-sun {
+      --d: clamp(2.75rem, 4.6vw, 4.6rem);
+      position: absolute;
+      top: 27%;
+      left: 80%;
+      z-index: 4;
+      display: block;
+      width: var(--d);
+      height: var(--d);
+      margin: calc(var(--d) / -2) 0 0 calc(var(--d) / -2);
+      border-radius: 50%;
+      background: var(--kunyit);
+      pointer-events: none;
+
+      /* The glow, 3.2 times the sun's size like the landscape's own sun. */
+      &::before {
+        content: "";
+        position: absolute;
+        inset: -110%;
+        border-radius: 50%;
+        background: radial-gradient(closest-side, rgb(244 178 35 / 0.4) 30%, rgb(244 178 35 / 0));
+      }
+    }
+
+    & .qs-splash {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 4;
+      display: block;
+      width: 3rem;
+      height: 3rem;
+      margin: -1.5rem 0 0 -1.5rem;
+      border: 1.5px solid var(--kunyit);
+      border-radius: 50%;
+      opacity: 0;
+      pointer-events: none;
     }
 
     & .qs-results {
       position: absolute;
       top: calc(var(--header-h) + 1.5rem);
       right: max(2rem, calc((100vw - 80rem) / 2 + 2rem));
+      z-index: 3;
       width: min(25rem, 36vw);
       margin: 0;
       padding: 0;
@@ -437,9 +564,26 @@
   /* Phones: captions on top, the map in the middle, one card at a time at the bottom. */
   @media (max-width: 767px) {
     .scrolly {
+      & .qs-hero {
+        justify-content: flex-start;
+        padding-top: calc(var(--header-h) + 9vh);
+        padding-bottom: 0;
+      }
+
+      & .qs-land {
+        bottom: -4%;
+        height: 50%;
+      }
+
+      & .qs-sun {
+        top: 15%;
+        left: 80%;
+      }
+
       & .qs-steps {
-        top: calc(var(--header-h) + 0.75rem);
-        bottom: 1rem;
+        align-self: stretch;
+        padding-top: calc(var(--header-h) + 0.75rem);
+        margin-bottom: 1rem;
       }
 
       & .qs-step:last-child {
@@ -492,6 +636,16 @@
   & .qs-hint-arrow {
     animation: nudge-down 1.6s ease-in-out infinite;
   }
+
+  /* The sun comes up behind the question as the page opens. */
+  & .qs-sun {
+    animation: sunrise 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s backwards;
+  }
+
+  /* Nothing loops while the scene is off screen. */
+  & .is-idle :is(.qs-caret, .qs-hint-arrow) {
+    animation-play-state: paused;
+  }
 }
 
 @keyframes stream-in {
@@ -511,5 +665,12 @@
 @keyframes nudge-down {
   50% {
     translate: 0 0.25em;
+  }
+}
+
+@keyframes sunrise {
+  from {
+    opacity: 0;
+    translate: 0 1.5rem;
   }
 }
