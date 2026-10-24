@@ -11,7 +11,20 @@
     position: absolute;
     inset: 0;
     z-index: -1;
+    overflow: hidden;
     background: var(--kunyit);
+
+    /* The kawung ground, from answer-scene.tsx. Its own layer, so the flood's clip-path
+       doesn't paint the pattern again on every frame. */
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: var(--answer-ground);
+      background-size: var(--answer-ground-size) var(--answer-ground-size);
+      background-position: center;
+      will-change: transform;
+    }
   }
 
   .answer-inner {
@@ -47,10 +60,10 @@
     }
   }
 
+  /* The frame and the dyed photo come from the art kit (art.css); this sizes them. */
   .answer-photo {
-    width: 5.5rem;
-    overflow: hidden;
-    border-radius: 0.5rem;
+    --answer-frame-w: 0.4rem;
+    width: 6.5rem;
 
     & img {
       display: block;
@@ -59,8 +72,14 @@
     }
 
     @media (width >= 48rem) {
+      --answer-frame-w: 0.85rem;
       width: auto;
     }
+  }
+
+  /* Keyboard focus on a citation brings the photo back to its own colors too, like a hover. */
+  .answer-grid:focus-within .duotone-fade-tint {
+    opacity: 0;
   }
 
   .answer-photo-large {
