@@ -72,7 +72,7 @@ export function QueryScene() {
           if (mobile) return { x: w * 0.08, y: h * 0.27, w: w * 0.84, h: h * 0.3 };
           return { x: w * 0.05, y: h * 0.15, w: w * 0.56, h: h * 0.6 };
         };
-        const map = new EmbeddingMap(canvas, retrieval, region);
+        const map = new EmbeddingMap(canvas, retrieval, (w, h) => ({ region: region(w, h) }));
 
         // Hovering a dot shows its note; hovering a card lights its dot.
         const setHot = (index: number) => {
