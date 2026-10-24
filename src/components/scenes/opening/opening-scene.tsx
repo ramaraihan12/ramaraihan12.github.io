@@ -256,11 +256,12 @@ export function OpeningScene({ land }: { land: ReactNode }) {
           else gsap.ticker.remove(loop);
         };
 
-        // The hills follow a fine pointer a little, only while they're on screen.
+        // The hills shift a little against a fine pointer, the way near things do when you move
+        // your head, and only while they're on screen.
         const fine = matchMedia("(hover: hover) and (pointer: fine)").matches;
         const onPoint = (e: PointerEvent) => {
           if (tl.time() > T.tokenized) return;
-          rig.point((e.clientX / window.innerWidth - 0.5) * 48, (e.clientY / window.innerHeight - 0.5) * 20);
+          rig.point((0.5 - e.clientX / window.innerWidth) * 48, (0.5 - e.clientY / window.innerHeight) * 20);
         };
         if (fine) window.addEventListener("pointermove", onPoint, { passive: true });
 

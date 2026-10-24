@@ -396,10 +396,12 @@
       overflow: clip;
     }
 
-    /* Hangs a little below the stage, so Merbabu's summit sits under the question. */
+    /* Hangs a little below the stage, so Merbabu's summit sits under the question, and a little
+       past the sides, so the near hills never pull their edge into view when they drift. */
     & .qs-land {
       position: absolute;
-      inset: auto 0 -10%;
+      inset: auto -3% -10%;
+      width: auto;
       height: 82%;
       max-height: none;
       margin: 0;
