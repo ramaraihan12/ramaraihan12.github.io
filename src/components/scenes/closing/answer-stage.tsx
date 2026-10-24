@@ -35,7 +35,10 @@ export function AnswerStage({ children }: { children: ReactNode }) {
       };
 
       const mm = gsap.matchMedia();
-      mm.add({ scene: SCENE_MQ, reduce: REDUCE_MQ }, (ctx) => {
+      // gsap only runs this while at least one condition matches. "motion" and "reduce" make
+      // sure one always does, so a short screen with motion allowed (a phone held sideways)
+      // still gets the plain version's tone switch and stage marker.
+      mm.add({ scene: SCENE_MQ, motion: "(prefers-reduced-motion: no-preference)", reduce: REDUCE_MQ }, (ctx) => {
         const { scene, reduce } = ctx.conditions as Record<string, boolean>;
         const scrolly = scrollyOn() && scene && !reduce;
         const headerHeight = () => header?.offsetHeight ?? 0;
