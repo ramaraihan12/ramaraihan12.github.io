@@ -13,6 +13,10 @@ import { Pipeline } from "./pipeline";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
+// Small counts read better spelled out, at the start of a heading.
+const WORDS = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve"];
+const count = (n: number) => WORDS[n] ?? String(n);
+
 export function RunSection() {
   const root = useRef<HTMLElement>(null);
 
@@ -113,7 +117,7 @@ export function RunSection() {
         <div className="run-intro">
           <p className="eyebrow">work</p>
           <h2 id="run-title" className="display-l mt-4">
-            Eight AI apps I built
+            {`${count(aiProjects.length)} AI ${aiProjects.length === 1 ? "app" : "apps"} I built`}
           </h2>
           <p className="lead mt-5">
             Most run on a local model through Ollama by default, so you can try them without an
