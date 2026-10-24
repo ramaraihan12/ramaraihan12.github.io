@@ -1,0 +1,1197 @@
+/*
+  Nearest Neighbors, the "play" stop. Import after `@import "tailwindcss"` in globals.css.
+
+  Skinning: every color, the radius and the lift shadow are --nn-* tokens on .nn, and every
+  state is a data attribute (data-phase on .nn-game, data-state on .nn-card and .nn-node:
+  idle, picked, hit, skipped, miss, decoy). --lit and --fade run from 0 to 1 and are animated
+  by the reveal, so restyled states can use them too.
+*/
+
+@layer components {
+  .nn {
+    --nn-bg: var(--nila);
+    --nn-surface: var(--nila-2);
+    --nn-ink: var(--mori);
+    --nn-muted: var(--pudar);
+    --nn-accent: var(--kunyit);
+    --nn-on-accent: var(--nila);
+    --nn-on-accent-muted: var(--on-kunyit-muted);
+    --nn-line: var(--line);
+    --nn-radius: 0.65rem;
+    --nn-lift: 0 14px 28px -16px rgb(0 0 0 / 0.75);
+    --nn-ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+    --nn-ease-spring: cubic-bezier(0.3, 1.6, 0.5, 1);
+    --nn-kawung: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-10 -10 20 20'%3E%3Cg transform='rotate(45)'%3E%3Cellipse cx='0' cy='-5.2' rx='3.6' ry='4.8'/%3E%3Cellipse cx='0' cy='5.2' rx='3.6' ry='4.8'/%3E%3Cellipse cx='-5.2' cy='0' rx='4.8' ry='3.6'/%3E%3Cellipse cx='5.2' cy='0' rx='4.8' ry='3.6'/%3E%3C/g%3E%3C/svg%3E");
+    padding-block: clamp(5rem, 13vh, 9rem) clamp(3rem, 8vh, 5rem);
+    color: var(--nn-ink);
+  }
+
+  .nn-title {
+    margin-top: 1rem;
+  }
+
+  .nn-intro {
+    margin-top: 1.25rem;
+  }
+
+  /* ---------- Buttons ---------- */
+
+  .nn-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    min-height: 2.875rem;
+    padding: 0.7rem 1.15rem;
+    border-radius: 0.55rem;
+    font-size: 0.98rem;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      background-color 0.2s,
+      border-color 0.2s,
+      color 0.2s,
+      box-shadow 0.25s,
+      transform 0.15s var(--nn-ease-out);
+
+    &:active {
+      transform: translateY(1px) scale(0.98);
+    }
+  }
+
+  .nn-btn-solid {
+    background: var(--nn-accent);
+    color: var(--nn-on-accent);
+
+    &:hover {
+      background: color-mix(in oklab, var(--nn-accent) 86%, white);
+    }
+  }
+
+  .nn-btn-line {
+    box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--nn-ink) 35%, transparent);
+    color: var(--nn-ink);
+
+    &:hover {
+      box-shadow: inset 0 0 0 1.5px var(--nn-accent);
+    }
+  }
+
+  .nn-btn[aria-disabled="true"] {
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px var(--nn-line);
+    color: var(--nn-muted);
+    cursor: not-allowed;
+
+    &:active {
+      transform: none;
+    }
+  }
+
+  /* ---------- Poster ---------- */
+
+  .nn-poster {
+    display: grid;
+    margin-top: clamp(2rem, 5vh, 3rem);
+    overflow: hidden;
+    border: 1px solid var(--nn-line);
+    border-radius: calc(var(--nn-radius) * 1.5);
+    background: var(--nn-surface);
+
+    @media (width >= 48rem) {
+      grid-template-columns: 1.4fr 1fr;
+    }
+  }
+
+  .nn-poster-art {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 400 / 280;
+    background: var(--nn-bg);
+  }
+
+  .nn-poster-ring {
+    fill: none;
+    stroke: var(--nn-accent);
+    stroke-dasharray: 2 5;
+    stroke-opacity: 0.5;
+
+    &[data-i="1"] {
+      stroke-opacity: 0.3;
+    }
+
+    &[data-i="2"] {
+      stroke-opacity: 0.16;
+    }
+  }
+
+  .nn-poster-dots circle {
+    fill: var(--nn-ink);
+    opacity: 0.55;
+  }
+
+  .nn-poster-q {
+    fill: var(--nn-accent);
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 800;
+  }
+
+  .nn-poster-body {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0.85rem;
+    padding: 1.5rem 1.25rem 1.75rem;
+    border-top: 1px solid var(--nn-line);
+
+    @media (width >= 48rem) {
+      padding: 2.5rem;
+      border-top: 0;
+      border-left: 1px solid var(--nn-line);
+    }
+
+    /* A corner of kawung, the batik motif the confetti is made of. */
+    &::before {
+      content: "";
+      position: absolute;
+      right: -0.6rem;
+      bottom: -0.6rem;
+      z-index: -1;
+      width: 9rem;
+      height: 9rem;
+      background: var(--nn-accent);
+      opacity: 0.09;
+      mask: var(--nn-kawung) 0 0 / 2.25rem 2.25rem repeat;
+    }
+  }
+
+  .nn-poster-kicker {
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.72rem;
+    color: var(--nn-accent);
+  }
+
+  .nn-poster-name {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-variation-settings: "wdth" 112;
+    font-size: clamp(2rem, 4.4vw, 3.4rem);
+    line-height: 0.95;
+    letter-spacing: -0.025em;
+  }
+
+  .nn-poster-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+
+    & li {
+      padding: 0.2rem 0.55rem;
+      border: 1px solid var(--nn-line);
+      border-radius: 999px;
+      font-family: var(--font-mono);
+      font-variation-settings: "wdth" 87.5;
+      font-size: 0.68rem;
+      color: var(--nn-muted);
+    }
+  }
+
+  /* Without scripts there's nothing to play, so the button stays out of the way. */
+  .nn-play {
+    display: none;
+    min-height: 3.25rem;
+    margin-top: 0.5rem;
+    padding-inline: 1.4rem 1.7rem;
+    font-size: 1.05rem;
+  }
+
+  .js .nn-play {
+    display: inline-flex;
+  }
+
+  .nn-play-icon {
+    width: 0.75rem;
+    height: 0.85rem;
+    background: currentColor;
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+    transition: transform 0.25s var(--nn-ease-spring);
+  }
+
+  .nn-play:hover .nn-play-icon {
+    transform: translateX(2px) scale(1.1);
+  }
+
+  .nn-play[aria-busy="true"] .nn-play-icon {
+    clip-path: circle(50%);
+    animation: nn-breathe 0.9s ease-in-out infinite;
+  }
+
+  /* The real top results, for when there's no game to hide them in. */
+  .nn-static {
+    margin-top: 2rem;
+  }
+
+  .js .nn-static:not([data-failed]) {
+    display: none;
+  }
+
+  .nn-static-lead {
+    max-width: 40rem;
+    color: rgb(239 233 220 / 0.8);
+    text-wrap: pretty;
+  }
+
+  .nn-static-list {
+    display: grid;
+    gap: 0.6rem;
+    margin-top: 1rem;
+
+    @media (width >= 48rem) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    & li {
+      padding: 0.8rem 1rem 0.9rem;
+      border: 1px solid var(--nn-line);
+      border-radius: var(--nn-radius);
+      background: var(--nn-surface);
+    }
+  }
+
+  .nn-static-head {
+    display: flex;
+    gap: 0.6rem;
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.68rem;
+    color: var(--nn-muted);
+  }
+
+  .nn-static-rank {
+    color: var(--nn-accent);
+  }
+
+  .nn-static-score {
+    margin-left: auto;
+    color: var(--nn-ink);
+  }
+
+  .nn-static-text {
+    margin-top: 0.4rem;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    text-wrap: pretty;
+  }
+
+  /* ---------- Game layout ---------- */
+
+  .nn-game {
+    position: relative;
+    display: grid;
+    gap: 1rem;
+    margin-top: clamp(2rem, 5vh, 3rem);
+
+    @media (width >= 60rem) {
+      grid-template-areas: "side cards" "dock cards";
+      grid-template-rows: auto 1fr;
+      grid-template-columns: minmax(20rem, 0.85fr) minmax(0, 1.15fr);
+      align-items: start;
+      column-gap: clamp(1.5rem, 3vw, 3rem);
+    }
+  }
+
+  .nn-side {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+
+    @media (width >= 60rem) {
+      grid-area: side;
+    }
+  }
+
+  .nn-prompt {
+    outline: none;
+  }
+
+  .nn-prompt-label {
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.72rem;
+    color: var(--nn-muted);
+  }
+
+  .nn-prompt-q {
+    margin-top: 0.3rem;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-variation-settings: "wdth" 100;
+    font-size: clamp(1.7rem, 2.5vw, 2.35rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+
+    /* The caret from the opening question, standing still now. */
+    &::after {
+      content: "";
+      display: inline-block;
+      width: 0.08em;
+      height: 0.8em;
+      margin-left: 0.1em;
+      vertical-align: -0.05em;
+      background: var(--nn-accent);
+    }
+  }
+
+  .nn-prompt-how {
+    max-width: 30rem;
+    margin-top: 0.6rem;
+    color: rgb(239 233 220 / 0.82);
+    text-wrap: pretty;
+  }
+
+  /* ---------- Map ---------- */
+
+  .nn-mapbox {
+    overflow: hidden;
+    border: 1px solid var(--nn-line);
+    border-radius: var(--nn-radius);
+    background: var(--nn-bg);
+  }
+
+  .nn-map {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 400 / 280;
+    font-family: var(--font-mono);
+
+    /* A halo of page color, so labels stay readable where they cross a line. */
+    & text {
+      paint-order: stroke;
+      stroke: var(--nn-bg);
+      stroke-width: 3px;
+      stroke-linejoin: round;
+    }
+  }
+
+  .nn-grid {
+    fill: none;
+    stroke: var(--nn-muted);
+    stroke-opacity: 0.2;
+    stroke-width: 1;
+  }
+
+  .nn-faint circle {
+    fill: var(--nn-muted);
+    opacity: 0.35;
+  }
+
+  .nn-glow-in {
+    stop-color: var(--nn-accent);
+    stop-opacity: 0.32;
+  }
+
+  .nn-glow-out {
+    stop-color: var(--nn-accent);
+    stop-opacity: 0;
+  }
+
+  .nn-query-dot {
+    fill: var(--nn-accent);
+  }
+
+  .nn-query-ping {
+    fill: none;
+    stroke: var(--nn-accent);
+    stroke-width: 1;
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: nn-ping 2.4s ease-out infinite;
+  }
+
+  .nn-query-label {
+    fill: var(--nn-accent);
+    font-size: 10px;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+
+  .nn-node {
+    --lit: 0;
+    --fade: 0;
+    opacity: calc(1 - var(--fade) * 0.55);
+
+    &[data-state="hit"],
+    &[data-state="skipped"] {
+      --lit: 1;
+    }
+
+    &[data-state="miss"],
+    &[data-state="decoy"] {
+      --fade: 1;
+    }
+
+    &[data-state="miss"] {
+      opacity: calc(1 - var(--fade) * 0.25);
+    }
+
+    &[data-squash] {
+      opacity: 1;
+    }
+  }
+
+  .nn-node-dot {
+    fill: color-mix(in oklab, var(--nn-accent) calc(var(--lit) * 100%), var(--nn-ink));
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform 0.25s var(--nn-ease-spring);
+  }
+
+  .nn-node[data-hot] .nn-node-dot {
+    transform: scale(1.6);
+  }
+
+  .nn-node-ring {
+    fill: none;
+    stroke: var(--nn-accent);
+    stroke-width: 1.6;
+    opacity: 0;
+    transform: scale(0.2);
+    transform-box: fill-box;
+    transform-origin: center;
+    transition:
+      transform 0.35s var(--nn-ease-spring),
+      opacity 0.2s;
+  }
+
+  .nn-node:is([data-state="picked"], [data-state="hit"], [data-state="miss"]) .nn-node-ring {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .nn-node[data-state="miss"] .nn-node-ring {
+    stroke: var(--nn-ink);
+    stroke-opacity: 0.6;
+    stroke-dasharray: 2.5 2.5;
+  }
+
+  .nn-node-pop {
+    fill: none;
+    stroke: var(--nn-accent);
+    stroke-width: 1.2;
+    opacity: 0;
+  }
+
+  /* A note that lies past the edge of the zoomed map points the way it really is. */
+  .nn-node-away {
+    fill: var(--nn-muted);
+    opacity: 0.8;
+  }
+
+  .nn-node-label {
+    fill: color-mix(in oklab, var(--nn-accent) calc(var(--lit) * 100%), var(--nn-ink));
+    font-size: 11px;
+    font-weight: 500;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+
+  .nn-node:is([data-state="picked"], [data-hot]) .nn-node-label {
+    fill: var(--nn-accent);
+    font-weight: 700;
+  }
+
+  .nn-line {
+    fill: none;
+    stroke: var(--nn-accent);
+    stroke-width: 1.5;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    opacity: 0.85;
+  }
+
+  .nn-line-squash {
+    stroke: var(--nn-ink);
+    stroke-opacity: 0.55;
+    stroke-width: 1.1;
+    stroke-dasharray: 3 4;
+  }
+
+  .nn-node[data-squash] .nn-node-ring {
+    opacity: 1;
+    transform: scale(1);
+    stroke: var(--nn-ink);
+    stroke-opacity: 0.75;
+    stroke-dasharray: 2.5 2.5;
+  }
+
+  .nn-squash-tag {
+    fill: var(--nn-ink);
+    font-size: 9.5px;
+    text-anchor: middle;
+    dominant-baseline: central;
+    opacity: 0.85;
+  }
+
+  .nn-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.9rem;
+    padding: 0.55rem 0.8rem;
+    border-top: 1px solid var(--nn-line);
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.64rem;
+    color: var(--nn-muted);
+  }
+
+  .nn-key {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+
+    &::before {
+      content: "";
+      flex: none;
+    }
+  }
+
+  .nn-key-query::before {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--nn-accent);
+  }
+
+  .nn-key-pick::before {
+    width: 0.6rem;
+    height: 0.6rem;
+    border: 1.5px solid var(--nn-accent);
+    border-radius: 50%;
+  }
+
+  .nn-key-top::before {
+    width: 0.9rem;
+    height: 1.5px;
+    background: var(--nn-accent);
+  }
+
+  .nn-legend-note {
+    margin-left: auto;
+  }
+
+  /* ---------- Cards ---------- */
+
+  .nn-cards {
+    display: grid;
+    gap: 0.6rem;
+
+    @media (width >= 40rem) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (width >= 60rem) {
+      grid-area: cards;
+    }
+
+    & > li {
+      display: flex;
+    }
+  }
+
+  .nn-card {
+    --lit: 0;
+    --fade: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.8rem 0.95rem 0.9rem;
+    border: 1px solid var(--nn-line);
+    border-radius: var(--nn-radius);
+    background: var(--nn-surface);
+    color: var(--nn-ink);
+    text-align: left;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Only while picking: the reveal animates these values itself. */
+  .nn-game[data-phase="pick"] .nn-card {
+    transition:
+      transform 0.25s var(--nn-ease-out),
+      box-shadow 0.25s,
+      border-color 0.2s,
+      background-color 0.2s;
+
+    @media (hover: hover) {
+      &:hover {
+        transform: translateY(-3px);
+        border-color: rgb(239 233 220 / 0.32);
+        box-shadow: var(--nn-lift);
+      }
+
+      &[aria-pressed="true"]:hover {
+        border-color: var(--nn-accent);
+        box-shadow:
+          0 0 0 1px var(--nn-accent),
+          0 0 0 5px rgb(244 178 35 / 0.14),
+          var(--nn-lift);
+      }
+    }
+
+    &:active {
+      transform: translateY(0) scale(0.985);
+      transition-duration: 0.08s;
+    }
+  }
+
+  .nn-card[aria-pressed="true"] {
+    border-color: var(--nn-accent);
+    background: color-mix(in oklab, var(--nn-surface) 91%, var(--nn-accent));
+    box-shadow:
+      0 0 0 1px var(--nn-accent),
+      0 0 0 5px rgb(244 178 35 / 0.14);
+  }
+
+  .nn-card-head {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.68rem;
+    color: var(--nn-muted);
+  }
+
+  .nn-card-letter {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 1px solid var(--nn-line);
+    border-radius: 0.35rem;
+    color: var(--nn-ink);
+    font-size: 0.72rem;
+    font-weight: 600;
+    transition:
+      background-color 0.2s,
+      color 0.2s,
+      border-color 0.2s;
+  }
+
+  .nn-card[aria-pressed="true"] .nn-card-letter {
+    border-color: var(--nn-accent);
+    background: var(--nn-accent);
+    color: var(--nn-on-accent);
+  }
+
+  .nn-card-src {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .nn-card-tick {
+    position: relative;
+    flex: none;
+    width: 1.3rem;
+    height: 1.3rem;
+    margin-left: auto;
+    border: 1.5px solid var(--nn-line);
+    border-radius: 50%;
+    transition:
+      background-color 0.2s,
+      border-color 0.2s;
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: 46%;
+      left: 50%;
+      width: 0.32rem;
+      height: 0.6rem;
+      border: solid var(--nn-on-accent);
+      border-width: 0 2px 2px 0;
+      opacity: 0;
+      translate: -50% -50%;
+      rotate: 45deg;
+    }
+  }
+
+  .nn-card[aria-pressed="true"] .nn-card-tick {
+    border-color: var(--nn-accent);
+    background: var(--nn-accent);
+    animation: nn-pop 0.35s var(--nn-ease-spring);
+
+    &::after {
+      opacity: 1;
+    }
+  }
+
+  .nn-card-text {
+    margin-top: 0.5rem;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    text-wrap: pretty;
+  }
+
+  /* After the reveal. */
+  .nn-game:not([data-phase="pick"]) .nn-card {
+    cursor: default;
+  }
+
+  .nn-card:is([data-state="hit"], [data-state="skipped"]) {
+    --lit: 1;
+    border-color: color-mix(in oklab, var(--nn-accent) calc(var(--lit) * 100%), var(--nn-line));
+  }
+
+  .nn-card[data-state="hit"] {
+    background: color-mix(in oklab, var(--nn-surface) calc(100% - var(--lit) * 11%), var(--nn-accent));
+    box-shadow:
+      0 0 0 calc(var(--lit) * 1px) var(--nn-accent),
+      0 0 calc(var(--lit) * 26px) -8px rgb(244 178 35 / 0.55);
+  }
+
+  .nn-card[data-state="skipped"] {
+    border-style: dashed;
+    box-shadow: none;
+  }
+
+  .nn-card:is([data-state="miss"], [data-state="decoy"]) {
+    --fade: 1;
+    box-shadow: none;
+  }
+
+  .nn-card[data-state="miss"] {
+    border-style: dashed;
+    border-color: rgb(239 233 220 / 0.32);
+    background: var(--nn-surface);
+    opacity: calc(1 - var(--fade) * 0.12);
+
+    & .nn-card-letter {
+      border-color: rgb(239 233 220 / 0.32);
+      background: transparent;
+      color: var(--nn-ink);
+    }
+
+    & .nn-card-tick {
+      border-color: rgb(239 233 220 / 0.32);
+      background: transparent;
+
+      &::after {
+        border-color: var(--nn-ink);
+        opacity: 0.6;
+      }
+    }
+  }
+
+  .nn-card[data-state="decoy"] {
+    opacity: calc(1 - var(--fade) * 0.42);
+  }
+
+  .nn-verdict {
+    display: block;
+    margin-top: 0.7rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--nn-line);
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.68rem;
+    line-height: 1.4;
+  }
+
+  .nn-verdict-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.75rem;
+  }
+
+  .nn-verdict-rank {
+    font-weight: 600;
+    color: var(--nn-accent);
+  }
+
+  .nn-verdict-num {
+    color: var(--nn-ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .nn-verdict-note {
+    color: var(--nn-muted);
+  }
+
+  .nn-card[data-state="hit"] .nn-verdict-note {
+    color: var(--nn-accent);
+
+    &::before {
+      content: "✓ ";
+      content: "✓ " / "";
+    }
+  }
+
+  .nn-card[data-state="miss"] .nn-verdict-note {
+    color: var(--nn-ink);
+
+    &::before {
+      content: "✕ ";
+      content: "✕ " / "";
+    }
+  }
+
+  .nn-verdict-trap {
+    color: var(--nn-muted);
+  }
+
+  /* Bar length is the cosine similarity itself, out of 1, like the cards up top. */
+  .nn-verdict-bar {
+    display: block;
+    height: 2px;
+    margin-top: 0.55rem;
+    background: linear-gradient(to right, var(--nn-accent) calc(var(--s) * 100%), var(--nn-line) 0);
+  }
+
+  /* ---------- Dock: the counter and the check button ---------- */
+
+  .nn-dock {
+    position: sticky;
+    bottom: max(0.75rem, env(safe-area-inset-bottom));
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.5rem 0.5rem 0.5rem 0.9rem;
+    border: 1px solid var(--nn-line);
+    border-radius: calc(var(--nn-radius) + 0.2rem);
+    background: color-mix(in oklab, var(--nn-surface) 88%, transparent);
+    box-shadow: 0 16px 32px -14px rgb(0 0 0 / 0.75);
+    backdrop-filter: blur(10px);
+
+    @media (width >= 60rem) {
+      position: static;
+      grid-area: dock;
+      background: var(--nn-surface);
+      box-shadow: none;
+      backdrop-filter: none;
+    }
+  }
+
+  .nn-count {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3rem 0.65rem;
+    min-width: 0;
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.7rem;
+    color: var(--nn-muted);
+
+    &[data-nudge] {
+      animation: nn-nudge 0.4s ease-in-out;
+    }
+  }
+
+  .nn-pips {
+    display: flex;
+    gap: 0.25rem;
+    margin-right: 0.3rem;
+  }
+
+  .nn-pip {
+    width: 0.5rem;
+    height: 0.5rem;
+    border: 1.5px solid var(--nn-muted);
+    border-radius: 50%;
+    transition:
+      background-color 0.2s,
+      border-color 0.2s;
+
+    &[data-on] {
+      border-color: var(--nn-accent);
+      background: var(--nn-accent);
+      animation: nn-pop 0.35s var(--nn-ease-spring);
+    }
+  }
+
+  .nn-count-text {
+    color: var(--nn-ink);
+  }
+
+  .nn-check {
+    flex: none;
+
+    &[data-ready] {
+      animation: nn-glow 2s ease-in-out infinite;
+    }
+  }
+
+  /* ---------- Result ---------- */
+
+  .nn-result {
+    position: relative;
+    padding: 1.1rem 1.15rem 1.25rem;
+    border: 1px solid var(--nn-accent);
+    border-radius: var(--nn-radius);
+    background: color-mix(in oklab, var(--nn-surface) 90%, var(--nn-accent));
+
+    /* A perfect round goes turmeric, like the answer at the end. */
+    &[data-perfect] {
+      --nn-ink: var(--nila);
+      --nn-muted: var(--nn-on-accent-muted);
+      background: var(--nn-accent);
+      color: var(--nn-on-accent);
+
+      & .nn-btn-solid {
+        background: var(--nn-on-accent);
+        color: var(--nn-accent);
+
+        &:hover {
+          background: color-mix(in oklab, var(--nn-on-accent) 85%, white);
+        }
+      }
+
+      & .nn-btn-line {
+        box-shadow: inset 0 0 0 1.5px var(--nn-on-accent);
+        color: var(--nn-on-accent);
+      }
+
+      & .nn-tag {
+        background: var(--nn-on-accent);
+        color: var(--nn-accent);
+      }
+
+      & .nn-result-squash {
+        color: var(--nn-on-accent);
+        border-left-color: rgb(15 26 71 / 0.35);
+      }
+
+      & :focus-visible {
+        outline-color: var(--nn-on-accent);
+      }
+    }
+  }
+
+  .nn-result-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+  }
+
+  .nn-result-head {
+    position: relative;
+    outline: none;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-variation-settings: "wdth" 125;
+    font-size: clamp(3rem, 7vw, 4.4rem);
+    line-height: 0.9;
+    letter-spacing: -0.03em;
+  }
+
+  .nn-result-score {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .nn-result-k {
+    font-size: 0.5em;
+    color: var(--nn-muted);
+  }
+
+  .nn-result-body > * + * {
+    margin-top: 0.6rem;
+  }
+
+  .nn-result-body {
+    margin-top: 0.75rem;
+  }
+
+  .nn-result-metric {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 0.35rem;
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.72rem;
+    color: var(--nn-muted);
+  }
+
+  .nn-result-p {
+    font-weight: 600;
+    color: var(--nn-ink);
+  }
+
+  .nn-tag {
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    background: var(--nn-accent);
+    color: var(--nn-on-accent);
+    font-size: 0.64rem;
+    font-weight: 600;
+  }
+
+  .nn-result-line {
+    font-size: 1.05rem;
+    font-weight: 500;
+    line-height: 1.4;
+    text-wrap: pretty;
+  }
+
+  .nn-result-squash {
+    padding-left: 0.8rem;
+    border-left: 2px dashed rgb(239 233 220 / 0.35);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: rgb(239 233 220 / 0.8);
+    text-wrap: pretty;
+  }
+
+  .nn-result-body > .nn-result-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1.1rem;
+
+    & .nn-btn {
+      flex: 1 1 auto;
+    }
+  }
+
+  /* Confetti comes out of the score. */
+  .nn-confetti {
+    position: absolute;
+    top: 0.45em;
+    left: 0.9em;
+    z-index: 3;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+
+  .nn-bit {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 14px;
+    height: 14px;
+    margin: -7px 0 0 -7px;
+    color: var(--kunyit);
+
+    & svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      fill: currentColor;
+    }
+
+    &[data-tone="mori"] {
+      color: var(--mori);
+    }
+
+    &[data-tone="nila"] {
+      color: var(--nila);
+    }
+  }
+
+  .nn-bit-dot {
+    width: 7px;
+    height: 7px;
+    margin: -3.5px 0 0 -3.5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+}
+
+@keyframes nn-ping {
+  from {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(3.8);
+  }
+}
+
+@keyframes nn-pop {
+  0% {
+    transform: scale(0.6);
+  }
+
+  60% {
+    transform: scale(1.15);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes nn-nudge {
+  20% {
+    translate: -5px 0;
+  }
+
+  40% {
+    translate: 5px 0;
+  }
+
+  60% {
+    translate: -3px 0;
+  }
+
+  80% {
+    translate: 2px 0;
+  }
+}
+
+@keyframes nn-glow {
+  50% {
+    box-shadow: 0 0 0 5px rgb(244 178 35 / 0.18);
+  }
+}
+
+@keyframes nn-breathe {
+  50% {
+    opacity: 0.35;
+    transform: scale(0.7);
+  }
+}
+
+/* No lifts, pops or pings. The states still change, just instantly. */
+@media (prefers-reduced-motion: reduce) {
+  .nn *,
+  .nn *::before,
+  .nn *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .nn-game[data-phase="pick"] .nn-card:hover {
+    transform: none;
+  }
+}
