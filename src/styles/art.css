@@ -1,0 +1,255 @@
+/*
+  The art kit's styles: batik frame, duotone, cap stamps and sizing for the SVG pieces.
+  The components in src/components/art carry their own colors, so these rules are about layout
+  and the bits only CSS can do (hover, masks, the press).
+*/
+
+@layer components {
+  /* ---------- sizing ---------- */
+
+  .art-landscape,
+  .art-kawung-field {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .art-postcard {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+  }
+
+  /* ---------- batik frame ---------- */
+
+  /* Padding, background and radius are set inline by <BatikFrame>. */
+  .art-frame {
+    position: relative;
+    display: block;
+    box-sizing: border-box;
+  }
+
+  /* A thin wax line between the border and the picture: a gap of ground, then ink. */
+  .art-frame-inner {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    border-radius: 0.15rem;
+    box-shadow:
+      0 0 0 2px var(--art-frame-ground, #0f1a47),
+      0 0 0 3.5px var(--art-frame-ink, #efe9dc);
+
+    & > img,
+    & > svg,
+    & > canvas,
+    & > .duotone-fade {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+  }
+
+  /* ---------- duotone: nila shadows, kunyit highlights ---------- */
+
+  /*
+    Needs <DuotoneFilter /> on the page once. Two ways to use it:
+
+    .duotone on an image (or its wrapper): dyed, back to color on hover or focus. An SVG filter
+    can't be interpolated, so this one switches.
+
+    <Duotone> (.duotone-fade): the image in color with a dyed copy over it that fades out, which
+    is the smooth version. Also reacts to hover or focus on any .duotone-trigger ancestor, e.g.
+    the link or card the photo sits in.
+  */
+  .duotone {
+    filter: var(--duotone-filter, url(#duotone-nila-kunyit));
+  }
+
+  .duotone:hover,
+  .duotone:focus-visible,
+  .duotone:focus-within,
+  .duotone-trigger:hover .duotone,
+  .duotone-trigger:focus-visible .duotone,
+  .duotone-trigger:focus-within .duotone {
+    filter: none;
+  }
+
+  .duotone-fade {
+    position: relative;
+    display: block;
+    isolation: isolate;
+
+    & > :first-child {
+      display: block;
+    }
+  }
+
+  .duotone-fade-tint {
+    position: absolute;
+    inset: 0;
+    display: block;
+    filter: var(--duotone-filter, url(#duotone-nila-kunyit));
+    pointer-events: none;
+    transition: opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+
+    & > * {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .duotone-fade:hover .duotone-fade-tint,
+  .duotone-fade:focus-within .duotone-fade-tint,
+  .duotone-trigger:hover .duotone-fade-tint,
+  .duotone-trigger:focus-visible .duotone-fade-tint,
+  .duotone-trigger:focus-within .duotone-fade-tint {
+    opacity: 0;
+  }
+
+  /* ---------- cap stamp ---------- */
+
+  .cap-stamp {
+    --press: 1;
+    /* Uneven ink: a speckle of noise knocked out of the print, like a cap that didn't quite
+       meet the cloth everywhere. */
+    --cap-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -7 0 0 0 5.1'/%3E%3C/filter%3E%3Crect width='90' height='90' filter='url(%23g)'/%3E%3C/svg%3E");
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4em 0.85em 0.36em;
+    color: var(--cap-ink, var(--kunyit));
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 87.5;
+    line-height: 1.2;
+    white-space: nowrap;
+    rotate: var(--cap-tilt, 0deg);
+    -webkit-mask-image: var(--cap-grain);
+    mask-image: var(--cap-grain);
+    -webkit-mask-size: 90px 90px;
+    mask-size: 90px 90px;
+
+    &[data-shape="round"] {
+      padding-inline: 1.1em;
+    }
+
+    /* The ink squeezed out at the edges when the cap lands. */
+    &::after {
+      content: "";
+      position: absolute;
+      inset: -0.3em -0.45em;
+      border-radius: 0.5em;
+      background: radial-gradient(closest-side, color-mix(in oklab, currentColor 26%, transparent), transparent);
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
+
+  .cap-stamp-frame {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+
+  /* A little spread on the letters, the way wax and ink soak in. */
+  .cap-stamp-label {
+    position: relative;
+    text-shadow:
+      0 0 0.6px currentColor,
+      0.03em 0.02em 0 color-mix(in oklab, currentColor 30%, transparent);
+  }
+
+  .cap-stamp[data-state="ready"] {
+    opacity: 0;
+    scale: 1.5;
+    translate: 0 -0.3em;
+  }
+
+  .cap-stamp[data-state="pressed"] {
+    animation: cap-press 0.55s cubic-bezier(0.3, 0.7, 0.3, 1) both;
+
+    &::after {
+      animation: cap-bleed 0.9s ease-out both;
+    }
+  }
+
+  /* Scroll-driven: tween --press from 0 to 1 on the element. */
+  .cap-stamp[data-state="scrub"] {
+    opacity: clamp(0, calc(var(--press) * 3 - 1), 1);
+    scale: calc(1 + (1 - var(--press)) * 0.5);
+    translate: 0 calc((1 - var(--press)) * -0.3em);
+
+    /* The bleed peaks at 0.8, just as the cap lands. */
+    &::after {
+      opacity: min((var(--press) - 0.6) * 5, (1 - var(--press)) * 5);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cap-stamp[data-state] {
+      opacity: 1;
+      scale: none;
+      translate: none;
+      animation: none;
+
+      &::after {
+        opacity: 0;
+        animation: none;
+      }
+    }
+
+    .duotone-fade-tint {
+      transition: none;
+    }
+  }
+}
+
+@keyframes cap-press {
+  0% {
+    opacity: 0;
+    scale: 1.5;
+    translate: 0 -0.3em;
+  }
+
+  55% {
+    opacity: 1;
+    scale: 0.95;
+    translate: 0 0;
+  }
+
+  78% {
+    scale: 1.015;
+  }
+
+  100% {
+    opacity: 1;
+    scale: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes cap-bleed {
+  0%,
+  45% {
+    opacity: 0;
+    scale: 0.8;
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    scale: 1.12;
+  }
+}
