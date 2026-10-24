@@ -142,12 +142,13 @@ export function OpeningScene({ land }: { land: ReactNode }) {
           return { region: { x: w * 0.04, y: h * 0.13, w: right - w * 0.04, h: h * 0.64 }, anchor };
         };
         const map = new EmbeddingMap(canvas, retrieval, frame);
+        let looping = false;
 
         // Hovering a dot shows its note; hovering a card lights its dot.
         const setHot = (index: number) => {
           map.highlight = index;
           cards.forEach((card, rank) => card.classList.toggle("is-hot", retrieval.top[rank].index === index));
-          if (!scrolly) map.draw();
+          if (!looping) map.draw(performance.now());
         };
         const showTip = (index: number) => {
           if (index < 0) {
@@ -245,9 +246,14 @@ export function OpeningScene({ land }: { land: ReactNode }) {
         };
         resize();
         ScrollTrigger.addEventListener("refreshInit", resize);
+        // Resizing the canvas clears it, and a refresh renders the timeline without firing
+        // onUpdate, so repaint once it settles unless the loop is already drawing.
+        const repaint = () => {
+          if (!looping) map.draw(performance.now());
+        };
+        ScrollTrigger.addEventListener("refresh", repaint);
 
         const loop = () => map.draw(performance.now());
-        let looping = false;
         const play = (on: boolean) => {
           if (on === looping) return;
           looping = on;
@@ -421,6 +427,7 @@ export function OpeningScene({ land }: { land: ReactNode }) {
           play(false);
           stage.classList.remove("is-idle");
           ScrollTrigger.removeEventListener("refreshInit", resize);
+          ScrollTrigger.removeEventListener("refresh", repaint);
           ScrollTrigger.removeEventListener("refresh", drawCloth);
           window.removeEventListener("pointermove", onPoint);
           clothBox.style.clipPath = "";
