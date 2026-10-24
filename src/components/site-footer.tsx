@@ -1,13 +1,13 @@
 import type { CSSProperties } from "react";
-import { batikDataUri, batikTileSize } from "@/components/art/patterns";
+import { batikTile } from "@/components/art/files";
 import { footerCopy } from "@/content/copy";
 import { site } from "@/content/site";
 
 // The page ends like a length of batik does, on a hem: one row of parang, in soga and kunyit.
-const HEM_SCALE = 0.25;
+const hemTile = batikTile("footer-hem");
 const hem = {
-  "--hem": batikDataUri("parang", { ink: "#f4b223", ground: "#080e2b", tint: "#9c6633", scale: HEM_SCALE }),
-  "--hem-size": `${batikTileSize("parang", HEM_SCALE)}px`,
+  "--hem": hemTile.css,
+  "--hem-size": `${hemTile.size}px`,
 } as CSSProperties;
 
 export function SiteFooter() {

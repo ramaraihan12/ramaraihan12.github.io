@@ -1,6 +1,8 @@
 /*
-  The art kit: batik and data, drawn in code. No image files. Styles live in
-  src/styles/art.css. Everything here is decorative (aria-hidden); put meaning in text.
+  The art kit: batik and data, drawn in code. No hand-made image files: the still pieces the
+  page would otherwise carry twice are drawn by this same code into /art/*.svg at build time
+  (files.tsx, server only, so it isn't exported here). Styles live in src/styles/art.css.
+  Everything here is decorative (aria-hidden); put meaning in text.
 */
 
 export {

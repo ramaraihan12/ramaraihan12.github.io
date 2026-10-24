@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
-import { batikDataUri, batikTileSize, DuotoneFilter } from "@/components/art";
+import { DuotoneFilter } from "@/components/art";
+import { batikTile } from "@/components/art/files";
 import { workCopy } from "@/content/copy";
 import { aiProjects, webProjects } from "@/content/projects";
 import { site } from "@/content/site";
@@ -7,8 +8,6 @@ import { ArrowUpRightIcon } from "./icons";
 import { ProjectPanel } from "./scenes/middle/project-panel";
 import { RunRail } from "./scenes/middle/run-rail";
 import { WebDivider } from "./scenes/middle/web-divider";
-
-const CLOTH_SCALE = 0.42;
 
 /*
   The work: the AI apps, then the web apps and the plumbing under them, on one rail. Server
@@ -19,9 +18,10 @@ const CLOTH_SCALE = 0.42;
   kawung cloth behind their postcard instead. Both are defined once here for every panel.
 */
 export function RunSection() {
+  const cloth = batikTile("run-cloth");
   const style = {
-    "--cloth": batikDataUri("kawung", { ink: "#c4915a", ground: "#0f1a47", tint: "#16235c", scale: CLOTH_SCALE }),
-    "--cloth-tile": `${batikTileSize("kawung", CLOTH_SCALE)}px`,
+    "--cloth": cloth.css,
+    "--cloth-tile": `${cloth.size}px`,
   } as CSSProperties;
 
   return (
