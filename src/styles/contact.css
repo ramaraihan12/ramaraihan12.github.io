@@ -152,6 +152,26 @@
     }
   }
 
+  /* Malam, the night blue the landscape's near hills are drawn in, so the ground runs on into
+     it. The hem along the bottom comes from site-footer.tsx. */
+  .site-footer {
+    background-color: var(--malam);
+
+    /* One row of the tile, under a wax line. */
+    &::after {
+      content: "";
+      display: block;
+      height: calc(var(--hem-size) + 1.5px);
+      border-top: 1.5px solid var(--kunyit);
+      box-shadow:
+        0 -3px 0 var(--malam),
+        0 -4px 0 color-mix(in oklab, var(--kunyit) 45%, transparent);
+      background-image: var(--hem);
+      background-size: var(--hem-size) var(--hem-size);
+      background-position: center;
+    }
+  }
+
   .site-footer-inner {
     display: flex;
     flex-direction: column;
