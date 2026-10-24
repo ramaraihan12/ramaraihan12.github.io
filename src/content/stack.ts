@@ -33,8 +33,8 @@ export const stack: StackGroup[] = [
   {
     name: "Backend",
     key: "backend",
-    items: ["Laravel", "PHP", "Node.js", "Python", "FastAPI", "Hono", "Midtrans"],
-    note: "Laravel for APIs, queues and auth. Python and FastAPI on the AI side. Midtrans for payments on Indonesian projects.",
+    items: ["Laravel", "PHP", "Node.js", "Python", "FastAPI", "Hono", "Go", "Rust", "Midtrans"],
+    note: "Laravel for APIs, queues and auth. Python and FastAPI on the AI side. Go or Rust when a small tool should ship as one binary. Midtrans for payments on Indonesian projects.",
   },
   {
     name: "Data",
