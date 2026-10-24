@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { pipelineCopy } from "@/content/copy";
 
 /**
  * A request's path through one app. --p (0 to 1) moves the dot along the wire and lights each
@@ -7,7 +8,7 @@ import type { CSSProperties } from "react";
 export function Pipeline({ steps }: { steps: string[] }) {
   return (
     <div className="pipe" style={{ "--n": steps.length } as CSSProperties}>
-      <ol className="pipe-steps" aria-label="How a request moves through it">
+      <ol className="pipe-steps" aria-label={pipelineCopy.label}>
         {steps.map((step, i) => (
           <li key={step} className="pipe-node" style={{ "--i": i } as CSSProperties}>
             {step}

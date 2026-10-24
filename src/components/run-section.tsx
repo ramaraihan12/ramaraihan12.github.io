@@ -1,163 +1,62 @@
-"use client";
-
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useRef } from "react";
-import { aiProjects } from "@/content/projects";
+import type { CSSProperties } from "react";
+import { batikDataUri, batikTileSize, DuotoneFilter } from "@/components/art";
+import { workCopy } from "@/content/copy";
+import { aiProjects, webProjects } from "@/content/projects";
 import { site } from "@/content/site";
-import { PRIORITY, RAIL_MQ, REDUCE_MQ, scrollToY, scrollyOn } from "@/lib/scroll";
-import { elementMarker, setMarker } from "@/lib/stage";
 import { ArrowUpRightIcon } from "./icons";
-import { Pipeline } from "./pipeline";
+import { ProjectPanel } from "./scenes/middle/project-panel";
+import { RunRail } from "./scenes/middle/run-rail";
+import { WebDivider } from "./scenes/middle/web-divider";
 
-gsap.registerPlugin(useGSAP, ScrollTrigger);
+const CLOTH_SCALE = 0.42;
 
-// Small counts read better spelled out, at the start of a heading.
-const WORDS = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve"];
-const count = (n: number) => WORDS[n] ?? String(n);
+/*
+  The work: the AI apps, then the web apps and the plumbing under them, on one rail. Server
+  markup; RunRail pins it and slides it sideways on wide screens.
 
+  Screenshots are dyed nila and mori (shadows indigo, lights cotton) rather than nila and
+  kunyit, which would turn a white app solid yellow. Projects without one get a piece of
+  kawung cloth behind their postcard instead. Both are defined once here for every panel.
+*/
 export function RunSection() {
-  const root = useRef<HTMLElement>(null);
-
-  useGSAP(
-    () => {
-      const section = root.current!;
-      const track = section.querySelector<HTMLElement>(".run-track")!;
-      const panels = gsap.utils.toArray<HTMLElement>(".project", section);
-      const mm = gsap.matchMedia();
-
-      mm.add({ rail: RAIL_MQ, reduce: REDUCE_MQ }, (ctx) => {
-        const { rail, reduce } = ctx.conditions as Record<string, boolean>;
-        if (reduce || !scrollyOn()) return setMarker("work", elementMarker(section));
-
-        if (!rail) {
-          // Stacked panels: the dot runs down each pipeline as it scrolls through the screen.
-          const removeMarker = setMarker("work", elementMarker(section));
-          for (const panel of panels) {
-            gsap.fromTo(
-              panel.querySelector(".pipe"),
-              { "--p": 0 },
-              {
-                "--p": 1,
-                ease: "none",
-                scrollTrigger: {
-                  trigger: panel.querySelector(".pipe"),
-                  start: "top 80%",
-                  end: "bottom 40%",
-                  scrub: 0.4,
-                  refreshPriority: PRIORITY.work,
-                },
-              },
-            );
-          }
-          return removeMarker;
-        }
-
-        // Wide screens: the section pins and the panels slide past sideways.
-        const distance = () => Math.max(0, track.scrollWidth - window.innerWidth);
-        const slide = gsap.to(track, {
-          x: () => -distance(),
-          ease: "none",
-          scrollTrigger: {
-            trigger: section,
-            refreshPriority: PRIORITY.work,
-            pin: true,
-            start: "top top",
-            end: () => `+=${distance()}`,
-            scrub: 0.6,
-            invalidateOnRefresh: true,
-          },
-        });
-
-        for (const panel of panels) {
-          gsap.fromTo(
-            panel.querySelector(".pipe"),
-            { "--p": 0 },
-            {
-              "--p": 1,
-              ease: "none",
-              scrollTrigger: {
-                trigger: panel,
-                refreshPriority: PRIORITY.work,
-                containerAnimation: slide,
-                start: "left 78%",
-                end: "left -4%",
-                scrub: 0.4,
-              },
-            },
-          );
-        }
-
-        const st = slide.scrollTrigger!;
-        const removeMarker = setMarker("work", { at: () => st.start - window.innerHeight * 0.5, to: () => st.start });
-
-        // Tabbing into a panel that's still off to the side scrolls the page until it's in view.
-        // The browser may also scroll the clipped section sideways on focus, so undo that.
-        const onFocus = (e: FocusEvent) => {
-          section.scrollLeft = 0;
-          const panel = (e.target as Element).closest<HTMLElement>(".panel, .run-outro");
-          if (!panel) return;
-          const x = panel.offsetLeft - (window.innerWidth - panel.offsetWidth) / 2;
-          scrollToY(st.start + gsap.utils.clamp(0, distance(), x));
-        };
-        track.addEventListener("focusin", onFocus);
-        return () => {
-          track.removeEventListener("focusin", onFocus);
-          removeMarker();
-        };
-      });
-    },
-    { scope: root },
-  );
+  const style = {
+    "--cloth": batikDataUri("kawung", { ink: "#c4915a", ground: "#0f1a47", tint: "#16235c", scale: CLOTH_SCALE }),
+    "--cloth-tile": `${batikTileSize("kawung", CLOTH_SCALE)}px`,
+  } as CSSProperties;
 
   return (
-    <section id="work" ref={root} className="run" aria-labelledby="run-title">
+    <RunRail id="work" className="run" aria-labelledby="run-title" style={style}>
+      <DuotoneFilter id="duotone-nila-mori" shadow="#0f1a47" highlight="#efe9dc" />
       <div className="run-track">
         <div className="run-intro">
-          <p className="eyebrow">work</p>
+          <p className="eyebrow">{workCopy.eyebrow}</p>
           <h2 id="run-title" className="display-l mt-4">
-            {`${count(aiProjects.length)} AI ${aiProjects.length === 1 ? "app" : "apps"} I built`}
+            {workCopy.title}
           </h2>
-          <p className="lead mt-5">
-            Most run on a local model through Ollama by default, so you can try them without an
-            API key.
-          </p>
+          <p className="lead mt-5">{workCopy.lead}</p>
           <p className="run-hint" aria-hidden="true">
-            keep scrolling <span>→</span>
+            {workCopy.scrollHint} <span>→</span>
           </p>
         </div>
 
-        {aiProjects.map((project) => (
-          <article key={project.name} className="panel project" aria-labelledby={`project-${project.name}`}>
-            <p className="project-kind">{project.kind}</p>
-            <h3 id={`project-${project.name}`} className="project-name">
-              {project.name}
-            </h3>
-            <p className="project-summary">{project.summary}</p>
-            {project.flow ? <Pipeline steps={project.flow} /> : null}
-            <div className="project-foot">
-              <ul className="chips" aria-label="Stack">
-                {project.stack.map((tech) => (
-                  <li key={tech}>{tech}</li>
-                ))}
-              </ul>
-              <a href={project.href} className="code-link">
-                Read the code<span className="sr-only"> for {project.name}</span>
-                <ArrowUpRightIcon className="size-4" />
-              </a>
-            </div>
-          </article>
+        {aiProjects.map((project, i) => (
+          <ProjectPanel key={project.name} project={project} index={i} />
+        ))}
+
+        <WebDivider />
+
+        {webProjects.map((project, i) => (
+          <ProjectPanel key={project.name} project={project} index={aiProjects.length + i} />
         ))}
 
         <div className="run-outro">
-          <p>Everything else, including the commits, is on GitHub.</p>
+          <p>{workCopy.outro}</p>
           <a href={site.github} className="code-link">
-            github.com/ramaraihan12
+            {workCopy.outroLink}
             <ArrowUpRightIcon className="size-4" />
           </a>
         </div>
       </div>
-    </section>
+    </RunRail>
   );
 }

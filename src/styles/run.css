@@ -1,8 +1,22 @@
-@layer components {
-  /* ---------- work: the AI apps, a sideways rail on wide screens ---------- */
+/*
+  How far a panel's art has arrived, 0 to 1, scrubbed by RunRail. Set on each moving part
+  itself and not inherited, so a change doesn't restyle everything inside the postcard.
+  Without the motion it stays 1.
+*/
+@property --in {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
 
+@layer components {
+  /* ---------- work: AI apps, then web & infra, a sideways rail on wide screens ---------- */
+
+  /* Clipped sideways: art that's still sliding in mustn't widen the page on a phone. */
   .run {
+    --lift-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
     padding-block: clamp(5rem, 12vh, 8rem) 2rem;
+    overflow-x: clip;
   }
 
   .run-track {
@@ -29,8 +43,6 @@
 
   .panel {
     position: relative;
-    display: flex;
-    flex-direction: column;
     padding: 1.4rem 1.25rem 1.5rem;
     border: 1px solid var(--line);
     border-radius: 0.75rem;
@@ -41,8 +53,30 @@
     }
   }
 
+  /* ---------- one project: text, art, pipeline, links ---------- */
+
+  .project {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "art" "text" "pipe" "foot";
+    row-gap: 1.5rem;
+
+    @media (width >= 48rem) {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      grid-template-areas: "text art" "pipe pipe" "foot foot";
+      column-gap: clamp(1.5rem, 3vw, 3rem);
+    }
+  }
+
+  .project-text {
+    grid-area: text;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+  }
+
   .project-kind {
-    align-self: flex-start;
     padding: 0.15rem 0.6rem;
     border: 1px solid rgb(244 178 35 / 0.45);
     border-radius: 999px;
@@ -52,13 +86,14 @@
     color: var(--kunyit);
   }
 
+  /* Long names get a narrower cut (--name-w, from the panel) rather than a smaller size. */
   .project-name {
-    margin-top: 1.25rem;
+    margin-top: 1rem;
     font-family: var(--font-display);
     font-weight: 750;
-    font-variation-settings: "wdth" 100;
-    font-size: clamp(1.7rem, 5vw, 3.9rem);
-    line-height: 1;
+    font-variation-settings: "wdth" var(--name-w, 100);
+    font-size: clamp(1.8rem, 4.4vw, 3.4rem);
+    line-height: 0.98;
     letter-spacing: -0.02em;
     overflow-wrap: anywhere;
   }
@@ -66,19 +101,205 @@
   .project-summary {
     max-width: 40rem;
     margin-top: 0.9rem;
-    font-size: 1.05rem;
+    font-size: 1.02rem;
     color: rgb(239 233 220 / 0.82);
     text-wrap: pretty;
   }
 
+  .project .pipe {
+    grid-area: pipe;
+    margin-top: 0;
+  }
+
   .project-foot {
+    grid-area: foot;
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
     justify-content: space-between;
     gap: 1rem 1.5rem;
-    margin-top: auto;
-    padding-top: 1.75rem;
+  }
+
+  .project-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.4rem;
+  }
+
+  /* ---------- the art: postcard in front, screenshot (or cloth) behind ---------- */
+
+  /*
+    --lift is 1 while the panel is hovered or has focus: the postcard slides off to the lower
+    left and the screenshot comes forward in its own colors.
+  */
+  .project-art {
+    grid-area: art;
+    position: relative;
+    container-type: size;
+    width: 100%;
+    max-width: 30rem;
+    margin-inline: auto;
+    aspect-ratio: 4 / 3;
+    transform: translateX(calc((1 - var(--in)) * 2.5rem));
+
+    @media (width >= 48rem) {
+      align-self: center;
+      max-width: none;
+      aspect-ratio: 5 / 4;
+    }
+  }
+
+  .project-back {
+    position: absolute;
+    top: 2%;
+    right: 0;
+    z-index: calc(var(--lift, 0) * 2);
+    width: min(86cqw, 64cqh * var(--shot-ratio, 1.6));
+    aspect-ratio: var(--shot-ratio, 1.6);
+    overflow: hidden;
+    border-radius: 0.3rem;
+    translate: calc(var(--lift, 0) * -8%) calc(var(--lift, 0) * 6%);
+    rotate: calc(var(--tilt, 3deg) * -0.45 * (1 - var(--lift, 0)));
+    scale: calc(1 + var(--lift, 0) * 0.1);
+    transform: translate(calc((1 - var(--in)) * 14%), calc((1 - var(--in)) * -5%));
+    transition:
+      translate 0.6s var(--lift-ease),
+      rotate 0.6s var(--lift-ease),
+      scale 0.6s var(--lift-ease),
+      z-index 0s linear 0.16s;
+  }
+
+  .project-shot {
+    background: var(--nila);
+    box-shadow:
+      0 0 0 1px rgb(239 233 220 / 0.28),
+      0 22px 40px -20px rgb(0 0 0 / 0.8);
+
+    & img {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+    }
+  }
+
+  /* The same file dyed nila and mori, over the color one. DuotoneFilter lives in the section. */
+  .project-shot-dye {
+    filter: url(#duotone-nila-mori);
+    opacity: calc(1 - var(--lift, 0));
+    transition: opacity 0.6s var(--lift-ease);
+  }
+
+  .project-cloth {
+    background: var(--cloth) center / var(--cloth-tile) var(--cloth-tile) var(--nila);
+    box-shadow:
+      0 0 0 1px var(--line),
+      0 22px 40px -20px rgb(0 0 0 / 0.7);
+  }
+
+  .project-card {
+    position: absolute;
+    bottom: 2%;
+    left: 1%;
+    z-index: 1;
+    width: min(70cqw, 66cqh * 4 / 3);
+    border-radius: 2.5% / 3.333%;
+    box-shadow: 0 26px 40px -22px rgb(0 0 0 / 0.85);
+    translate: calc(var(--lift, 0) * -10%) calc(var(--lift, 0) * 12%);
+    rotate: calc(var(--tilt, 3deg) * (1 + var(--lift, 0) * 1.6));
+    scale: calc(1 - var(--lift, 0) * 0.16);
+    transform: translate(calc((1 - var(--in)) * 34%), calc((1 - var(--in)) * 4%)) rotate(calc((1 - var(--in)) * 9deg));
+    transition:
+      translate 0.6s var(--lift-ease),
+      rotate 0.6s var(--lift-ease),
+      scale 0.6s var(--lift-ease);
+
+    & > svg {
+      display: block;
+    }
+  }
+
+  /* Without a screenshot there's nothing to bring forward, so the postcard just lifts a little. */
+  .project-art:not([data-has-shot]) .project-card {
+    translate: 0 calc(var(--lift, 0) * -4%);
+    rotate: calc(var(--tilt, 3deg) * (1 - var(--lift, 0) * 0.7));
+    scale: calc(1 + var(--lift, 0) * 0.03);
+  }
+
+  .project-art:not([data-has-shot]) .project-back {
+    z-index: 0;
+    translate: calc(var(--lift, 0) * 3%) calc(var(--lift, 0) * -3%);
+    scale: 1;
+  }
+
+  @media (hover: hover) {
+    .project:hover {
+      --lift: 1;
+    }
+  }
+
+  .project:focus-within {
+    --lift: 1;
+  }
+
+  /* No hover on touch screens, so the screenshot is shown in its own colors from the start. */
+  @media (hover: none) {
+    .project-shot-dye {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .project-back,
+    .project-card,
+    .project-shot-dye {
+      transition: none;
+    }
+  }
+
+  /* ---------- web & infra: a kepala band across the rail ---------- */
+
+  .run-divider {
+    display: grid;
+    grid-template-areas: "band" "text";
+    gap: 1.75rem;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  /* Parang in soga, with tumpal teeth along the edge that faces the text. */
+  .kepala {
+    --tooth: 1rem;
+    grid-area: band;
+    display: block;
+    height: 5.5rem;
+    border-radius: 0.3rem 0.3rem 0 0;
+    background: var(--kepala) center / var(--kepala-tile) var(--kepala-tile) var(--soga);
+    -webkit-mask:
+      linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat,
+      conic-gradient(from -45deg at bottom, #000 90deg, #0000 0) bottom / calc(var(--tooth) * 2) var(--tooth) repeat-x;
+    mask:
+      linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat,
+      conic-gradient(from -45deg at bottom, #000 90deg, #0000 0) bottom / calc(var(--tooth) * 2) var(--tooth) repeat-x;
+  }
+
+  .run-divider-text {
+    grid-area: text;
+    padding-bottom: 1rem;
+  }
+
+  .run-divider-title {
+    margin-top: 1rem;
+    font-size: clamp(2rem, 5.6vw, 3.4rem);
+    font-variation-settings: "wdth" 112;
+  }
+
+  .run-divider-lead {
+    margin-top: 1.25rem;
   }
 
   .run-outro {
@@ -108,7 +329,7 @@
 
     & .run-track {
       flex-direction: row;
-      align-items: stretch;
+      align-items: center;
       gap: clamp(1.25rem, 2.5vw, 2.5rem);
       width: max-content;
       max-width: none;
@@ -138,27 +359,57 @@
       }
     }
 
-    & .run-track {
-      align-items: center;
-    }
-
     & .run-intro .display-l {
       font-size: clamp(2rem, 3.8vw, 3.6rem);
     }
 
     & .panel {
-      flex: 0 0 min(62rem, 70vw);
-      height: min(31rem, 100%);
-      padding: clamp(1.75rem, 3vw, 3rem);
+      flex: 0 0 min(64rem, 84vw);
+      height: min(36rem, 100%);
+      padding: clamp(1.5rem, 2.8vw, 2.75rem);
     }
 
-    & .project .pipe {
-      margin-top: auto;
+    & .project {
+      grid-template-rows: minmax(0, 1fr) auto auto;
+      row-gap: clamp(1rem, 2.6vh, 1.75rem);
     }
 
-    & .project-foot {
-      margin-top: 0;
-      padding-top: 2rem;
+    /* Moved every frame by the scrub, so each gets its own layer and nothing repaints. */
+    & .project-art {
+      height: 100%;
+      aspect-ratio: auto;
+      will-change: transform;
+    }
+
+    & .project-back,
+    & .project-card {
+      will-change: transform;
+    }
+
+    & .run-divider {
+      flex-basis: min(46rem, 64vw);
+      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-areas: "band text";
+      align-items: center;
+      column-gap: clamp(2rem, 4vw, 3.5rem);
+      padding: 0;
+    }
+
+    & .kepala {
+      align-self: stretch;
+      width: clamp(5.5rem, 8vw, 8rem);
+      height: auto;
+      border-radius: 0.3rem 0 0 0.3rem;
+      -webkit-mask:
+        linear-gradient(#000 0 0) left / calc(100% - var(--tooth)) 100% no-repeat,
+        conic-gradient(from -135deg at right, #000 90deg, #0000 0) right / var(--tooth) calc(var(--tooth) * 2) repeat-y;
+      mask:
+        linear-gradient(#000 0 0) left / calc(100% - var(--tooth)) 100% no-repeat,
+        conic-gradient(from -135deg at right, #000 90deg, #0000 0) right / var(--tooth) calc(var(--tooth) * 2) repeat-y;
+    }
+
+    & .run-divider-text {
+      padding-bottom: 0;
     }
 
     & .run-outro {
