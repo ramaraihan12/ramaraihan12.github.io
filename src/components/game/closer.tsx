@@ -501,10 +501,10 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
 
       <div className="cl-foot" data-over={phase === "over" || undefined}>
         <div className="cl-cloth-slot">
-          <Cloth motifs={motifs} final={phase === "over"} className="cl-cloth" />
+          <Cloth motifs={motifs} final={phase === "over"} />
           {motifs.length === 0 && phase !== "over" ? (
             <p className="cl-cloth-empty" aria-hidden="true">
-              {S.game.clothEmpty}
+              <span>{S.game.clothEmpty}</span>
             </p>
           ) : null}
         </div>

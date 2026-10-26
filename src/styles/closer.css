@@ -458,39 +458,32 @@
     padding: 1.25rem var(--cl-pad) var(--cl-pad);
   }
 
-  /* Its own reserved band, so a motif coming in never moves the cards. */
+  /* The cloth draws and sizes itself (game.css): a strip of fixed height while playing, so a
+     panel coming in never moves anything, and the whole hemmed cloth at game over. */
   .cl-cloth-slot {
     position: relative;
-    height: clamp(4rem, 9vw, 5.5rem);
-    overflow: hidden;
-    border: 1px solid var(--line);
-    border-radius: var(--cl-radius);
-    background: var(--malam);
-    transition: height 0.4s var(--cl-ease-out);
   }
 
-  .cl-foot[data-over] .cl-cloth-slot {
-    height: clamp(6rem, 16vw, 9rem);
-  }
-
-  .cl-cloth {
-    width: 100%;
-    height: 100%;
-  }
-
+  /* Until the first right call, a word on what the blank cloth is for. */
   .cl-cloth-empty {
     position: absolute;
     inset: 0;
     display: grid;
     place-items: center;
     padding: 0.5rem 1rem;
-    font-family: var(--font-mono);
-    font-variation-settings: "wdth" 87.5;
-    font-size: 0.68rem;
-    line-height: 1.4;
-    color: var(--pudar);
-    text-align: center;
     pointer-events: none;
+
+    & span {
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      background: var(--malam);
+      font-family: var(--font-mono);
+      font-variation-settings: "wdth" 87.5;
+      font-size: 0.68rem;
+      line-height: 1.4;
+      color: var(--pudar);
+      text-align: center;
+    }
   }
 
   .cl-hint {
