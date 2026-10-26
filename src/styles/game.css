@@ -1,10 +1,10 @@
 /*
-  Nearest Neighbors, the "play" stop. Import after `@import "tailwindcss"` in globals.css.
+  The "play" stop: the section and its night ground, the buttons, the poster, the cloth a run
+  of Closer weaves (cl-cloth), and the list shown without scripts. The game's own layout lives
+  in closer.css. Import after `@import "tailwindcss"` in globals.css.
 
-  Skinning: every color, the radius and the lift shadow are --nn-* tokens on .nn, and every
-  state is a data attribute (data-phase on .nn-game, data-state on .nn-card and .nn-node:
-  idle, picked, hit, skipped, miss, decoy). --lit and --fade run from 0 to 1 and are animated
-  by the reveal, so restyled states can use them too.
+  Skinning: every color, the radius and the lift shadow are --nn-* tokens on .nn. The cloth's
+  dyes are tokens too, set per data-dye on each panel.
 */
 
 @layer components {
@@ -21,10 +21,9 @@
     --nn-lift: 0 14px 28px -16px rgb(0 0 0 / 0.75);
     --nn-ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
     --nn-ease-spring: cubic-bezier(0.3, 1.6, 0.5, 1);
-    /* The night sky behind the map: a truntum tile from the art kit (batikDataUri("truntum"),
+    /* The night sky behind the poster: a truntum tile from the art kit (batikDataUri("truntum"),
        ink #323b6c, scale 0.75), baked in so the poster costs no script. */
     --nn-sky: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 96 96'%3E%3Cdefs%3E%3Cg id='b-t0'%3E%3Cpath d='M9.3 .2C9.3 .8 8 1.8 6.3 1.7S3.5 .6 3.5 .1S4.9-1.4 6.4-1.4S9.3-.3 9.3 .2ZM4.3 4.6C4 4.9 3 4.8 2.5 4.2S2 2.7 2.2 2.4S3.5 2.1 4.1 2.7S4.5 4.4 4.3 4.6ZM.3 8.8C-.2 8.9-1.2 7.7-1.3 6.1S-.3 3.4 .1 3.4S1.6 4.5 1.7 6S.8 8.8 .3 8.8ZM-4.3 3.9C-4.5 3.6-4.7 2.6-4.2 2.1S-2.8 1.9-2.5 2.2S-2.1 3.4-2.6 3.9S-4 4.2-4.3 3.9ZM-9.6 0C-9.6-.5-8.2-1.5-6.4-1.5S-3.2-.5-3.2 0S-4.8 1.6-6.4 1.6S-9.6 .4-9.6 0ZM-3.9-4.3C-3.5-4.6-2.6-4.7-2.1-4.2S-1.9-2.8-2.2-2.5S-3.4-2.2-3.8-2.7S-4.2-4.1-3.9-4.3ZM-.2-9.4C.3-9.4 1.4-8.1 1.5-6.4S.4-3.5-.1-3.5S-1.5-4.6-1.6-6.3S-.7-9.4-.2-9.4ZM4.2-4.8C4.5-4.5 4.6-3.5 4-2.8S2.5-2.2 2.2-2.5S1.6-3.7 2.2-4.4S3.9-5 4.2-4.8Z' fill='none' stroke='%23323b6c' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M-2.2-.2a2.2 2.2 0 1 0 4.4 0a2.2 2.2 0 1 0 -4.4 0' fill='none' stroke='%23323b6c' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M-.9 0a1 1 0 1 0 1.9 0a1 1 0 1 0 -1.9 0M5.1 6a.8 .8 0 1 0 1.6 0a.8 .8 0 1 0 -1.6 0M-6.6 6.2a.9 .9 0 1 0 1.9 0a.9 .9 0 1 0 -1.9 0M-7.1-5.5a.8 .8 0 1 0 1.5 0a.8 .8 0 1 0 -1.5 0M4.8-6.1a1 1 0 1 0 1.9 0a1 1 0 1 0 -1.9 0' fill='%23323b6c'/%3E%3C/g%3E%3Cg id='b-t1'%3E%3Cpath d='M8.9 .2C8.9 .7 7.7 1.7 6.2 1.6S3.1 .5 3.1 .1S4.7-1.4 6.2-1.4S8.9-.3 8.9 .2ZM4 4.5C3.7 4.7 2.8 4.8 2.3 4.3S1.9 2.7 2.2 2.5S3.4 2.2 3.9 2.8S4.3 4.3 4 4.5ZM.6 9.3C.1 9.3-1.1 8-1.1 6.5S-.3 3.2 .2 3.1S1.8 4.7 1.9 6.3S1.1 9.3 .6 9.3ZM-4.2 4.5C-4.4 4.2-4.6 3.3-4 2.7S-2.4 2.1-2.2 2.3S-1.8 3.7-2.4 4.3S-3.9 4.7-4.2 4.5ZM-8.6-.2C-8.6-.7-7.4-1.7-6-1.6S-3.4-.6-3.4-.1S-4.6 1.5-6 1.5S-8.6 .3-8.6-.2ZM-4-3.8C-3.8-4-2.9-4.2-2.5-3.8S-2.2-2.6-2.4-2.3S-3.6-1.7-4.1-2.1S-4.2-3.5-4-3.8ZM-.3-9.7C.3-9.7 1.4-8.2 1.5-6.5S.4-3.5-.1-3.5S-1.6-4.5-1.7-6.4S-.9-9.7-.3-9.7ZM4-4.7C4.3-4.4 4.5-3.4 3.9-2.8S2.5-2.3 2.2-2.5S1.7-3.7 2.2-4.3S3.8-4.9 4-4.7Z' fill='none' stroke='%23323b6c' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M-2.2 0a2.2 2.2 0 1 0 4.3 0a2.2 2.2 0 1 0 -4.3 0' fill='none' stroke='%23323b6c' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M-.9 0a1 1 0 1 0 1.9 0a1 1 0 1 0 -1.9 0M5.5 5.5a.8 .8 0 1 0 1.7 0a.8 .8 0 1 0 -1.7 0M-6.7 5.9a.8 .8 0 1 0 1.5 0a.8 .8 0 1 0 -1.5 0M-6.7-6.1a.9 .9 0 1 0 1.7 0a.9 .9 0 1 0 -1.7 0M5.1-6a.8 .8 0 1 0 1.7 0a.8 .8 0 1 0 -1.7 0' fill='%23323b6c'/%3E%3C/g%3E%3Cg id='b-t2'%3E%3Cpath d='M8.9 0C8.9 .5 7.6 1.5 6.2 1.5S3.3 .5 3.3 0S4.8-1.6 6.2-1.6S8.9-.5 8.9 0ZM4.4 4.2C4.2 4.5 3.2 4.6 2.7 4.1S2.1 2.4 2.3 2.2S3.6 2 4.2 2.5S4.6 4 4.4 4.2ZM-.6 8.9C-1.1 8.8-2.1 7.5-2 6.1S-.7 3.2-.2 3.2S1.3 4.7 1.2 6.3S-.1 8.9-.6 8.9ZM-4.4 3.9C-4.7 3.6-4.8 2.6-4.3 2.2S-2.7 1.9-2.5 2.2S-2.2 3.4-2.8 3.9S-4.2 4.2-4.4 3.9ZM-9.1 .4C-9.1-.1-7.7-1.1-6.2-1.2S-3.2-.3-3.2 .1S-4.3 1.8-6 1.9S-9.1 .9-9.1 .4ZM-4.7-4.1C-4.5-4.4-3.5-4.6-2.8-4S-2.3-2.4-2.5-2.2S-3.7-1.8-4.3-2.3S-5-3.8-4.7-4.1ZM-.6-9.1C-.1-9.1 1-7.9 1.1-6.2S.2-3.2-.2-3.1S-2-4.5-2.1-6S-1.1-9.1-.6-9.1ZM4.3-4.3C4.5-4 4.7-3 4.1-2.5S2.6-2.1 2.3-2.3S2-3.5 2.5-4S4-4.5 4.3-4.3Z' fill='none' stroke='%23323b6c' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M-2.4 .1a2.4 2.4 0 1 0 4.8 0a2.4 2.4 0 1 0 -4.8 0' fill='none' stroke='%23323b6c' stroke-width='0.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M-.9 0a1 1 0 1 0 1.9 0a1 1 0 1 0 -1.9 0M4.6 6.4a.9 .9 0 1 0 1.7 0a.9 .9 0 1 0 -1.7 0M-6.3 6.5a.9 .9 0 1 0 1.9 0a.9 .9 0 1 0 -1.9 0M-7.1-5.7a1 1 0 1 0 1.9 0a1 1 0 1 0 -1.9 0M5.4-5.7a.8 .8 0 1 0 1.5 0a.8 .8 0 1 0 -1.5 0' fill='%23323b6c'/%3E%3C/g%3E%3C/defs%3E%3Cuse href='%23b-t0' transform='translate(12.3 25.1) rotate(43) scale(0.97)'/%3E%3Cuse href='%23b-t1' transform='translate(10.6 72.6) rotate(26) scale(1.05)'/%3E%3Cuse href='%23b-t1' transform='translate(106.6 72.6) rotate(26) scale(1.05)'/%3E%3Cuse href='%23b-t2' transform='translate(35.1 .3) rotate(17) scale(1.01)'/%3E%3Cuse href='%23b-t2' transform='translate(35.1 96.3) rotate(17) scale(1.01)'/%3E%3Cuse href='%23b-t0' transform='translate(36.2 47.6) rotate(7) scale(0.95)'/%3E%3Cuse href='%23b-t1' transform='translate(59.6 23) rotate(15) scale(0.95)'/%3E%3Cuse href='%23b-t2' transform='translate(60.9 71.9) rotate(10) scale(0.92)'/%3E%3Cuse href='%23b-t0' transform='translate(-11.4 -.7) rotate(36) scale(0.97)'/%3E%3Cuse href='%23b-t0' transform='translate(-11.4 95.3) rotate(36) scale(0.97)'/%3E%3Cuse href='%23b-t0' transform='translate(84.6 -.7) rotate(36) scale(0.97)'/%3E%3Cuse href='%23b-t0' transform='translate(84.6 95.3) rotate(36) scale(0.97)'/%3E%3Cuse href='%23b-t1' transform='translate(82.8 48.3) rotate(40) scale(0.89)'/%3E%3Cpath d='M0 12.3a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0 -2.2 0M-1.1 35.5a1.2 1.2 0 1 0 2.3 0a1.2 1.2 0 1 0 -2.3 0M94.9 35.5a1.2 1.2 0 1 0 2.3 0a1.2 1.2 0 1 0 -2.3 0M-.8 58.5a.8 .8 0 1 0 1.5 0a.8 .8 0 1 0 -1.5 0M95.2 58.5a.8 .8 0 1 0 1.5 0a.8 .8 0 1 0 -1.5 0M-3.6 82.9a1.1 1.1 0 1 0 2.3 0a1.1 1.1 0 1 0 -2.3 0M92.4 82.9a1.1 1.1 0 1 0 2.3 0a1.1 1.1 0 1 0 -2.3 0M22.9 12.8a.7 .7 0 1 0 1.4 0a.7 .7 0 1 0 -1.4 0M24.6 34.2a1 1 0 1 0 2.1 0a1 1 0 1 0 -2.1 0M23.4 59.5a.8 .8 0 1 0 1.7 0a.8 .8 0 1 0 -1.7 0M22.1 85.1a.9 .9 0 1 0 1.8 0a.9 .9 0 1 0 -1.8 0M47.8 11.2a.9 .9 0 1 0 1.8 0a.9 .9 0 1 0 -1.8 0M45.5 35.5a1.2 1.2 0 1 0 2.4 0a1.2 1.2 0 1 0 -2.4 0M48.2 59.7a1 1 0 1 0 2.1 0a1 1 0 1 0 -2.1 0M48.9 82.8a.9 .9 0 1 0 1.8 0a.9 .9 0 1 0 -1.8 0M71.4 9.6a1 1 0 1 0 2 0a1 1 0 1 0 -2 0M68.4 33.7a1.2 1.2 0 1 0 2.3 0a1.2 1.2 0 1 0 -2.3 0M73.2 59.4a1 1 0 1 0 1.9 0a1 1 0 1 0 -1.9 0M73 82.7a.8 .8 0 1 0 1.6 0a.8 .8 0 1 0 -1.6 0' fill='%23323b6c'/%3E%3C/svg%3E") 0 0 / 72px 72px, var(--malam);
-    --nn-kawung: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-10 -10 20 20'%3E%3Cg transform='rotate(45)'%3E%3Cellipse cx='0' cy='-5.2' rx='3.6' ry='4.8'/%3E%3Cellipse cx='0' cy='5.2' rx='3.6' ry='4.8'/%3E%3Cellipse cx='-5.2' cy='0' rx='4.8' ry='3.6'/%3E%3Cellipse cx='5.2' cy='0' rx='4.8' ry='3.6'/%3E%3C/g%3E%3C/svg%3E");
     padding-block: clamp(5rem, 13vh, 9rem) clamp(3rem, 8vh, 5rem);
     color: var(--nn-ink);
   }
@@ -94,7 +93,7 @@
     }
   }
 
-  /* ---------- Poster: a truntum night, the question as its turmeric flower ---------- */
+  /* ---------- Poster: two notes tied to the question, one thread taut, one slack ---------- */
 
   .nn-poster {
     display: grid;
@@ -117,29 +116,131 @@
     background: var(--nn-sky);
   }
 
-  /* Three rings out from the question, fainter and looser as they go: a line, dashes, dots. */
+  .nn-poster-sky {
+    fill: var(--nn-ink);
+    opacity: 0.55;
+  }
+
+  .nn-poster-sky-big {
+    opacity: 0.75;
+  }
+
+  .nn-poster-glow-in {
+    stop-color: var(--nn-accent);
+    stop-opacity: 0.3;
+  }
+
+  .nn-poster-glow-out {
+    stop-color: var(--nn-accent);
+    stop-opacity: 0;
+  }
+
+  .nn-poster-ping {
+    fill: none;
+    stroke: var(--nn-accent);
+    stroke-width: 1;
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: nn-ping 2.4s ease-out infinite;
+  }
+
+  /* The two threads: the closer note's pulled taut in kunyit, the other hanging loose in mori. */
+  .nn-poster-thread[data-pull="taut"] {
+    fill: var(--nn-accent);
+  }
+
+  .nn-poster-thread[data-pull="slack"] {
+    fill: none;
+    stroke: var(--nn-ink);
+    stroke-opacity: 0.55;
+    stroke-width: 0.9;
+    stroke-linecap: round;
+  }
+
   .nn-poster-ring {
     fill: none;
     stroke: var(--nn-accent);
-    stroke-width: 1.3;
+    stroke-width: 1.2;
     stroke-linecap: round;
-    stroke-opacity: 0.7;
 
-    &[data-i="1"] {
-      stroke-dasharray: 9 6;
-      stroke-opacity: 0.42;
-    }
-
-    &[data-i="2"] {
-      stroke-dasharray: 0.1 6;
-      stroke-width: 1.6;
-      stroke-opacity: 0.3;
+    &[data-far] {
+      stroke: var(--nn-ink);
+      stroke-opacity: 0.4;
+      stroke-dasharray: 0.1 3.5;
+      stroke-width: 1.5;
     }
   }
 
-  .nn-poster-dots circle {
+  .nn-poster-star {
     fill: var(--nn-ink);
-    opacity: 0.8;
+    opacity: 0.85;
+
+    &[data-near] {
+      fill: var(--nn-accent);
+      opacity: 1;
+    }
+  }
+
+  /* The cloth along the bottom: the same blank cotton, pola and dyes as the game's (.cl-cloth). */
+  .nn-poster-cloth-blank {
+    fill: color-mix(in oklab, var(--mori) 5%, var(--malam));
+  }
+
+  .nn-poster-cecek {
+    fill: color-mix(in oklab, var(--mori) 30%, transparent);
+  }
+
+  .nn-poster-panel {
+    stroke: var(--malam);
+    stroke-width: 0.6;
+  }
+
+  .nn-poster-k {
+    --k-ground: var(--nila);
+    --k-body: color-mix(in oklab, var(--soga) 72%, var(--nila));
+    --k-line: color-mix(in oklab, var(--mori) 80%, var(--nila));
+
+    &[data-dye="warm"] {
+      --k-body: var(--soga);
+      --k-line: var(--kunyit);
+    }
+
+    &[data-dye="hot"] {
+      --k-ground: var(--kunyit);
+      --k-body: var(--soga);
+      --k-line: var(--malam);
+    }
+
+    &[data-dye="pola"] {
+      --k-ground: transparent;
+      --k-body: transparent;
+      --k-line: color-mix(in oklab, var(--pudar) 30%, transparent);
+    }
+  }
+
+  .nn-poster-k-ground {
+    fill: var(--k-ground);
+  }
+
+  .nn-poster-k-body {
+    fill: var(--k-body);
+  }
+
+  .nn-poster-k-line,
+  .nn-poster-k-fine {
+    fill: none;
+    stroke: var(--k-line);
+    stroke-width: 0.7;
+    stroke-linejoin: round;
+  }
+
+  .nn-poster-k-fine {
+    stroke-width: 0.45;
+  }
+
+  .nn-poster-k-seed {
+    fill: var(--k-line);
   }
 
   .nn-poster-flower {
@@ -181,8 +282,8 @@
     color: var(--nn-accent);
   }
 
-  /* The question as the opening scene asked it, caret and all. */
-  .nn-poster-question {
+  /* The game's name, with the opening scene's caret after it. */
+  .nn-poster-name {
     font-family: var(--font-display);
     font-weight: 800;
     font-variation-settings: "wdth" 100;
@@ -305,797 +406,295 @@
     text-wrap: pretty;
   }
 
-  /* ---------- Game layout ---------- */
+  /* ---------- Cloth: one batik panel per right call (cloth.tsx) ---------- */
 
-  .nn-game {
+  /*
+    In play, one row under the cards: dyed panels on a strip of blank cloth whose long edges are
+    dotted, the cecek a seret border starts as. Panels fill from the left. Once the row is full
+    the newest stay in view and the oldest slide off under a fade on the left. The spacer does
+    that: while there's free space it takes it, so the row starts at the left; once there's
+    none, flex-end pushes the overflow out on the left instead of the right. Never wider than
+    its box, so it can't scroll the page.
+  */
+  .cl-cloth {
+    --cl-h: 3.375rem;
+    --cl-seret: 0.5rem;
+    --cl-w: 2.5rem;
+    --cl-tile: calc(var(--cl-h) - var(--cl-seret) * 2);
+    --cl-fade: 1.5rem;
+    --cl-blank: color-mix(in oklab, var(--mori) 5%, var(--malam));
+    --cl-cecek: color-mix(in oklab, var(--mori) 30%, transparent);
+    --cl-seam: color-mix(in oklab, var(--malam) 80%, transparent);
+    --cl-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
     position: relative;
-    display: grid;
-    gap: 1rem;
-    margin-top: clamp(2rem, 5vh, 3rem);
-
-    @media (width >= 60rem) {
-      grid-template-areas: "side cards" "dock cards";
-      grid-template-rows: auto 1fr;
-      grid-template-columns: minmax(20rem, 0.85fr) minmax(0, 1.15fr);
-      align-items: start;
-      column-gap: clamp(1.5rem, 3vw, 3rem);
-    }
-  }
-
-  .nn-side {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    min-width: 0;
-
-    @media (width >= 60rem) {
-      grid-area: side;
-    }
-  }
-
-  .nn-prompt {
-    outline: none;
-  }
-
-  .nn-prompt-label {
-    font-family: var(--font-mono);
-    font-variation-settings: "wdth" 87.5;
-    font-size: 0.72rem;
-    color: var(--nn-muted);
-  }
-
-  .nn-prompt-q {
-    margin-top: 0.3rem;
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-variation-settings: "wdth" 100;
-    font-size: clamp(1.7rem, 2.5vw, 2.35rem);
-    line-height: 1;
-    letter-spacing: -0.02em;
-
-    /* The caret from the opening question, standing still now. */
-    &::after {
-      content: "";
-      display: inline-block;
-      width: 0.08em;
-      height: 0.8em;
-      margin-left: 0.1em;
-      vertical-align: -0.05em;
-      background: var(--nn-accent);
-    }
-  }
-
-  .nn-prompt-how {
-    max-width: 30rem;
-    margin-top: 0.6rem;
-    color: rgb(239 233 220 / 0.82);
-    text-wrap: pretty;
-  }
-
-  /* ---------- Map ---------- */
-
-  /* The same night as the poster, so pressing Play doesn't change the sky. Labels haloed in malam. */
-  .nn-mapbox {
-    --nn-bg: var(--malam);
-    overflow: hidden;
-    border: 1px solid var(--nn-line);
-    border-radius: var(--nn-radius);
-    background: var(--nn-sky);
-  }
-
-  .nn-map {
     display: block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 400 / 280;
-    font-family: var(--font-mono);
-
-    /* A halo of page color, so labels stay readable where they cross a line. */
-    & text {
-      paint-order: stroke;
-      stroke: var(--nn-bg);
-      stroke-width: 3px;
-      stroke-linejoin: round;
-    }
+    height: var(--cl-h);
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 0.35rem;
+    background:
+      radial-gradient(circle, var(--cl-cecek) 0.8px, transparent 1.25px) 0 calc(var(--cl-seret) / 2 - 3.5px) / 7px 7px repeat-x,
+      radial-gradient(circle, var(--cl-cecek) 0.8px, transparent 1.25px) 0 calc(100% - var(--cl-seret) / 2 + 3.5px) / 7px 7px repeat-x,
+      var(--cl-blank);
   }
 
-  .nn-grid {
-    fill: none;
-    stroke: var(--nn-muted);
-    stroke-opacity: 0.2;
-    stroke-width: 1;
-  }
+  .cl-cloth-field {
+    position: absolute;
+    inset: var(--cl-seret) 0;
+    display: block;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--cl-fade));
+    mask-image: linear-gradient(to right, transparent, #000 var(--cl-fade));
 
-  .nn-faint circle {
-    fill: var(--nn-muted);
-    opacity: 0.35;
-  }
-
-  .nn-glow-in {
-    stop-color: var(--nn-accent);
-    stop-opacity: 0.32;
-  }
-
-  .nn-glow-out {
-    stop-color: var(--nn-accent);
-    stop-opacity: 0;
-  }
-
-  .nn-query-dot {
-    fill: var(--nn-accent);
-  }
-
-  .nn-query-ping {
-    fill: none;
-    stroke: var(--nn-accent);
-    stroke-width: 1;
-    opacity: 0;
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: nn-ping 2.4s ease-out infinite;
-  }
-
-  .nn-query-label {
-    fill: var(--nn-accent);
-    font-size: 10px;
-    text-anchor: middle;
-    dominant-baseline: central;
-  }
-
-  .nn-node {
-    --lit: 0;
-    --fade: 0;
-    opacity: calc(1 - var(--fade) * 0.55);
-
-    &[data-state="hit"],
-    &[data-state="skipped"] {
-      --lit: 1;
-    }
-
-    &[data-state="miss"],
-    &[data-state="decoy"] {
-      --fade: 1;
-    }
-
-    &[data-state="miss"] {
-      opacity: calc(1 - var(--fade) * 0.25);
-    }
-
-    &[data-squash] {
-      opacity: 1;
-    }
-  }
-
-  .nn-node-dot {
-    fill: color-mix(in oklab, var(--nn-accent) calc(var(--lit) * 100%), var(--nn-ink));
-    transform-box: fill-box;
-    transform-origin: center;
-    transition: transform 0.25s var(--nn-ease-spring);
-  }
-
-  .nn-node[data-hot] .nn-node-dot {
-    transform: scale(1.6);
-  }
-
-  .nn-node-ring {
-    fill: none;
-    stroke: var(--nn-accent);
-    stroke-width: 1.6;
-    opacity: 0;
-    transform: scale(0.2);
-    transform-box: fill-box;
-    transform-origin: center;
-    transition:
-      transform 0.35s var(--nn-ease-spring),
-      opacity 0.2s;
-  }
-
-  .nn-node:is([data-state="picked"], [data-state="hit"], [data-state="miss"]) .nn-node-ring {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  .nn-node[data-state="miss"] .nn-node-ring {
-    stroke: var(--nn-ink);
-    stroke-opacity: 0.6;
-    stroke-dasharray: 2.5 2.5;
-  }
-
-  .nn-node-pop {
-    fill: none;
-    stroke: var(--nn-accent);
-    stroke-width: 1.2;
-    opacity: 0;
-  }
-
-  /* A note that lies past the edge of the zoomed map points the way it really is. */
-  .nn-node-away {
-    fill: var(--nn-muted);
-    opacity: 0.8;
-  }
-
-  .nn-node-label {
-    fill: color-mix(in oklab, var(--nn-accent) calc(var(--lit) * 100%), var(--nn-ink));
-    font-size: 11px;
-    font-weight: 500;
-    text-anchor: middle;
-    dominant-baseline: central;
-  }
-
-  .nn-node:is([data-state="picked"], [data-hot]) .nn-node-label {
-    fill: var(--nn-accent);
-    font-weight: 700;
-  }
-
-  .nn-line {
-    fill: none;
-    stroke: var(--nn-accent);
-    stroke-width: 1.5;
-    stroke-dasharray: 1;
-    stroke-dashoffset: 0;
-    opacity: 0.85;
-  }
-
-  .nn-line-squash {
-    stroke: var(--nn-ink);
-    stroke-opacity: 0.55;
-    stroke-width: 1.1;
-    stroke-dasharray: 3 4;
-  }
-
-  .nn-node[data-squash] .nn-node-ring {
-    opacity: 1;
-    transform: scale(1);
-    stroke: var(--nn-ink);
-    stroke-opacity: 0.75;
-    stroke-dasharray: 2.5 2.5;
-  }
-
-  .nn-squash-tag {
-    fill: var(--nn-ink);
-    font-size: 9.5px;
-    text-anchor: middle;
-    dominant-baseline: central;
-    opacity: 0.85;
-  }
-
-  .nn-legend {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.35rem 0.9rem;
-    padding: 0.55rem 0.8rem;
-    border-top: 1px solid var(--nn-line);
-    font-family: var(--font-mono);
-    font-variation-settings: "wdth" 87.5;
-    font-size: 0.64rem;
-    color: var(--nn-muted);
-  }
-
-  .nn-key {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-
+    /* The pola: the pencil drawing a batik starts as, here kawung, faint on the cloth that
+       hasn't been waxed yet. The dyed panels cover it as they come. */
     &::before {
       content: "";
-      flex: none;
+      position: absolute;
+      inset: 0;
+      background: color-mix(in oklab, var(--pudar) 24%, transparent);
+      -webkit-mask: var(--cl-kawung-line) 0 50% / var(--cl-tile) var(--cl-tile) repeat;
+      mask: var(--cl-kawung-line) 0 50% / var(--cl-tile) var(--cl-tile) repeat;
     }
   }
 
-  .nn-key-query::before {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 50%;
-    background: var(--nn-accent);
-  }
-
-  .nn-key-pick::before {
-    width: 0.6rem;
-    height: 0.6rem;
-    border: 1.5px solid var(--nn-accent);
-    border-radius: 50%;
-  }
-
-  .nn-key-top::before {
-    width: 0.9rem;
-    height: 1.5px;
-    background: var(--nn-accent);
-  }
-
-  .nn-legend-note {
-    margin-left: auto;
-  }
-
-  /* ---------- Cards ---------- */
-
-  .nn-cards {
-    display: grid;
-    gap: 0.6rem;
-
-    @media (width >= 40rem) {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    @media (width >= 60rem) {
-      grid-area: cards;
-    }
-
-    & > li {
-      display: flex;
-    }
-  }
-
-  .nn-card {
-    --lit: 0;
-    --fade: 0;
+  .cl-cloth-track {
     position: relative;
     display: flex;
-    flex-direction: column;
-    width: 100%;
-    min-height: 2.75rem;
-    padding: 0.8rem 0.95rem 0.9rem;
-    border: 1px solid var(--nn-line);
-    border-radius: var(--nn-radius);
-    background: var(--nn-surface);
-    color: var(--nn-ink);
-    text-align: left;
-    cursor: pointer;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  /* Only while picking: the reveal animates these values itself. */
-  .nn-game[data-phase="pick"] .nn-card {
-    transition:
-      transform 0.25s var(--nn-ease-out),
-      box-shadow 0.25s,
-      border-color 0.2s,
-      background-color 0.2s;
-
-    @media (hover: hover) {
-      &:hover {
-        transform: translateY(-3px);
-        border-color: rgb(239 233 220 / 0.32);
-        box-shadow: var(--nn-lift);
-      }
-
-      &[aria-pressed="true"]:hover {
-        border-color: var(--nn-accent);
-        box-shadow:
-          0 0 0 1px var(--nn-accent),
-          0 0 0 5px rgb(244 178 35 / 0.14),
-          var(--nn-lift);
-      }
-    }
-
-    &:active {
-      transform: translateY(0) scale(0.985);
-      transition-duration: 0.08s;
-    }
-  }
-
-  .nn-card[aria-pressed="true"] {
-    border-color: var(--nn-accent);
-    background: color-mix(in oklab, var(--nn-surface) 91%, var(--nn-accent));
-    box-shadow:
-      0 0 0 1px var(--nn-accent),
-      0 0 0 5px rgb(244 178 35 / 0.14);
-  }
-
-  .nn-card-head {
-    display: flex;
-    align-items: center;
-    gap: 0.55rem;
-    min-width: 0;
-    font-family: var(--font-mono);
-    font-variation-settings: "wdth" 87.5;
-    font-size: 0.68rem;
-    color: var(--nn-muted);
-  }
-
-  .nn-card-letter {
-    display: inline-grid;
-    flex: none;
-    place-items: center;
-    width: 1.5rem;
-    height: 1.5rem;
-    border: 1px solid var(--nn-line);
-    border-radius: 0.35rem;
-    color: var(--nn-ink);
-    font-size: 0.72rem;
-    font-weight: 600;
-    transition:
-      background-color 0.2s,
-      color 0.2s,
-      border-color 0.2s;
-  }
-
-  .nn-card[aria-pressed="true"] .nn-card-letter {
-    border-color: var(--nn-accent);
-    background: var(--nn-accent);
-    color: var(--nn-on-accent);
-  }
-
-  .nn-card-src {
-    min-width: 0;
+    justify-content: flex-end;
+    height: 100%;
+    padding-inline: var(--cl-fade) 0.375rem;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+
+    &::after {
+      content: "";
+      flex: 1 0 0;
+    }
   }
 
-  .nn-card-tick {
+  /*
+    A panel is a box of ground with two masked layers on it: the dye in the motif's bodies
+    (::before) and the wax line over them (::after). Each kind brings its two masks, each dye
+    its three colours. The mask lines up with the panels before it in the same run of a kind.
+  */
+  .cl-cloth-panel {
+    --cl-ground: var(--nila);
+    --cl-tint: color-mix(in oklab, var(--soga) 72%, var(--nila));
+    --cl-ink: color-mix(in oklab, var(--mori) 80%, var(--nila));
+    --cl-x: calc(var(--run, 0) * var(--cl-w) * -1);
     position: relative;
     flex: none;
-    width: 1.3rem;
-    height: 1.3rem;
-    margin-left: auto;
-    border: 1.5px solid var(--nn-line);
-    border-radius: 50%;
-    transition:
-      background-color 0.2s,
-      border-color 0.2s;
+    width: var(--cl-w);
+    height: 100%;
+    border-left: 1px solid var(--cl-seam);
+    background: var(--cl-ground);
+    animation: cl-cloth-unroll 0.45s var(--cl-ease) both;
 
+    &::before,
     &::after {
       content: "";
       position: absolute;
-      top: 46%;
-      left: 50%;
-      width: 0.32rem;
-      height: 0.6rem;
-      border: solid var(--nn-on-accent);
-      border-width: 0 2px 2px 0;
-      opacity: 0;
-      translate: -50% -50%;
-      rotate: 45deg;
+      inset: 0;
+      -webkit-mask-image: var(--cl-mask);
+      mask-image: var(--cl-mask);
+      -webkit-mask-position: var(--cl-x) 50%;
+      mask-position: var(--cl-x) 50%;
+      -webkit-mask-size: var(--cl-tile) var(--cl-tile);
+      mask-size: var(--cl-tile) var(--cl-tile);
+      -webkit-mask-repeat: repeat;
+      mask-repeat: repeat;
+    }
+
+    /* The dye soaks up from the bottom, after the wax is down. */
+    &::before {
+      --cl-mask: var(--cl-body);
+      background: var(--cl-tint);
+      animation: cl-cloth-dye 0.7s 0.35s var(--cl-ease) both;
+    }
+
+    /* The wax line spreads out from the middle, the way a canting's line pools. */
+    &::after {
+      --cl-mask: var(--cl-line);
+      background: var(--cl-ink);
+      animation: cl-cloth-wax 0.55s 0.12s ease-out both;
     }
   }
 
-  .nn-card[aria-pressed="true"] .nn-card-tick {
-    border-color: var(--nn-accent);
-    background: var(--nn-accent);
-    animation: nn-pop 0.35s var(--nn-ease-spring);
+  .cl-cloth-panel[data-kind="kawung"] {
+    --cl-line: var(--cl-kawung-line);
+    --cl-body: var(--cl-kawung-body);
+  }
+
+  .cl-cloth-panel[data-kind="parang"] {
+    --cl-line: var(--cl-parang-line);
+    --cl-body: var(--cl-parang-body);
+  }
+
+  .cl-cloth-panel[data-kind="truntum"] {
+    --cl-line: var(--cl-truntum-line);
+    --cl-body: var(--cl-truntum-body);
+  }
+
+  /* An easy call stays calm (the defaults above); a closer one warms the line to kunyit; the
+     closest are dyed turmeric through, with soga bodies and the wax gone dark. */
+  .cl-cloth-panel[data-dye="warm"] {
+    --cl-tint: var(--soga);
+    --cl-ink: var(--kunyit);
+  }
+
+  .cl-cloth-panel[data-dye="hot"] {
+    --cl-ground: var(--kunyit);
+    --cl-tint: var(--soga);
+    --cl-ink: var(--malam);
+  }
+
+  /* Where the question changed, a wax line across the cloth. */
+  .cl-cloth-panel[data-turn] {
+    border-left: 2px solid var(--kunyit);
+  }
+
+  /*
+    Game over: the whole cloth as a keepsake. Larger panels wrapped into rows, a parang hem at
+    both ends like the footer's, and a fringe past the hems. Whatever the last row doesn't fill
+    is blank cloth, the part still waiting for wax. With no panels it's all blank, one row tall,
+    hemmed: a cloth that was about to be started.
+  */
+  .cl-cloth[data-final] {
+    --cl-h: clamp(4.75rem, 4vw + 3.5rem, 6rem);
+    --cl-tile: var(--cl-h);
+    --cl-cell: clamp(3.75rem, 3vw + 2.75rem, 5rem);
+    --cl-seret: 0.75rem;
+    --cl-hem: 1.875rem;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    filter: drop-shadow(0 18px 22px rgb(0 0 0 / 0.45));
+
+    /* The fringe: loose threads past each hem. */
+    &::before,
+    &::after {
+      content: "";
+      display: block;
+      height: 0.5rem;
+      margin-inline: 0.25rem;
+      background: repeating-linear-gradient(to right, transparent 0 2px, color-mix(in oklab, var(--mori) 45%, transparent) 2px 3.25px);
+    }
 
     &::after {
-      opacity: 1;
-    }
-  }
-
-  .nn-card-text {
-    margin-top: 0.5rem;
-    font-size: 0.92rem;
-    line-height: 1.45;
-    text-wrap: pretty;
-  }
-
-  /* After the reveal. */
-  .nn-game:not([data-phase="pick"]) .nn-card {
-    cursor: default;
-  }
-
-  .nn-card:is([data-state="hit"], [data-state="skipped"]) {
-    --lit: 1;
-    border-color: color-mix(in oklab, var(--nn-accent) calc(var(--lit) * 100%), var(--nn-line));
-  }
-
-  .nn-card[data-state="hit"] {
-    background: color-mix(in oklab, var(--nn-surface) calc(100% - var(--lit) * 11%), var(--nn-accent));
-    box-shadow:
-      0 0 0 calc(var(--lit) * 1px) var(--nn-accent),
-      0 0 calc(var(--lit) * 26px) -8px rgb(244 178 35 / 0.55);
-  }
-
-  .nn-card[data-state="skipped"] {
-    border-style: dashed;
-    box-shadow: none;
-  }
-
-  .nn-card:is([data-state="miss"], [data-state="decoy"]) {
-    --fade: 1;
-    box-shadow: none;
-  }
-
-  .nn-card[data-state="miss"] {
-    border-style: dashed;
-    border-color: rgb(239 233 220 / 0.32);
-    background: var(--nn-surface);
-    opacity: calc(1 - var(--fade) * 0.12);
-
-    & .nn-card-letter {
-      border-color: rgb(239 233 220 / 0.32);
-      background: transparent;
-      color: var(--nn-ink);
+      -webkit-mask-image: linear-gradient(to bottom, #000, transparent);
+      mask-image: linear-gradient(to bottom, #000, transparent);
     }
 
-    & .nn-card-tick {
-      border-color: rgb(239 233 220 / 0.32);
-      background: transparent;
+    &::before {
+      -webkit-mask-image: linear-gradient(to top, #000, transparent);
+      mask-image: linear-gradient(to top, #000, transparent);
+    }
+
+    & .cl-cloth-field {
+      position: relative;
+      inset: auto;
+      padding-block: var(--cl-seret);
+      -webkit-mask-image: none;
+      mask-image: none;
+      background:
+        radial-gradient(circle, var(--cl-cecek) 0.9px, transparent 1.35px) 0 calc(var(--cl-seret) / 2 - 3.5px) / 7px 7px repeat-x,
+        radial-gradient(circle, var(--cl-cecek) 0.9px, transparent 1.35px) 0 calc(100% - var(--cl-seret) / 2 + 3.5px) / 7px 7px repeat-x,
+        var(--cl-blank);
+
+      &::before {
+        inset: var(--cl-seret) 0;
+      }
+    }
+
+    & .cl-cloth-track {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(var(--cl-cell), 1fr));
+      grid-auto-rows: var(--cl-h);
+      min-height: var(--cl-h);
+      height: auto;
+      padding: 0;
+      overflow: visible;
 
       &::after {
-        border-color: var(--nn-ink);
-        opacity: 0.6;
+        content: none;
+      }
+    }
+
+    & .cl-cloth-panel {
+      width: auto;
+      height: auto;
+      border-top: 1px solid var(--cl-seam);
+      container-type: inline-size;
+      animation: cl-cloth-lay 0.5s calc(var(--i) * 70ms) var(--cl-ease) both;
+
+      &::before,
+      &::after {
+        --cl-x: calc(var(--run, 0) * -100cqw);
+      }
+
+      &::before {
+        animation: cl-cloth-dye 0.7s calc(var(--i) * 70ms + 0.25s) var(--cl-ease) both;
+      }
+
+      &::after {
+        animation: cl-cloth-wax 0.55s calc(var(--i) * 70ms + 0.1s) ease-out both;
       }
     }
   }
 
-  .nn-card[data-state="decoy"] {
-    opacity: calc(1 - var(--fade) * 0.42);
-  }
-
-  .nn-verdict {
+  /* The footer's hem: one row of parang in soga and kunyit on malam, under a wax line. */
+  .cl-cloth-hem {
+    --cl-wax: linear-gradient(
+      var(--cl-out, to bottom),
+      color-mix(in oklab, var(--kunyit) 45%, var(--malam)) 0 1px,
+      var(--malam) 1px 4px,
+      var(--kunyit) 4px 5.5px,
+      var(--malam) 5.5px
+    );
+    position: relative;
     display: block;
-    margin-top: 0.7rem;
-    padding-top: 0.6rem;
-    border-top: 1px solid var(--nn-line);
-    font-family: var(--font-mono);
-    font-variation-settings: "wdth" 87.5;
-    font-size: 0.68rem;
-    line-height: 1.4;
-  }
+    height: calc(var(--cl-hem) + 5.5px);
+    background: var(--cl-wax);
 
-  .nn-verdict-line {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.25rem 0.75rem;
-  }
-
-  .nn-verdict-rank {
-    font-weight: 600;
-    color: var(--nn-accent);
-  }
-
-  .nn-verdict-num {
-    color: var(--nn-ink);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .nn-verdict-note {
-    color: var(--nn-muted);
-  }
-
-  .nn-card[data-state="hit"] .nn-verdict-note {
-    color: var(--nn-accent);
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0 0 5.5px;
+      -webkit-mask-image: var(--cl-mask);
+      mask-image: var(--cl-mask);
+      -webkit-mask-position: center;
+      mask-position: center;
+      -webkit-mask-size: var(--cl-hem) var(--cl-hem);
+      mask-size: var(--cl-hem) var(--cl-hem);
+    }
 
     &::before {
-      content: "✓ ";
-      content: "✓ " / "";
+      --cl-mask: var(--cl-parang-body);
+      background: var(--soga);
     }
-  }
 
-  .nn-card[data-state="miss"] .nn-verdict-note {
-    color: var(--nn-ink);
-
-    &::before {
-      content: "✕ ";
-      content: "✕ " / "";
+    &::after {
+      --cl-mask: var(--cl-parang-line);
+      background: var(--kunyit);
     }
-  }
 
-  .nn-verdict-trap {
-    color: var(--nn-muted);
-  }
-
-  /* Bar length is the cosine similarity itself, out of 1, like the cards up top. */
-  .nn-verdict-bar {
-    display: block;
-    height: 2px;
-    margin-top: 0.55rem;
-    background: linear-gradient(to right, var(--nn-accent) calc(var(--s) * 100%), var(--nn-line) 0);
-  }
-
-  /* ---------- Dock: the counter and the check button ---------- */
-
-  .nn-dock {
-    position: sticky;
-    bottom: max(0.75rem, env(safe-area-inset-bottom));
-    z-index: 5;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    padding: 0.5rem 0.5rem 0.5rem 0.9rem;
-    border: 1px solid var(--nn-line);
-    border-radius: calc(var(--nn-radius) + 0.2rem);
-    background: color-mix(in oklab, var(--nn-surface) 88%, transparent);
-    box-shadow: 0 16px 32px -14px rgb(0 0 0 / 0.75);
-    backdrop-filter: blur(10px);
-
-    @media (width >= 60rem) {
-      position: static;
-      grid-area: dock;
-      background: var(--nn-surface);
-      box-shadow: none;
-      backdrop-filter: none;
+    &:first-child {
+      --cl-out: to top;
     }
-  }
 
-  .nn-count {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.3rem 0.65rem;
-    min-width: 0;
-    font-family: var(--font-mono);
-    font-variation-settings: "wdth" 87.5;
-    font-size: 0.7rem;
-    color: var(--nn-muted);
-
-    &[data-nudge] {
-      animation: nn-nudge 0.4s ease-in-out;
-    }
-  }
-
-  .nn-pips {
-    display: flex;
-    gap: 0.25rem;
-    margin-right: 0.3rem;
-  }
-
-  .nn-pip {
-    width: 0.5rem;
-    height: 0.5rem;
-    border: 1.5px solid var(--nn-muted);
-    border-radius: 50%;
-    transition:
-      background-color 0.2s,
-      border-color 0.2s;
-
-    &[data-on] {
-      border-color: var(--nn-accent);
-      background: var(--nn-accent);
-      animation: nn-pop 0.35s var(--nn-ease-spring);
-    }
-  }
-
-  .nn-count-text {
-    color: var(--nn-ink);
-  }
-
-  .nn-check {
-    flex: none;
-
-    &[data-ready] {
-      animation: nn-glow 2s ease-in-out infinite;
-    }
-  }
-
-  /* ---------- Result ---------- */
-
-  .nn-result {
-    position: relative;
-    padding: 1.1rem 1.15rem 1.25rem;
-    border: 1px solid var(--nn-accent);
-    border-radius: var(--nn-radius);
-    background: color-mix(in oklab, var(--nn-surface) 90%, var(--nn-accent));
-
-    /* A perfect round goes turmeric, like the answer at the end. */
-    &[data-perfect] {
-      --nn-ink: var(--nila);
-      --nn-muted: var(--nn-on-accent-muted);
-      background: var(--nn-accent);
-      color: var(--nn-on-accent);
-
-      & .nn-btn-solid {
-        background: var(--nn-on-accent);
-        color: var(--nn-accent);
-
-        &:hover {
-          background: color-mix(in oklab, var(--nn-on-accent) 85%, white);
-        }
-      }
-
-      & .nn-btn-line {
-        box-shadow: inset 0 0 0 1.5px var(--nn-on-accent);
-        color: var(--nn-on-accent);
-      }
-
-      & .nn-tag {
-        background: var(--nn-on-accent);
-        color: var(--nn-accent);
-      }
-
-      & .nn-result-squash {
-        color: var(--nn-on-accent);
-        border-left-color: rgb(15 26 71 / 0.35);
-      }
-
-      & :focus-visible {
-        outline-color: var(--nn-on-accent);
+    &:last-child {
+      &::before,
+      &::after {
+        inset: 5.5px 0 0;
       }
     }
   }
 
-  .nn-result-top {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 0.5rem 1rem;
-  }
-
-  .nn-result-head {
-    position: relative;
-    outline: none;
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-variation-settings: "wdth" 125;
-    font-size: clamp(3rem, 7vw, 4.4rem);
-    line-height: 0.9;
-    letter-spacing: -0.03em;
-  }
-
-  .nn-result-score {
-    font-variant-numeric: tabular-nums;
-  }
-
-  .nn-result-k {
-    font-size: 0.5em;
-    color: var(--nn-muted);
-  }
-
-  .nn-result-body > * + * {
-    margin-top: 0.6rem;
-  }
-
-  .nn-result-body {
-    margin-top: 0.75rem;
-  }
-
-  .nn-result-metric {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
-    padding-bottom: 0.35rem;
-    font-family: var(--font-mono);
-    font-variation-settings: "wdth" 87.5;
-    font-size: 0.72rem;
-    color: var(--nn-muted);
-  }
-
-  .nn-result-p {
-    font-weight: 600;
-    color: var(--nn-ink);
-  }
-
-  .nn-tag {
-    padding: 0.1rem 0.5rem;
-    border-radius: 999px;
-    background: var(--nn-accent);
-    color: var(--nn-on-accent);
-    font-size: 0.64rem;
-    font-weight: 600;
-  }
-
-  .nn-result-line {
-    font-size: 1.05rem;
-    font-weight: 500;
-    line-height: 1.4;
-    text-wrap: pretty;
-  }
-
-  .nn-result-squash {
-    padding-left: 0.8rem;
-    border-left: 2px dashed rgb(239 233 220 / 0.35);
-    font-size: 0.9rem;
-    line-height: 1.5;
-    color: rgb(239 233 220 / 0.8);
-    text-wrap: pretty;
-  }
-
-  .nn-result-body > .nn-result-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem;
-    margin-top: 1.1rem;
-
-    & .nn-btn {
-      flex: 1 1 auto;
-    }
-  }
-
-  /* Confetti comes out of the score. */
+  /* Confetti (confetti.ts): an empty box placed where the burst should start, and the pieces. */
   .nn-confetti {
     position: absolute;
     top: 0.45em;
@@ -1152,44 +751,6 @@
   }
 }
 
-@keyframes nn-pop {
-  0% {
-    transform: scale(0.6);
-  }
-
-  60% {
-    transform: scale(1.15);
-  }
-
-  100% {
-    transform: scale(1);
-  }
-}
-
-@keyframes nn-nudge {
-  20% {
-    translate: -5px 0;
-  }
-
-  40% {
-    translate: 5px 0;
-  }
-
-  60% {
-    translate: -3px 0;
-  }
-
-  80% {
-    translate: 2px 0;
-  }
-}
-
-@keyframes nn-glow {
-  50% {
-    box-shadow: 0 0 0 5px rgb(244 178 35 / 0.18);
-  }
-}
-
 @keyframes nn-breathe {
   50% {
     opacity: 0.35;
@@ -1197,16 +758,55 @@
   }
 }
 
+/* A new panel of cloth: it unrolls into the row, the wax spreads, then the dye soaks in. */
+@keyframes cl-cloth-unroll {
+  from {
+    width: 0;
+  }
+}
+
+@keyframes cl-cloth-wax {
+  from {
+    clip-path: circle(0% at 50% 50%);
+  }
+
+  to {
+    clip-path: circle(75% at 50% 50%);
+  }
+}
+
+@keyframes cl-cloth-dye {
+  from {
+    opacity: 0;
+    clip-path: inset(100% 0 0);
+  }
+
+  to {
+    opacity: 1;
+    clip-path: inset(0);
+  }
+}
+
+/* The keepsake is laid out a panel at a time. */
+@keyframes cl-cloth-lay {
+  from {
+    opacity: 0;
+    translate: 0 0.5rem;
+  }
+}
+
 /* No lifts, pops or pings. The states still change, just instantly. */
 @media (prefers-reduced-motion: reduce) {
+  .cl-cloth *,
+  .cl-cloth *::before,
+  .cl-cloth *::after {
+    animation: none !important;
+  }
+
   .nn *,
   .nn *::before,
   .nn *::after {
     animation: none !important;
     transition: none !important;
-  }
-
-  .nn-game[data-phase="pick"] .nn-card:hover {
-    transform: none;
   }
 }
