@@ -99,7 +99,7 @@ export const strings = {
       plain: (win: string, lose: string) => `The other note scored ${win} to your ${lose}. To the model, it was closer in meaning.`,
     },
     again: playCopy.again,
-    answer: "See the real answer",
+    answer: "Skip to the answer",
   },
 };
 
