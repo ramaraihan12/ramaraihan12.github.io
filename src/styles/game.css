@@ -188,7 +188,11 @@
   }
 
   .nn-poster-cecek {
-    fill: color-mix(in oklab, var(--mori) 30%, transparent);
+    fill: none;
+    stroke: color-mix(in oklab, var(--mori) 30%, transparent);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-dasharray: 0 6;
   }
 
   .nn-poster-panel {

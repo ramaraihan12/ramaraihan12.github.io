@@ -179,12 +179,9 @@ export function Poster({ notes, questions, action, className }: PosterProps) {
   const stars = sky(Math.max(0, Math.min(notes, 64) - 2));
   const cell = `${id}-cell`;
   const band = { y: CLOTH.y, h: CLOTH.h };
-  // Dotted seret rows above and below the panels, the cloth's long edges.
-  const cecek = (y: number) => {
-    let d = "";
-    for (let x = 3; x < VIEW.w; x += 6) d += dot(x, y, 0.75);
-    return d;
-  };
+  // Dotted seret rows above and below the panels, the cloth's long edges: one line each, its
+  // dashes zero long with round caps, so the dots cost a few bytes instead of one path each.
+  const cecek = (y: number) => `M3 ${y}H${VIEW.w}`;
 
   return (
     <div className={className ? `nn-poster ${className}` : "nn-poster"}>
