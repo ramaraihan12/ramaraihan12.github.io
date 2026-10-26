@@ -63,8 +63,8 @@
       animation: rr-toast-out 0.3s ease-in both;
     }
 
-    /* Phones and small tablets: the game's dock is pinned to the bottom there, so the card
-       comes down from under the header instead. */
+    /* Phones and small tablets: the game's stacked cards fill the bottom of the screen there,
+       so the card comes down from under the header instead. */
     @media (width < 60rem) {
       --rr-toast-from: -1rem;
       top: calc(var(--header-h, 3.75rem) + 0.5rem);
