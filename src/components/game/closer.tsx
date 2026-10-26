@@ -31,6 +31,11 @@ export const BEST_KEY = "rr:closer:best";
 const BEAT = 1.35;
 /** A wrong call gets a moment to land before the result takes over. Skippable too. */
 const LAST_BEAT = 1.1;
+/**
+ * Milliseconds a tap or key is ignored after a pick or a new pair, so the second click of a
+ * double click can't skip the scores it just revealed, or pick blind in the pair after.
+ */
+const SETTLE = 350;
 /** With a fixed seed, each Play again steps it, so a replay isn't the same deal. */
 const SEED_STEP = 7919;
 /**
@@ -186,6 +191,8 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
   const hudBits = useRef<HTMLSpanElement>(null);
   /** The phase as of the last handler, so a timer and a tap can't both move the game on. */
   const phaseRef = useRef<Phase>("pick");
+  /** performance.now() until which taps and keys are ignored. See SETTLE. */
+  const settleUntil = useRef(0);
   const focusCard = useRef(false);
 
   const [game, setGame] = useState(() => {
@@ -229,9 +236,14 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
     }
   }, [pair]);
 
+  /** Whether a tap or key is still too close on the heels of the last pick or pair to count. */
+  const settling = () => performance.now() < settleUntil.current;
+  const settle = () => (settleUntil.current = performance.now() + SETTLE);
+
   function choose(side: Side) {
-    if (phaseRef.current !== "pick") return;
+    if (phaseRef.current !== "pick" || settling()) return;
     phaseRef.current = "reveal";
+    settle();
     const win = fmt(pair.scores[pair.answer]);
     const lose = fmt(pair.scores[1 - pair.answer]);
     setPick(side);
@@ -259,6 +271,7 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
   function advance() {
     if (phaseRef.current !== "reveal") return;
     phaseRef.current = "pick";
+    settle();
     const next = game.run.next();
     setGame((g) => ({ ...g, pair: next, onQuestion: next.fresh ? 1 : g.onQuestion + 1 }));
     setPick(null);
@@ -278,7 +291,7 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
 
   /** Cuts the beat short: on to the next pair, or to the result. */
   function skip() {
-    if (phaseRef.current !== "reveal") return;
+    if (phaseRef.current !== "reveal" || settling()) return;
     if (right) advance();
     else finish();
   }
@@ -287,6 +300,7 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
     const run = createRun(data, points, seed === undefined ? randomSeed() : seed + (game.id + 1) * SEED_STEP);
     const first = run.next();
     phaseRef.current = "pick";
+    settle();
     focusCard.current = true;
     setGame({ id: game.id + 1, run, pair: first, onQuestion: 1 });
     setPhase("pick");
