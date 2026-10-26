@@ -92,7 +92,7 @@ export const strings = {
     why: {
       trap: (words: readonly string[], win: string, lose: string) =>
         `Your pick shares ${quoted(words)} with the question and still lost, ${lose} to ${win}. The model compares meaning, not shared words.`,
-      close: (win: string, lose: string) => `${win} vs ${lose}. The model barely split them, so that one was close to a coin toss.`,
+      close: (win: string, lose: string, gap: string) => `${win} vs ${lose}, only ${gap} apart. The model barely split them.`,
       plain: (win: string, lose: string) => `The other note scored ${win} to your ${lose}. To the model, it was closer in meaning.`,
     },
     again: playCopy.again,

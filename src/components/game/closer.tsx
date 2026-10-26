@@ -33,8 +33,11 @@ const BEAT = 1.35;
 const LAST_BEAT = 1.1;
 /** With a fixed seed, each Play again steps it, so a replay isn't the same deal. */
 const SEED_STEP = 7919;
-/** Scores closer than this get the "barely split them" line. */
-const CLOSE_CALL = 0.02;
+/**
+ * Scores closer than this get the "barely split them" line. The deal never goes much under
+ * 0.02 (rounds.ts), so this is about as close as a run gets.
+ */
+const CLOSE_CALL = 0.05;
 
 export type CloserResult = { streak: number; best: number };
 
@@ -164,7 +167,7 @@ function whyLine(pair: Pair) {
   const win = fmt(pair.scores[pair.answer]);
   const lose = fmt(pair.scores[1 - pair.answer]);
   if (pair.trap) return S.over.why.trap(pair.trap.words, win, lose);
-  if (pair.gap < CLOSE_CALL) return S.over.why.close(win, lose);
+  if (pair.gap < CLOSE_CALL) return S.over.why.close(win, lose, fmt(pair.gap));
   return S.over.why.plain(win, lose);
 }
 
