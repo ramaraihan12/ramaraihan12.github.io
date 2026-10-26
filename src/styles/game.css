@@ -448,12 +448,13 @@
     /* The pola: the pencil drawing a batik starts as, here kawung, faint on the cloth that
        hasn't been waxed yet. The dyed panels cover it as they come. */
     &::before {
+      --cl-pola-x: calc(var(--cl-fade) + 1px);
       content: "";
       position: absolute;
       inset: 0;
       background: color-mix(in oklab, var(--pudar) 24%, transparent);
-      -webkit-mask: var(--cl-kawung-line) 0 50% / var(--cl-tile) var(--cl-tile) repeat;
-      mask: var(--cl-kawung-line) 0 50% / var(--cl-tile) var(--cl-tile) repeat;
+      -webkit-mask: var(--cl-kawung-line) var(--cl-pola-x) 0 / var(--cl-tile) var(--cl-tile) repeat;
+      mask: var(--cl-kawung-line) var(--cl-pola-x) 0 / var(--cl-tile) var(--cl-tile) repeat;
     }
   }
 
@@ -472,9 +473,10 @@
   }
 
   /*
-    A panel is a box of ground with two masked layers on it: the dye in the motif's bodies
-    (::before) and the wax line over them (::after). Each kind brings its two masks, each dye
-    its three colours. The mask lines up with the panels before it in the same run of a kind.
+    A panel is blank cloth with three dyes on it: the ground (an inset shadow, so it can rise
+    from the bottom like cloth lowered into the bath), the dye in the motif's bodies (::before)
+    and the wax line over them (::after). Each kind brings its two masks, each dye its three
+    colours. The mask lines up with the panels before it in the same run of a kind.
   */
   .cl-cloth-panel {
     --cl-ground: var(--nila);
@@ -486,8 +488,11 @@
     width: var(--cl-w);
     height: 100%;
     border-left: 1px solid var(--cl-seam);
-    background: var(--cl-ground);
-    animation: cl-cloth-unroll 0.45s var(--cl-ease) both;
+    background: var(--cl-blank);
+    box-shadow: inset 0 calc(var(--cl-tile) * -1) 0 var(--cl-ground);
+    animation:
+      cl-cloth-unroll 0.45s var(--cl-ease) both,
+      cl-cloth-soak 0.7s 0.35s var(--cl-ease) both;
 
     &::before,
     &::after {
@@ -605,6 +610,7 @@
         var(--cl-blank);
 
       &::before {
+        --cl-pola-x: 1px;
         inset: var(--cl-seret) 0;
       }
     }
@@ -628,7 +634,9 @@
       height: auto;
       border-top: 1px solid var(--cl-seam);
       container-type: inline-size;
-      animation: cl-cloth-lay 0.5s calc(var(--i) * 70ms) var(--cl-ease) both;
+      animation:
+        cl-cloth-lay 0.5s calc(var(--i) * 70ms) var(--cl-ease) both,
+        cl-cloth-soak 0.7s calc(var(--i) * 70ms + 0.25s) var(--cl-ease) both;
 
       &::before,
       &::after {
@@ -772,6 +780,12 @@
 
   to {
     clip-path: circle(75% at 50% 50%);
+  }
+}
+
+@keyframes cl-cloth-soak {
+  from {
+    box-shadow: inset 0 0 0 var(--cl-ground);
   }
 }
 
