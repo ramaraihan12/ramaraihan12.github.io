@@ -185,7 +185,31 @@ for (const run of runs) {
     } else if (pair.trap) earlyTraps++;
   }
 }
-console.log(`traps: ${((traps / trapRounds) * 100).toFixed(1)}% of pairs from round ${TRAP_FROM}, ${earlyTraps} before it in ${SEEDS} runs`);
+// Not every question can set a trap (nothing shares a word with "Who is Rama Raihan?"), so the rate that matters is among the rounds that could.
+const canTrap = data.questions.map((q) =>
+  BANDS.map((band) => {
+    const asked = stems(q.text);
+    const lures = points.map((p) => [...stems(p.text)].some((s) => asked.has(s)));
+    return points.some((_, a) =>
+      points.some((_, b) => {
+        const gap = q.scores[b] - q.scores[a];
+        return gap >= band.min && gap <= band.max && lures[a] && !lures[b];
+      }),
+    );
+  }),
+);
+let trapsWhereCan = 0;
+let roundsWhereCan = 0;
+for (const run of runs) {
+  for (const pair of run) {
+    if (pair.round < TRAP_FROM || !canTrap[pair.question.index][BANDS.indexOf(bandFor(pair.round))]) continue;
+    roundsWhereCan++;
+    if (pair.trap) trapsWhereCan++;
+  }
+}
+console.log(
+  `traps: ${((traps / trapRounds) * 100).toFixed(1)}% of pairs from round ${TRAP_FROM}, ${((trapsWhereCan / roundsWhereCan) * 100).toFixed(1)}% where the question has one; ${earlyTraps} before round ${TRAP_FROM} in ${SEEDS} runs`,
+);
 assert.ok(traps > 0, "no traps at all");
 
 // Odd and tiny data never throws, never stalls and still deals real pairs.

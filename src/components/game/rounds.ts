@@ -59,17 +59,36 @@ export const GAP_FLOOR = 0.015;
 /** Keyword traps are dealt on purpose from this round on. */
 export const TRAP_FROM = 3;
 
-export type Band = { from: number; min: number; max: number };
+export type Band = {
+  /** The first round (streak) the band applies to. */
+  from: number;
+  /** The score gaps it deals from. */
+  min: number;
+  max: number;
+  /**
+   * How question-independent its pairs may be: the share of the other questions under which
+   * the same note wins too. Pairs above it are dealt rarely. See buildDeck for why.
+   */
+  agree: number;
+};
 
-/**
- * The score gaps each stretch of the streak is dealt from. The last band whose `from` the
- * round has reached applies. The bands overlap, so the step between them isn't a cliff.
- */
+/*
+  How a run gets harder, in two dials. The gap is the obvious one. The other is how much the
+  answer turns on the question: early pairs are ones only this question decides, which a
+  careful reader gets nearly every time. The last band lets in the pairs the model decides by
+  habit (the about note beats most notes on most questions), which only a player who has
+  learned its habits will read.
+
+  Tuned against closer.json with a local LLM standing in for a careful player, on 610 pairs.
+  It agreed with the model on 84% of pairs with agree under 0.3, and on under half of those
+  over 0.7. The gap on its own barely moved it (53% under 0.03, about 60% above). Played
+  through these bands, it reaches STREAK_GOAL in about one run in nine, and 13 in one in 30.
+*/
 export const BANDS: readonly Band[] = [
-  { from: 0, min: 0.12, max: Infinity },
-  { from: 3, min: 0.07, max: 0.15 },
-  { from: 6, min: 0.04, max: 0.09 },
-  { from: 10, min: 0.02, max: 0.05 },
+  { from: 0, min: 0.12, max: Infinity, agree: 0.3 },
+  { from: 3, min: 0.07, max: 0.15, agree: 0.4 },
+  { from: 6, min: 0.04, max: 0.09, agree: 0.45 },
+  { from: 10, min: 0.015, max: 0.04, agree: 0.7 },
 ];
 
 export function bandFor(round: number): Band {
@@ -119,8 +138,8 @@ export function words(text: string): string[] {
 
 /*
   Words that say nothing about what a note is about. The question words and pronouns go, and so
-  do "rama" and "raihan": every note is mine, so my name is never a real lure. The odd letters
-  are what's left of contractions once they're split ("i'm" is "i" and "m").
+  do "rama" and "raihan": every note is Rama's, so his name is never a real lure. The odd
+  letters are what's left of contractions once they're split ("i'm" is "i" and "m").
 */
 const STOPWORDS = new Set(
   (
@@ -163,6 +182,8 @@ type Option = {
   weight: number;
   /** The share of the other questions under which the same note wins too. */
   agree: number;
+  /** Where the lower note ranks among the question's notes, 0 (last) to 1 (first). */
+  depth: number;
 };
 
 type Deck = { index: number; id: string; text: string; options: Option[] };
@@ -178,13 +199,12 @@ const scoresOf = (q: CloserData["questions"][number] | undefined) => (Array.isAr
   Every pair of notes a question can deal, with what's known about it before a run starts:
   - Two notes from different groups (or at least different files) read less alike, so the
     player compares ideas, not wording.
-  - A pair whose better note is one of the question's real matches is a fair read. Two notes
-    that both miss the question by a mile, 0.03 apart, are noise to a person, so those are
-    dealt less, though not never.
+  - A pair whose better note is one of the question's real matches is a fair read, so the
+    higher the better note ranks, the more the pair is wanted.
   - Some notes score high on nearly every question (the about note, the python note) and some
-    low on all of them (the small client apps). A pair of those can be called without reading
-    the question, so `agree` counts how often the same note wins under the other questions,
-    and later rounds keep to pairs whose answer turns on this one.
+    low on all of them (warung-pos, antre). The model picks those by habit, not by the
+    question, and a reader can't see a habit, so `agree` counts how often the same note wins
+    under the other questions. Each band caps it (see BANDS).
 */
 function buildDeck(data: CloserData, points: readonly NoteRef[], index: number): Deck {
   const q = data.questions[index];
@@ -217,7 +237,7 @@ function buildDeck(data: CloserData, points: readonly NoteRef[], index: number):
       const pa = points[a];
       const pb = points[b];
       const alike = pa.source === pb.source ? 0.15 : pa.group === pb.group ? 0.4 : 1;
-      const relevance = 0.25 + 0.75 * (percentile.get(hi) ?? 0) ** 2;
+      const relevance = 0.25 + 0.75 * (percentile.get(hi) ?? 0) ** 3;
 
       let wins = 0;
       let counted = 0;
@@ -226,7 +246,15 @@ function buildDeck(data: CloserData, points: readonly NoteRef[], index: number):
         counted++;
         if (s[hi] > s[lo]) wins++;
       }
-      options.push({ lo, hi, gap, lure, weight: alike * relevance, agree: counted > 0 ? wins / counted : 0.5 });
+      options.push({
+        lo,
+        hi,
+        gap,
+        lure,
+        weight: alike * relevance,
+        agree: counted > 0 ? wins / counted : 0.5,
+        depth: percentile.get(lo) ?? 0,
+      });
     }
   }
   return { index, id: String(q?.id ?? index), text: String(q?.text ?? ""), options };
@@ -324,13 +352,17 @@ export function createRun(data: CloserData, points: readonly NoteRef[], seed: nu
       for (let k = 1; k <= recent.length; k++) if (recent[recent.length - k].includes(i)) return k;
       return 0;
     };
-    // From a slight lean at round 0 to a strong one by round 6.
-    const focus = 0.5 + 2 * Math.min(1, r / 6);
+    const cap = bandFor(r).agree;
+    const close = 4 * clamp01((r - 5) / 5);
 
     /*
       Weights from the round and the run so far:
-      - Pairs that could be called without the question are dealt less, and much less as the
-        streak grows. The opening rounds may still lean on them a little; they're the warm-up.
+      - Pairs the question decides are wanted more, and pairs over the band's agree cap are
+        dealt rarely (not never, so small data still deals).
+      - In the close calls both notes should be about the question. Two notes that both miss
+        it, 0.03 apart, are noise, and the reveal has nothing to say about them. So from round
+        5 to 10 the lower note's rank counts more and more, until the late pairs are two of the
+        question's better matches.
       - Notes seen a few pairs ago, or often in this run, are dealt less, so the cards keep
         changing and no note turns up in most pairs.
       - Before TRAP_FROM a pair that happens to be a trap is mostly left out, so the opening
@@ -338,7 +370,7 @@ export function createRun(data: CloserData, points: readonly NoteRef[], seed: nu
         some are dealt on purpose as well.
     */
     const wanted = (o: Option) => {
-      let w = o.weight * (1.05 - o.agree) ** focus;
+      let w = o.weight * (1.05 - o.agree) ** 2 * (o.agree > cap ? 0.03 : 1) * (0.05 + 0.95 * o.depth) ** close;
       for (const i of [o.lo, o.hi]) {
         w *= RECENT[ago(i)] ?? 1;
         w /= 1 + 0.5 * (shownNotes.get(i) ?? 0);
