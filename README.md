@@ -44,7 +44,7 @@ My personal site. It answers one question, "Who is Rama Raihan?", the way a RAG 
 - The map is a PCA squash of 1,024 dimensions into 2, so dots that look close may not be close in meaning. The ranking uses all 1,024.
 - Each note gets a one-line header with my name before it's embedded. Without it, notes like "I deploy my own apps..." don't say whose they are, and they lose to random stack notes.
 - When I added notes for the newer projects, I embedded all 51 again, so every score and dot on the page comes from one run.
-- Closer shows one question and two of my notes, and you pick the one the model scores closer. Both scores are real cosine similarities from the same model. `scripts/embed_closer.py` embeds a dozen questions, scores my notes against each one, and writes the result to `src/content/closer.json`. The pairs get closer as your streak grows, and some are traps where the lower note shares a word with the question. The model goes by meaning, so the shared word doesn't save it. The question changes every three pairs, and one wrong call ends the run.
+- Closer shows one question and two of my notes, and you pick the one the model scores closer. Both scores are real cosine similarities from the same model. `scripts/embed_closer.py` embeds ten questions, scores my notes against each one, and writes the result to `src/content/closer.json`. In `src/components/game/rounds.ts` the gap between the two scores shrinks as your streak grows, the early pairs turn on the question itself rather than on notes the model scores high for almost anything, and in the late ones the closer note is one of its best matches. Some pairs are traps where the lower note shares a word with the question. The model goes by meaning, so the shared word doesn't save it. The question changes every three pairs, and one wrong call ends the run.
 - The answer at the end is not generated. I wrote it from the five notes that came back.
 - The sky at the bottom follows the real time in Salatiga.
 - All the art is drawn in code, as SVG and canvas. No image generators. The only image files are my photo and the project screenshots, taken from each repo's docs.
@@ -104,7 +104,7 @@ uv run scripts/embed_closer.py
 
 `embed_notes.py` rewrites `src/content/retrieval.json`: the tokens, the scores, the map, and the question's whole vector (`queryVector`) that the cloth is drawn from. It prints the new top five. If they change, update the answer in `src/content/story.ts` so its citations still match. The counts on the page follow the new data by themselves.
 
-`embed_closer.py` rewrites `src/content/closer.json`, the questions and scores Closer deals its pairs from.
+`embed_closer.py` rewrites `src/content/closer.json`, the questions and scores Closer deals its pairs from. It prints each question's top five, so you can check that a person would pick the same notes.
 
 ## Checks
 
@@ -112,10 +112,11 @@ uv run scripts/embed_closer.py
 npm run lint && npm run build
 ```
 
-There's no test suite, it's a static page. The build type-checks everything, and CI runs the same two commands on every push and pull request. The sky has a small check of its own, for its colors through the day:
+There's no test suite, it's a static page. The build type-checks everything, and CI runs the same two commands on every push and pull request. The sky has a small check of its own, for its colors through the day, and so do Closer's rules, which deal a few thousand runs and print one to read through:
 
 ```bash
 npx tsx src/components/art/sky.check.ts
+npx tsx src/components/game/rounds.check.ts
 ```
 
 ## Deploy
