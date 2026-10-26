@@ -83,9 +83,9 @@ export type Band = {
   It agreed with the model on 84% of pairs with agree under 0.3, and on under half of those
   over 0.7. The gap on its own barely moved it (53% under 0.03, about 60% above). Played
   through these bands, it reaches STREAK_GOAL in about one run in nine, and 13 in one in 30.
-  That was on thirteen questions. On the twelve now, with the weighted question order in
+  That was on thirteen questions. On the ten now, with the weighted question order in
   createRun, a simulated player who gets those same shares right reaches 5 in one run in
-  three, 10 in about one in ten, and 13 in about one in 27.
+  three, 10 in about one in eleven, and 13 in about one in 27.
 */
 export const BANDS: readonly Band[] = [
   { from: 0, min: 0.12, max: Infinity, agree: 0.3 },
