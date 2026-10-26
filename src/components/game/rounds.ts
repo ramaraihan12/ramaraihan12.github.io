@@ -83,6 +83,9 @@ export type Band = {
   It agreed with the model on 84% of pairs with agree under 0.3, and on under half of those
   over 0.7. The gap on its own barely moved it (53% under 0.03, about 60% above). Played
   through these bands, it reaches STREAK_GOAL in about one run in nine, and 13 in one in 30.
+  That was on thirteen questions. On the twelve now, with the weighted question order in
+  createRun, a simulated player who gets those same shares right reaches 5 in one run in
+  three, 10 in about one in ten, and 13 in about one in 27.
 */
 export const BANDS: readonly Band[] = [
   { from: 0, min: 0.12, max: Infinity, agree: 0.3 },
@@ -119,14 +122,6 @@ function mulberry32(seed: number) {
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
-}
-
-function shuffle<T>(rand: () => number, list: T[]) {
-  for (let i = list.length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1));
-    [list[i], list[j]] = [list[j], list[i]];
-  }
-  return list;
 }
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
@@ -186,7 +181,14 @@ type Option = {
   depth: number;
 };
 
-type Deck = { index: number; id: string; text: string; options: Option[] };
+type Deck = {
+  index: number;
+  id: string;
+  text: string;
+  options: Option[];
+  /** How many pairs the first band deals as they are: in its gaps, under its agree cap, and not traps. */
+  clear: number;
+};
 
 /** One step of loosening the rules: the gaps allowed, whether both notes must be new since the last pair, whether a pair may come back. */
 type Stage = { min: number; max: number; apart: boolean; again: boolean };
@@ -257,7 +259,9 @@ function buildDeck(data: CloserData, points: readonly NoteRef[], index: number):
       });
     }
   }
-  return { index, id: String(q?.id ?? index), text: String(q?.text ?? ""), options };
+  const first = BANDS[0];
+  const clear = options.filter((o) => o.gap >= first.min && o.gap <= first.max && o.agree <= first.agree && o.lure === null).length;
+  return { index, id: String(q?.id ?? index), text: String(q?.text ?? ""), options, clear };
 }
 
 const cache = new WeakMap<CloserData, WeakMap<readonly NoteRef[], Deck[]>>();
@@ -294,7 +298,8 @@ export function isRight(pair: Pair, pick: Side): boolean {
 /**
  * Deals a run. Each next() is one pair, harder as the streak grows: the bands narrow the score
  * gap, and from TRAP_FROM on some pairs are keyword traps. A question stays for QUESTION_EVERY
- * pairs, and the questions come round in a shuffled order, reshuffled when they run out.
+ * pairs, and the questions come round in a weighted shuffle that tends to open on the clearer
+ * ones, reshuffled when they run out.
  */
 export function createRun(data: CloserData, points: readonly NoteRef[], seed: number): Run {
   const rand = mulberry32(seed);
@@ -313,10 +318,28 @@ export function createRun(data: CloserData, points: readonly NoteRef[], seed: nu
   let queue: number[] = [];
   let current = -1;
 
+  /*
+    The questions come in a weighted shuffle, so the ones with clear pairs tend to open the run.
+    A question with none (all its wide gaps go to notes that win under most questions anyway)
+    opens on pairs the model decides by habit, and loses careful players in the first three.
+    Each question draws rand() ** (1 / weight) and the highest goes first, so a question twice
+    the weight is twice as likely to lead. The weight levels off, since ten clear pairs open a
+    run about as well as a hundred, and never reaches 0, so any question can lead.
+  */
+  const lead = (index: number) => {
+    const clear = decks[index].clear;
+    return 0.15 + clear / (clear + 10);
+  };
+  const weightedShuffle = (list: number[]) =>
+    list
+      .map((index) => ({ index, key: rand() ** (1 / lead(index)) }))
+      .sort((a, b) => b.key - a.key)
+      .map((item) => item.index);
+
   /* A new question from the shuffled queue. Across a reshuffle, the last one never comes straight back. */
   function nextQuestion() {
     if (queue.length === 0) {
-      queue = shuffle(rand, [...usable]);
+      queue = weightedShuffle(usable);
       if (queue.length > 1 && queue[0] === current) {
         const j = 1 + Math.floor(rand() * (queue.length - 1));
         [queue[0], queue[j]] = [queue[j], queue[0]];
