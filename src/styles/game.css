@@ -1,7 +1,8 @@
 /*
   The "play" stop: the section and its night ground, the buttons, the poster, the cloth a run
-  of Closer weaves (cl-cloth), and the list shown without scripts. The game's own layout lives
-  in closer.css. Import after `@import "tailwindcss"` in globals.css.
+  of Closer weaves (cl-cloth) and the confetti pieces. The game itself, and the round shown
+  without scripts (cl-static), live in closer.css, which is imported right after this file.
+  Import after `@import "tailwindcss"` in globals.css.
 
   Skinning: every color, the radius and the lift shadow are --nn-* tokens on .nn. The cloth's
   dyes are tokens too, set per data-dye on each panel.
@@ -353,63 +354,6 @@
     animation: nn-breathe 0.9s ease-in-out infinite;
   }
 
-  /* The real top results, for when there's no game to hide them in. */
-  .nn-static {
-    margin-top: 2rem;
-  }
-
-  .js .nn-static:not([data-failed]) {
-    display: none;
-  }
-
-  .nn-static-lead {
-    max-width: 40rem;
-    color: rgb(239 233 220 / 0.8);
-    text-wrap: pretty;
-  }
-
-  .nn-static-list {
-    display: grid;
-    gap: 0.6rem;
-    margin-top: 1rem;
-
-    @media (width >= 48rem) {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    & li {
-      padding: 0.8rem 1rem 0.9rem;
-      border: 1px solid var(--nn-line);
-      border-radius: var(--nn-radius);
-      background: var(--nn-surface);
-    }
-  }
-
-  .nn-static-head {
-    display: flex;
-    gap: 0.6rem;
-    font-family: var(--font-mono);
-    font-variation-settings: "wdth" 87.5;
-    font-size: 0.68rem;
-    color: var(--nn-muted);
-  }
-
-  .nn-static-rank {
-    color: var(--nn-accent);
-  }
-
-  .nn-static-score {
-    margin-left: auto;
-    color: var(--nn-ink);
-  }
-
-  .nn-static-text {
-    margin-top: 0.4rem;
-    font-size: 0.92rem;
-    line-height: 1.45;
-    text-wrap: pretty;
-  }
-
   /* ---------- Cloth: one batik panel per right call (cloth.tsx) ---------- */
 
   /*
@@ -708,17 +652,7 @@
     }
   }
 
-  /* Confetti (confetti.ts): an empty box placed where the burst should start, and the pieces. */
-  .nn-confetti {
-    position: absolute;
-    top: 0.45em;
-    left: 0.9em;
-    z-index: 3;
-    width: 0;
-    height: 0;
-    pointer-events: none;
-  }
-
+  /* The confetti pieces confetti.ts makes. Where they fly from is .cl-confetti, in closer.css. */
   .nn-bit {
     position: absolute;
     top: 0;
