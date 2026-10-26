@@ -68,6 +68,9 @@ type Phase = "pick" | "reveal" | "over";
 const randomSeed = () => Math.floor(Math.random() * 2 ** 31);
 const reduced = () => matchMedia(REDUCE_MQ).matches;
 const fmt = (score: number) => score.toFixed(3);
+/** For SETTLE: a moment `ms` from now, and whether a moment has come. */
+const later = (ms: number) => performance.now() + ms;
+const reached = (moment: number) => performance.now() >= moment;
 
 function readBest(): number | null {
   try {
@@ -240,8 +243,8 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
   }, [pair]);
 
   /** Whether a tap or key is still too close on the heels of the last pick or pair to count. */
-  const settling = () => performance.now() < settleUntil.current;
-  const settle = () => (settleUntil.current = performance.now() + SETTLE);
+  const settling = () => !reached(settleUntil.current);
+  const settle = () => (settleUntil.current = later(SETTLE));
 
   function choose(side: Side) {
     if (phaseRef.current !== "pick" || settling()) return;
