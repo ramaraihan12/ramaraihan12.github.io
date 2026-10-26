@@ -503,8 +503,8 @@
       mask-image: var(--cl-mask);
       -webkit-mask-position: var(--cl-x) 50%;
       mask-position: var(--cl-x) 50%;
-      -webkit-mask-size: var(--cl-tile) var(--cl-tile);
-      mask-size: var(--cl-tile) var(--cl-tile);
+      -webkit-mask-size: calc(var(--cl-tile) * var(--cl-k, 1)) calc(var(--cl-tile) * var(--cl-k, 1));
+      mask-size: calc(var(--cl-tile) * var(--cl-k, 1)) calc(var(--cl-tile) * var(--cl-k, 1));
       -webkit-mask-repeat: repeat;
       mask-repeat: repeat;
     }
@@ -534,9 +534,11 @@
     --cl-body: var(--cl-parang-body);
   }
 
+  /* Truntum's flowers are small and its tile is drawn smaller, so it's shown a size up. */
   .cl-cloth-panel[data-kind="truntum"] {
     --cl-line: var(--cl-truntum-line);
     --cl-body: var(--cl-truntum-body);
+    --cl-k: 1.4;
   }
 
   /* An easy call stays calm (the defaults above); a closer one warms the line to kunyit; the

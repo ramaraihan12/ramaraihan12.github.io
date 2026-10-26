@@ -48,6 +48,9 @@ function maskUri(svg: string) {
 
 let masks: CSSProperties | null = null;
 
+/** The wax lines a little heavier than the art kit draws them: in play a 120px tile shows at 38. */
+const heavier = (svg: string) => svg.replace(/stroke-width="([\d.]+)"/g, (_, w: string) => `stroke-width="${Math.round(Number(w) * 140) / 100}"`);
+
 /*
   Drawn once, the first time a cloth is shown. The body tile is the motif with its ink set to
   "none", which leaves the line paths in the file with nothing to paint, so they're cut out.
@@ -56,7 +59,7 @@ function weave(): CSSProperties {
   if (masks) return masks;
   const vars: Record<string, string> = {};
   for (const kind of BATIK_KINDS) {
-    vars[`--cl-${kind}-line`] = maskUri(batikSvg(kind, { ink: "#000", ground: "none" }));
+    vars[`--cl-${kind}-line`] = maskUri(heavier(batikSvg(kind, { ink: "#000", ground: "none" })));
     vars[`--cl-${kind}-body`] = maskUri(
       batikSvg(kind, { ink: "none", ground: "none", tint: "#000" }).replace(/<path d="[^"]*" fill="none"[^>]*\/>/g, ""),
     );
