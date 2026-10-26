@@ -34,7 +34,11 @@ export type Pair = {
   gap: number;
   /** 0..1, where 1 is the closest call. */
   heat: number;
-  /** The lower-scoring side shares these meaningful words with the question, and the higher shares none. */
+  /**
+   * The lower-scoring side shares these meaningful words with the question, and the higher
+   * shares none. They're matched by stem and spelled as in the question, so the note may have
+   * "payment" where the question says "payments"; stem() finds them in the note.
+   */
   trap: { side: Side; words: string[] } | null;
 };
 
@@ -79,6 +83,12 @@ const TRAP_RATE = 1 / 3;
 
 /** The gap at which heat reaches 0. Anything wider is an easy call. */
 const HEAT_SPAN = 0.2;
+
+/**
+ * How much a note is still wanted 1, 2, 3 and 4 pairs after it was shown. The last pair's notes
+ * are kept out altogether while anything else is left, so the first only counts on tiny data.
+ */
+const RECENT = [1, 0.05, 0.25, 0.5, 0.75];
 
 /** Small seeded PRNG (mulberry32), the same one the art kit uses. */
 function mulberry32(seed: number) {
@@ -127,6 +137,21 @@ export function keywords(text: string): string[] {
   return [...new Set(words(text))].filter((w) => w.length > 1 && !STOPWORDS.has(w));
 }
 
+/**
+ * A word without its plural or -ing, -ed, -ly ending, so "payments" meets "payment" and
+ * "locally" meets "local". Crude on purpose: both sides go through the same cuts, so a word
+ * only has to be cut the same way twice, not correctly.
+ */
+export function stem(word: string): string {
+  if (word.length > 4 && word.endsWith("ies")) return word.slice(0, -3) + "y";
+  if (/(ss|sh|ch|x)es$/.test(word)) return word.slice(0, -2);
+  if (word.length > 3 && /[^su]s$/.test(word)) return word.slice(0, -1);
+  const ending = /^(.{4,}?)(ing|ed|ly)$/.exec(word);
+  if (!ending) return word;
+  const base = ending[1];
+  return /([b-df-hj-np-tv-z])\1$/.test(base) ? base.slice(0, -1) : base;
+}
+
 /** One way to pair two notes under one question, lower score first. */
 type Option = {
   lo: number;
@@ -134,8 +159,10 @@ type Option = {
   gap: number;
   /** Words the lower note shares with the question, when the higher one shares none. */
   lure: string[] | null;
-  /** How much this pair is wanted before the run's own history is counted. */
+  /** How much this pair is wanted before the round and the run's own history are counted. */
   weight: number;
+  /** The share of the other questions under which the same note wins too. */
+  agree: number;
 };
 
 type Deck = { index: number; id: string; text: string; options: Option[] };
@@ -145,24 +172,37 @@ type Stage = { min: number; max: number; apart: boolean; again: boolean };
 
 const pairKey = (a: number, b: number) => (a < b ? `${a}:${b}` : `${b}:${a}`);
 
+const scoresOf = (q: CloserData["questions"][number] | undefined) => (Array.isArray(q?.scores) ? q.scores : []);
+
 /*
-  Every pair of notes a question can deal, with the weights that don't depend on the run:
+  Every pair of notes a question can deal, with what's known about it before a run starts:
   - Two notes from different groups (or at least different files) read less alike, so the
     player compares ideas, not wording.
   - A pair whose better note is one of the question's real matches is a fair read. Two notes
     that both miss the question by a mile, 0.03 apart, are noise to a person, so those are
     dealt less, though not never.
+  - Some notes score high on nearly every question (the about note, the python note) and some
+    low on all of them (the small client apps). A pair of those can be called without reading
+    the question, so `agree` counts how often the same note wins under the other questions,
+    and later rounds keep to pairs whose answer turns on this one.
 */
 function buildDeck(data: CloserData, points: readonly NoteRef[], index: number): Deck {
   const q = data.questions[index];
-  const scores = Array.isArray(q?.scores) ? q.scores : [];
+  const scores = scoresOf(q);
   const valid = points.map((_, i) => i).filter((i) => Number.isFinite(scores[i]) && typeof points[i]?.text === "string");
+  const others = data.questions.filter((_, j) => j !== index).map(scoresOf);
 
   const byScore = [...valid].sort((a, b) => scores[a] - scores[b]);
   const percentile = new Map(byScore.map((i, rank) => [i, byScore.length > 1 ? rank / (byScore.length - 1) : 1]));
 
-  const asked = new Set(keywords(String(q?.text ?? "")));
-  const shared = new Map(valid.map((i) => [i, keywords(points[i].text).filter((w) => asked.has(w))]));
+  // The words a note shares with the question, matched by stem and given as the question has them.
+  const asked = new Map(keywords(String(q?.text ?? "")).map((w) => [stem(w), w]));
+  const shared = new Map(
+    valid.map((i) => {
+      const stems = new Set(keywords(points[i].text).map(stem));
+      return [i, [...asked].filter(([s]) => stems.has(s)).map(([, w]) => w)];
+    }),
+  );
 
   const options: Option[] = [];
   for (let x = 0; x < valid.length; x++) {
@@ -178,10 +218,30 @@ function buildDeck(data: CloserData, points: readonly NoteRef[], index: number):
       const pb = points[b];
       const alike = pa.source === pb.source ? 0.15 : pa.group === pb.group ? 0.4 : 1;
       const relevance = 0.25 + 0.75 * (percentile.get(hi) ?? 0) ** 2;
-      options.push({ lo, hi, gap, lure, weight: alike * relevance });
+
+      let wins = 0;
+      let counted = 0;
+      for (const s of others) {
+        if (!Number.isFinite(s[lo]) || !Number.isFinite(s[hi])) continue;
+        counted++;
+        if (s[hi] > s[lo]) wins++;
+      }
+      options.push({ lo, hi, gap, lure, weight: alike * relevance, agree: counted > 0 ? wins / counted : 0.5 });
     }
   }
   return { index, id: String(q?.id ?? index), text: String(q?.text ?? ""), options };
+}
+
+const cache = new WeakMap<CloserData, WeakMap<readonly NoteRef[], Deck[]>>();
+
+/* The decks depend only on the data, so every run over the same data shares them. */
+function decksFor(data: CloserData, points: readonly NoteRef[]): Deck[] {
+  if (!data || typeof data !== "object" || !Array.isArray(data.questions) || !Array.isArray(points)) return [];
+  let byPoints = cache.get(data);
+  if (!byPoints) cache.set(data, (byPoints = new WeakMap()));
+  let decks = byPoints.get(points);
+  if (!decks) byPoints.set(points, (decks = data.questions.map((_, i) => buildDeck(data, points, i))));
+  return decks;
 }
 
 /** Draws one option, with a chance proportional to its weight. */
@@ -196,7 +256,7 @@ function drawOne(rand: () => number, items: { option: Option; weight: number }[]
 
 /** True when the data can deal at least one pair (one question with two notes it scores differently). */
 export function playable(data: CloserData, points: readonly NoteRef[]): boolean {
-  return (data?.questions ?? []).some((_, i) => buildDeck(data, points, i).options.length > 0);
+  return decksFor(data, points).some((deck) => deck.options.length > 0);
 }
 
 export function isRight(pair: Pair, pick: Side): boolean {
@@ -210,21 +270,16 @@ export function isRight(pair: Pair, pick: Side): boolean {
  */
 export function createRun(data: CloserData, points: readonly NoteRef[], seed: number): Run {
   const rand = mulberry32(seed);
-  const questions = data?.questions ?? [];
-
-  const decks = new Map<number, Deck>();
-  const deckFor = (i: number) => {
-    let deck = decks.get(i);
-    if (!deck) decks.set(i, (deck = buildDeck(data, points, i)));
-    return deck;
-  };
-  const usable = questions.map((_, i) => i).filter((i) => deckFor(i).options.length > 0);
+  const decks = decksFor(data, points);
+  const usable = decks.filter((deck) => deck.options.length > 0).map((deck) => deck.index);
 
   // The run's history: which pairs and notes have been shown, and on which side the answers fell.
   const shownPairs = new Map<string, number>();
   const shownNotes = new Map<number, number>();
   const recent: [number, number][] = [];
   const answers = [0, 0];
+  let lastAnswer: Side | null = null;
+  let sameSide = 0;
 
   let round = 0;
   let queue: number[] = [];
@@ -264,20 +319,28 @@ export function createRun(data: CloserData, points: readonly NoteRef[], seed: nu
 
   function choose(deck: Deck, r: number): Option {
     const last = recent[recent.length - 1];
-    const before = recent[recent.length - 2];
     const inLast = (i: number) => last !== undefined && (last[0] === i || last[1] === i);
-    const inBefore = (i: number) => before !== undefined && (before[0] === i || before[1] === i);
+    const ago = (i: number) => {
+      for (let k = 1; k <= recent.length; k++) if (recent[recent.length - k].includes(i)) return k;
+      return 0;
+    };
+    // From a slight lean at round 0 to a strong one by round 6.
+    const focus = 0.5 + 2 * Math.min(1, r / 6);
 
     /*
-      Weights from the run so far: notes seen two pairs ago or often in this run are dealt
-      less, so the cards keep changing. Before TRAP_FROM a pair that happens to be a trap is
-      mostly left out, so the opening rounds read straight. After that, a chance trap is
-      allowed, a little less often, since some are dealt on purpose as well.
+      Weights from the round and the run so far:
+      - Pairs that could be called without the question are dealt less, and much less as the
+        streak grows. The opening rounds may still lean on them a little; they're the warm-up.
+      - Notes seen a few pairs ago, or often in this run, are dealt less, so the cards keep
+        changing and no note turns up in most pairs.
+      - Before TRAP_FROM a pair that happens to be a trap is mostly left out, so the opening
+        rounds read straight. After that a chance trap is fine, a little less often, since
+        some are dealt on purpose as well.
     */
     const wanted = (o: Option) => {
-      let w = o.weight;
+      let w = o.weight * (1.05 - o.agree) ** focus;
       for (const i of [o.lo, o.hi]) {
-        if (inBefore(i)) w *= 0.35;
+        w *= RECENT[ago(i)] ?? 1;
         w /= 1 + 0.5 * (shownNotes.get(i) ?? 0);
       }
       if (o.lure) w *= r < TRAP_FROM ? 0.15 : 0.6;
@@ -319,7 +382,7 @@ export function createRun(data: CloserData, points: readonly NoteRef[], seed: nu
 
     // Data with nothing to deal (no question with two scored notes). playable() says so up front.
     if (current < 0) {
-      const q = questions[0];
+      const q = data?.questions?.[0];
       return {
         round: r,
         question: { index: 0, id: String(q?.id ?? ""), text: String(q?.text ?? "") },
@@ -333,13 +396,19 @@ export function createRun(data: CloserData, points: readonly NoteRef[], seed: nu
       };
     }
 
-    const deck = deckFor(current);
+    const deck = decks[current];
     const option = choose(deck, r);
-    const scores = questions[current].scores;
+    const scores = scoresOf(data.questions[current]);
 
-    /* The answer side is a coin toss that leans against whichever side has had more answers this run. */
+    /*
+      The answer side is a coin toss that leans against whichever side has had more answers
+      this run, and never lands the same way a fifth time running.
+    */
     const tilt = answers[0] - answers[1];
-    const answer: Side = rand() < Math.min(0.8, Math.max(0.2, 0.5 - 0.15 * tilt)) ? 0 : 1;
+    let answer: Side = rand() < Math.min(0.8, Math.max(0.2, 0.5 - 0.15 * tilt)) ? 0 : 1;
+    if (sameSide >= 4 && answer === lastAnswer) answer = answer === 0 ? 1 : 0;
+    sameSide = answer === lastAnswer ? sameSide + 1 : 1;
+    lastAnswer = answer;
     answers[answer]++;
 
     const notes: [number, number] = answer === 0 ? [option.hi, option.lo] : [option.lo, option.hi];
@@ -347,7 +416,7 @@ export function createRun(data: CloserData, points: readonly NoteRef[], seed: nu
     shownPairs.set(key, (shownPairs.get(key) ?? 0) + 1);
     for (const i of notes) shownNotes.set(i, (shownNotes.get(i) ?? 0) + 1);
     recent.push(notes);
-    if (recent.length > 2) recent.shift();
+    if (recent.length > RECENT.length - 1) recent.shift();
 
     return {
       round: r,

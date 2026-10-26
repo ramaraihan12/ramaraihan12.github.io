@@ -22,6 +22,7 @@ import {
   isRight,
   keywords,
   playable,
+  stem,
   words,
   type CloserData,
   type NoteRef,
@@ -159,12 +160,13 @@ assert.ok(share > 0.47 && share < 0.53, `answers lean to one side (${share})`);
 let traps = 0;
 let trapRounds = 0;
 let earlyTraps = 0;
+const stems = (text: string) => new Set(keywords(text).map(stem));
 for (const run of runs) {
   for (const pair of run) {
-    const asked = new Set(keywords(pair.question.text));
+    const asked = stems(pair.question.text);
     const lower = pair.answer === 0 ? 1 : 0;
-    const sharedLow = keywords(points[pair.notes[lower]].text).filter((w) => asked.has(w));
-    const sharedHigh = keywords(points[pair.notes[pair.answer]].text).filter((w) => asked.has(w));
+    const sharedLow = [...stems(points[pair.notes[lower]].text)].filter((s) => asked.has(s));
+    const sharedHigh = [...stems(points[pair.notes[pair.answer]].text)].filter((s) => asked.has(s));
     const isTrap = sharedLow.length > 0 && sharedHigh.length === 0;
     assert.equal(pair.trap !== null, isTrap, `round ${pair.round} trap flag is wrong`);
     if (pair.trap) {
@@ -172,8 +174,8 @@ for (const run of runs) {
       assert.ok(pair.trap.words.length > 0);
       for (const w of pair.trap.words) {
         assert.ok(words(pair.question.text).includes(w), `"${w}" isn't in the question`);
-        assert.ok(words(points[pair.notes[lower]].text).includes(w), `"${w}" isn't in the lower note`);
-        assert.ok(!words(points[pair.notes[pair.answer]].text).includes(w), `"${w}" is in the higher note too`);
+        assert.ok(words(points[pair.notes[lower]].text).some((v) => stem(v) === stem(w)), `"${w}" isn't in the lower note`);
+        assert.ok(!words(points[pair.notes[pair.answer]].text).some((v) => stem(v) === stem(w)), `"${w}" is in the higher note too`);
         assert.ok(!["rama", "raihan", "the", "does", "he"].includes(w), `"${w}" is a stopword`);
       }
     }
@@ -248,13 +250,17 @@ const reach = (pick: (pair: Pair) => 0 | 1) => {
   return made / 2000;
 };
 let coin = 1;
-const keywordPlayer = (pair: Pair): 0 | 1 => {
-  const asked = new Set(keywords(pair.question.text));
-  const hits = pair.notes.map((i) => keywords(points[i].text).filter((w) => asked.has(w)).length);
-  if (hits[0] !== hits[1]) return hits[0] > hits[1] ? 0 : 1;
+const byKeywords = (pair: Pair, against: boolean): 0 | 1 => {
+  const asked = stems(pair.question.text);
+  const hits = pair.notes.map((i) => [...stems(points[i].text)].filter((s) => asked.has(s)).length);
+  if (hits[0] !== hits[1]) return hits[0] > hits[1] !== against ? 0 : 1;
   coin = (coin * 16807) % 2147483647;
   return coin % 2 === 0 ? 0 : 1;
 };
-console.log(`\na keyword-only player reaches ${STREAK_GOAL} in ${(reach(keywordPlayer) * 100).toFixed(1)}% of runs (a coin reaches it in ${(100 / 2 ** STREAK_GOAL).toFixed(2)}%)`);
+const withWords = reach((pair) => byKeywords(pair, false));
+const againstWords = reach((pair) => byKeywords(pair, true));
+console.log(
+  `\nreaching ${STREAK_GOAL}: a player who follows shared words ${(withWords * 100).toFixed(1)}%, one who avoids them ${(againstWords * 100).toFixed(1)}%, a coin ${(100 / 2 ** STREAK_GOAL).toFixed(2)}%`,
+);
 
 console.log("\nok");
