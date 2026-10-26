@@ -94,27 +94,69 @@ function writeBest(n: number) {
 const achieve = (id: "game-finished" | "game-perfect") =>
   window.dispatchEvent(new CustomEvent("rr:achieve", { detail: { id } }));
 
+type Edges = { top?: number; bottom?: number };
+
 /**
- * Scrolls the least it takes to show el between the fixed header and the bottom of the screen,
- * keeping its top in view if it's taller than that. Returns whether it scrolled.
+ * Where the page has to scroll, starting from `from`, to show el between the fixed header and
+ * the bottom of the screen with the least movement, keeping its top in view if it's taller than
+ * that. `clear` moves either edge in, to keep el out from under something else that's fixed.
  */
-function reveal(el: Element | null, gap = 16) {
-  if (!el) return false;
+function aim(el: Element, from = window.scrollY, gap = 16, clear: Edges = {}) {
+  const header = document.querySelector(".site-header")?.getBoundingClientRect().bottom ?? 0;
+  const top = Math.max(header, clear.top ?? 0) + gap;
+  const bottom = Math.min(window.innerHeight, clear.bottom ?? Infinity) - gap;
+  // Where el would sit on screen with the page at `from`.
   const rect = el.getBoundingClientRect();
-  const top = (document.querySelector(".site-header")?.getBoundingClientRect().bottom ?? 0) + gap;
-  const bottom = window.innerHeight - gap;
+  const shift = window.scrollY - from;
   let by = 0;
-  if (rect.bottom > bottom) by = rect.bottom - bottom;
-  if (rect.top - by < top) by = rect.top - top;
-  if (Math.abs(by) < 2) return false;
-  scrollToY(window.scrollY + by);
-  return true;
+  if (rect.bottom + shift > bottom) by = rect.bottom + shift - bottom;
+  if (rect.top + shift - by < top) by = rect.top + shift - top;
+  return from + by;
+}
+
+/** Scrolls to show el (see aim). Returns where to, or null if it was in view already. */
+function reveal(el: Element | null) {
+  if (!el) return null;
+  const y = aim(el);
+  if (Math.abs(y - window.scrollY) < 2) return null;
+  scrollToY(y);
+  return y;
 }
 
 /** Whether any of el is on screen, so the game only pulls the page along while it's being watched. */
 function onScreen(el: Element | null) {
   const box = el?.getBoundingClientRect();
   return !!box && box.bottom > 0 && box.top < window.innerHeight;
+}
+
+/**
+ * The achievement card for finishing turns up a moment after the result: bottom left on a wide
+ * screen, right over the big number and Play again, or under the header on a narrow one. When
+ * it lands on the result, the result moves clear of it. `from` is where the page was already
+ * headed, since it may still be scrolling there. The card's offset box is where it settles,
+ * without the slide it comes in on. Returns a cleanup.
+ */
+function dodgeToast(result: HTMLElement | null, from: number) {
+  const check = () => {
+    const toast = document.querySelector<HTMLElement>(".rr-toast");
+    if (!toast || !result) return false;
+    const box = result.getBoundingClientRect();
+    const [top, left] = [toast.offsetTop, toast.offsetLeft];
+    if (!onScreen(result) || left + toast.offsetWidth <= box.left || left >= box.right) return true;
+    const low = top > window.innerHeight / 2;
+    const y = aim(result, from, 16, low ? { bottom: top } : { top: top + toast.offsetHeight });
+    if (Math.abs(y - from) >= 2) scrollToY(y);
+    return true;
+  };
+  if (check()) return () => {};
+  const watch = new MutationObserver(() => check() && watch.disconnect());
+  watch.observe(document.body, { childList: true, subtree: true });
+  // If the card is coming at all, it's here well within this. It's only earned once.
+  const stop = window.setTimeout(() => watch.disconnect(), 3000);
+  return () => {
+    watch.disconnect();
+    window.clearTimeout(stop);
+  };
 }
 
 /**
@@ -403,8 +445,10 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
       const el = root.current!;
       resultHead.current?.focus({ preventScroll: true });
       // Only pull the result into view if they're still looking at the game.
-      if (onScreen(el)) reveal(el.querySelector(".cl-result"));
-      if (reduced()) return;
+      const result = el.querySelector<HTMLElement>(".cl-result");
+      const headed = (onScreen(el) ? reveal(result) : null) ?? window.scrollY;
+      const undodge = dodgeToast(result, headed);
+      if (reduced()) return undodge;
       const tl = gsap.timeline();
       tl.fromTo(".cl-result", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }).fromTo(
         ".cl-result-body > *, .cl-result-best",
@@ -415,7 +459,10 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
       if (streak > 0) countUp(tl, el.querySelector(".cl-result-n")?.firstChild, streak, 0, 0.05);
       const host = el.querySelector<HTMLElement>(".cl-result .cl-confetti");
       if (host && streak >= 5 && (bestBefore === null || streak > bestBefore)) tl.add(burst(host), 0.45);
-      return () => host?.replaceChildren();
+      return () => {
+        undodge();
+        host?.replaceChildren();
+      };
     },
     { scope: root, dependencies: [phase, game.id], revertOnUpdate: true },
   );
