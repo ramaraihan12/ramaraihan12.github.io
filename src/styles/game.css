@@ -188,7 +188,11 @@
   }
 
   .nn-poster-cecek {
-    fill: color-mix(in oklab, var(--mori) 30%, transparent);
+    fill: none;
+    stroke: color-mix(in oklab, var(--mori) 30%, transparent);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-dasharray: 0 6;
   }
 
   .nn-poster-panel {
@@ -448,12 +452,13 @@
     /* The pola: the pencil drawing a batik starts as, here kawung, faint on the cloth that
        hasn't been waxed yet. The dyed panels cover it as they come. */
     &::before {
+      --cl-pola-x: calc(var(--cl-fade) + 1px);
       content: "";
       position: absolute;
       inset: 0;
       background: color-mix(in oklab, var(--pudar) 24%, transparent);
-      -webkit-mask: var(--cl-kawung-line) 0 50% / var(--cl-tile) var(--cl-tile) repeat;
-      mask: var(--cl-kawung-line) 0 50% / var(--cl-tile) var(--cl-tile) repeat;
+      -webkit-mask: var(--cl-kawung-line) var(--cl-pola-x) 0 / var(--cl-tile) var(--cl-tile) repeat;
+      mask: var(--cl-kawung-line) var(--cl-pola-x) 0 / var(--cl-tile) var(--cl-tile) repeat;
     }
   }
 
@@ -472,9 +477,10 @@
   }
 
   /*
-    A panel is a box of ground with two masked layers on it: the dye in the motif's bodies
-    (::before) and the wax line over them (::after). Each kind brings its two masks, each dye
-    its three colours. The mask lines up with the panels before it in the same run of a kind.
+    A panel is blank cloth with three dyes on it: the ground (an inset shadow, so it can rise
+    from the bottom like cloth lowered into the bath), the dye in the motif's bodies (::before)
+    and the wax line over them (::after). Each kind brings its two masks, each dye its three
+    colours. The mask lines up with the panels before it in the same run of a kind.
   */
   .cl-cloth-panel {
     --cl-ground: var(--nila);
@@ -486,8 +492,11 @@
     width: var(--cl-w);
     height: 100%;
     border-left: 1px solid var(--cl-seam);
-    background: var(--cl-ground);
-    animation: cl-cloth-unroll 0.45s var(--cl-ease) both;
+    background: var(--cl-blank);
+    box-shadow: inset 0 calc(var(--cl-tile) * -1) 0 var(--cl-ground);
+    animation:
+      cl-cloth-unroll 0.45s var(--cl-ease) both,
+      cl-cloth-soak 0.7s 0.35s var(--cl-ease) both;
 
     &::before,
     &::after {
@@ -498,8 +507,8 @@
       mask-image: var(--cl-mask);
       -webkit-mask-position: var(--cl-x) 50%;
       mask-position: var(--cl-x) 50%;
-      -webkit-mask-size: var(--cl-tile) var(--cl-tile);
-      mask-size: var(--cl-tile) var(--cl-tile);
+      -webkit-mask-size: calc(var(--cl-tile) * var(--cl-k, 1)) calc(var(--cl-tile) * var(--cl-k, 1));
+      mask-size: calc(var(--cl-tile) * var(--cl-k, 1)) calc(var(--cl-tile) * var(--cl-k, 1));
       -webkit-mask-repeat: repeat;
       mask-repeat: repeat;
     }
@@ -529,9 +538,11 @@
     --cl-body: var(--cl-parang-body);
   }
 
+  /* Truntum's flowers are small and its tile is drawn smaller, so it's shown a size up. */
   .cl-cloth-panel[data-kind="truntum"] {
     --cl-line: var(--cl-truntum-line);
     --cl-body: var(--cl-truntum-body);
+    --cl-k: 1.4;
   }
 
   /* An easy call stays calm (the defaults above); a closer one warms the line to kunyit; the
@@ -605,6 +616,7 @@
         var(--cl-blank);
 
       &::before {
+        --cl-pola-x: 1px;
         inset: var(--cl-seret) 0;
       }
     }
@@ -628,7 +640,9 @@
       height: auto;
       border-top: 1px solid var(--cl-seam);
       container-type: inline-size;
-      animation: cl-cloth-lay 0.5s calc(var(--i) * 70ms) var(--cl-ease) both;
+      animation:
+        cl-cloth-lay 0.5s calc(var(--i) * 70ms) var(--cl-ease) both,
+        cl-cloth-soak 0.7s calc(var(--i) * 70ms + 0.25s) var(--cl-ease) both;
 
       &::before,
       &::after {
@@ -772,6 +786,12 @@
 
   to {
     clip-path: circle(75% at 50% 50%);
+  }
+}
+
+@keyframes cl-cloth-soak {
+  from {
+    box-shadow: inset 0 0 0 var(--cl-ground);
   }
 }
 

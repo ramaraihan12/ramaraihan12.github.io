@@ -15,8 +15,13 @@ import { BATIK_KINDS, batikSvg } from "@/components/art/patterns";
   whole run, however long, and no SVG in the DOM at all. Panels of one run of a kind line their
   masks up, so three kawung panels read as one field cut into three, not three stickers.
 
-  The newest panel animates in by itself (game.css): it unrolls, the wax line spreads, then
-  the dye soaks in. Keys are the index, so the panels already there are left alone.
+  The newest panel animates in by itself (game.css): it unrolls, the wax line spreads, then the
+  ground and the dye rise from the bottom. Keys are the index, so the panels already there are
+  left alone. Flipping `final` on the same cloth lays it out again, a panel at a time.
+
+  The masks ride on the cloth as inline custom properties (about 26 KB), drawn once in the
+  browser. That's fine inside the game's own chunk, but keep the cloth out of the static page:
+  there they'd be written into the HTML and again into its payload. The poster draws its own.
 */
 
 export type Motif = {
@@ -48,6 +53,9 @@ function maskUri(svg: string) {
 
 let masks: CSSProperties | null = null;
 
+/** The wax lines a little heavier than the art kit draws them: in play a 120px tile shows at 38. */
+const heavier = (svg: string) => svg.replace(/stroke-width="([\d.]+)"/g, (_, w: string) => `stroke-width="${Math.round(Number(w) * 140) / 100}"`);
+
 /*
   Drawn once, the first time a cloth is shown. The body tile is the motif with its ink set to
   "none", which leaves the line paths in the file with nothing to paint, so they're cut out.
@@ -56,7 +64,7 @@ function weave(): CSSProperties {
   if (masks) return masks;
   const vars: Record<string, string> = {};
   for (const kind of BATIK_KINDS) {
-    vars[`--cl-${kind}-line`] = maskUri(batikSvg(kind, { ink: "#000", ground: "none" }));
+    vars[`--cl-${kind}-line`] = maskUri(heavier(batikSvg(kind, { ink: "#000", ground: "none" })));
     vars[`--cl-${kind}-body`] = maskUri(
       batikSvg(kind, { ink: "none", ground: "none", tint: "#000" }).replace(/<path d="[^"]*" fill="none"[^>]*\/>/g, ""),
     );
