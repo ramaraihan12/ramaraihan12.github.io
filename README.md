@@ -13,7 +13,7 @@ My personal site. It answers one question, "Who is Rama Raihan?", the way a RAG 
   <img src="docs/retrieve.png" alt="The retrieve step on desktop: 51 notes as dots on a faint batik ground, dotted lines from the question to the five closest, and their cards with similarity scores" width="420" />
 </p>
 <p>
-  <img src="docs/play.png" alt="Nearest Neighbors after a round: 3 of 5 right, the real top five linked on the map and marked on the cards, and a note that a decoy only looked close on the map" width="420" />
+  <img src="docs/play.png" alt="Closer after a wrong call ends the run: the streak, the cloth woven from the right calls, one motif each, and the last two notes with their real scores, the closer one stamped like a batik cap" width="420" />
   <img src="docs/work-ai.png" alt="The invoice-flow panel on the work rail, hovered, so its screenshot sits over the postcard in its own colors, with the request pipeline below" width="420" />
 </p>
 <p>
@@ -44,7 +44,7 @@ My personal site. It answers one question, "Who is Rama Raihan?", the way a RAG 
 - The map is a PCA squash of 1,024 dimensions into 2, so dots that look close may not be close in meaning. The ranking uses all 1,024.
 - Each note gets a one-line header with my name before it's embedded. Without it, notes like "I deploy my own apps..." don't say whose they are, and they lose to random stack notes.
 - When I added notes for the newer projects, I embedded all 51 again, so every score and dot on the page comes from one run.
-- Nearest Neighbors deals the real top five plus seven decoys, and scores your picks against the real top five. The decoys are there to tempt you: close on the map, in the same group as a real match, or sharing a word with the question. When a decoy sits closer on the map than a real match, the game says so.
+- Closer shows one question and two of my notes, and you pick the one the model scores closer. Both scores are real cosine similarities from the same model. `scripts/embed_closer.py` embeds a dozen questions, scores my notes against each one, and writes the result to `src/content/closer.json`. The pairs get closer as your streak grows, and some are traps where the lower note shares a word with the question. The model goes by meaning, so the shared word doesn't save it. The question changes every three pairs, and one wrong call ends the run.
 - The answer at the end is not generated. I wrote it from the five notes that came back.
 - The sky at the bottom follows the real time in Salatiga.
 - All the art is drawn in code, as SVG and canvas. No image generators. The only image files are my photo and the project screenshots, taken from each repo's docs.
@@ -70,7 +70,7 @@ My personal site. It answers one question, "Who is Rama Raihan?", the way a RAG 
 - Tailwind CSS 4
 - GSAP 3 with ScrollTrigger and `@gsap/react`, and Lenis. No other GSAP plugins: the chip drag is a small spring written by hand.
 - `next/font` with Anybody (its width axis is animated in a few places), Schibsted Grotesk and Martian Mono
-- Python, Ollama and Hugging Face `tokenizers` for the retrieval data, only at authoring time
+- Python, Ollama and Hugging Face `tokenizers` for the retrieval and game data, only at authoring time
 
 ## Run it
 
@@ -94,14 +94,17 @@ No env vars. The public URL used for the canonical link, Open Graph tags and sit
 
 ## Update the notes
 
-Edit `scripts/notes.json`, then rebuild the retrieval data. You need Ollama running with the embedding model pulled:
+Edit `scripts/notes.json`, then rebuild the data. You need Ollama running with the embedding model pulled:
 
 ```bash
 ollama pull qwen3-embedding:0.6b
 uv run scripts/embed_notes.py
+uv run scripts/embed_closer.py
 ```
 
-It rewrites `src/content/retrieval.json`: the tokens, the scores, the map, and the question's whole vector (`queryVector`) that the cloth is drawn from. It prints the new top five. If they change, update the answer in `src/content/story.ts` so its citations still match. The game and the counts on the page follow the new data by themselves.
+`embed_notes.py` rewrites `src/content/retrieval.json`: the tokens, the scores, the map, and the question's whole vector (`queryVector`) that the cloth is drawn from. It prints the new top five. If they change, update the answer in `src/content/story.ts` so its citations still match. The counts on the page follow the new data by themselves.
+
+`embed_closer.py` rewrites `src/content/closer.json`, the questions and scores Closer deals its pairs from.
 
 ## Checks
 
