@@ -296,6 +296,11 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
     const lose = fmt(pair.scores[1 - pair.answer]);
     setPick(side);
     setPhase("reveal");
+    // On a short screen, a phone on its side, the feet of long cards can sit under the fold
+    // while they're read. The scores and the stamp are the point of the reveal, so they come
+    // up; the next pair brings the question back. Nothing moves when they're on screen already.
+    const arena = board.current?.querySelector(".cl-arena") ?? null;
+    if (onScreen(arena)) reveal(arena);
     if (!isRight(pair, side)) {
       announce(S.announce.wrong(win, lose));
       return;
