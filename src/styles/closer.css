@@ -64,6 +64,13 @@
     color: var(--cl-soft);
   }
 
+  /* The "new question" tag goes when the pick is made. It hangs over the line a little rather
+     than making it taller, so the game's height doesn't change mid-reveal, which would have the
+     scenes below measure the page again while the scores count up. */
+  .cl-label .cl-tag {
+    margin-block: -0.15rem;
+  }
+
   .cl-tag {
     padding: 0.1rem 0.5rem;
     border-radius: 999px;

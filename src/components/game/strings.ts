@@ -64,6 +64,9 @@ export const strings = {
     gap: (gap: string) => `${gap} apart.`,
     skipTouch: "Tap for the next pair.",
     skip: "Click or press any key for the next pair.",
+    /** The same, after a wrong call, when what comes next is the result. */
+    endTouch: "Tap for the result.",
+    end: "Click or press any key for the result.",
     clothEmpty: "Each right call adds a motif to this cloth.",
   },
 
@@ -96,7 +99,7 @@ export const strings = {
       plain: (win: string, lose: string) => `The other note scored ${win} to your ${lose}. To the model, it was closer in meaning.`,
     },
     again: playCopy.again,
-    answer: "See the real answer",
+    answer: "Skip to the answer",
   },
 };
 

@@ -29,8 +29,16 @@ gsap.registerPlugin(useGSAP);
 export const BEST_KEY = "rr:closer:best";
 /** Seconds a right call stays up, long enough to read both scores. Any tap or key skips it. */
 const BEAT = 1.35;
-/** A wrong call gets a moment to land before the result takes over. Skippable too. */
-const LAST_BEAT = 1.1;
+/**
+ * A wrong call gets longer: the shake and the soga stamp land at about 0.9s, and the player
+ * needs a moment with both scores before the result takes over. Skippable too.
+ */
+const LAST_BEAT = 1.7;
+/**
+ * Milliseconds a tap or key is ignored after a pick or a new pair, so the second click of a
+ * double click can't skip the scores it just revealed, or pick blind in the pair after.
+ */
+const SETTLE = 350;
 /** With a fixed seed, each Play again steps it, so a replay isn't the same deal. */
 const SEED_STEP = 7919;
 /**
@@ -60,6 +68,9 @@ type Phase = "pick" | "reveal" | "over";
 const randomSeed = () => Math.floor(Math.random() * 2 ** 31);
 const reduced = () => matchMedia(REDUCE_MQ).matches;
 const fmt = (score: number) => score.toFixed(3);
+/** For SETTLE: a moment `ms` from now, and whether a moment has come. */
+const later = (ms: number) => performance.now() + ms;
+const reached = (moment: number) => performance.now() >= moment;
 
 function readBest(): number | null {
   try {
@@ -83,27 +94,72 @@ function writeBest(n: number) {
 const achieve = (id: "game-finished" | "game-perfect") =>
   window.dispatchEvent(new CustomEvent("rr:achieve", { detail: { id } }));
 
+type Edges = { top?: number; bottom?: number };
+
 /**
- * Scrolls the least it takes to show el between the fixed header and the bottom of the screen,
- * keeping its top in view if it's taller than that. Returns whether it scrolled.
+ * Where the page has to scroll, starting from `from`, to show el between the fixed header and
+ * the bottom of the screen with the least movement, keeping its top in view if it's taller than
+ * that. `clear` moves either edge in, to keep el out from under something else that's fixed.
  */
-function reveal(el: Element | null, gap = 16) {
-  if (!el) return false;
+function aim(el: Element, from = window.scrollY, gap = 16, clear: Edges = {}) {
+  const header = document.querySelector(".site-header")?.getBoundingClientRect().bottom ?? 0;
+  const top = Math.max(header, clear.top ?? 0) + gap;
+  const bottom = Math.min(window.innerHeight, clear.bottom ?? Infinity) - gap;
+  // Where el would sit on screen with the page at `from`.
   const rect = el.getBoundingClientRect();
-  const top = (document.querySelector(".site-header")?.getBoundingClientRect().bottom ?? 0) + gap;
-  const bottom = window.innerHeight - gap;
+  const shift = window.scrollY - from;
   let by = 0;
-  if (rect.bottom > bottom) by = rect.bottom - bottom;
-  if (rect.top - by < top) by = rect.top - top;
-  if (Math.abs(by) < 2) return false;
-  scrollToY(window.scrollY + by);
-  return true;
+  if (rect.bottom + shift > bottom) by = rect.bottom + shift - bottom;
+  if (rect.top + shift - by < top) by = rect.top + shift - top;
+  return from + by;
+}
+
+/** Scrolls to show el (see aim). Returns where to, or null if it was in view already. */
+function reveal(el: Element | null) {
+  if (!el) return null;
+  const y = aim(el);
+  if (Math.abs(y - window.scrollY) < 2) return null;
+  scrollToY(y);
+  return y;
 }
 
 /** Whether any of el is on screen, so the game only pulls the page along while it's being watched. */
 function onScreen(el: Element | null) {
   const box = el?.getBoundingClientRect();
   return !!box && box.bottom > 0 && box.top < window.innerHeight;
+}
+
+/** How long scrollToY takes to get somewhere (lib/scroll.ts), and a little more. */
+const SCROLL_TIME = 1500;
+
+/**
+ * Achievement cards turn up a moment after the result: bottom left on a wide screen, right over
+ * the big number and Play again, or under the header on a narrow one. Each one that lands on
+ * the result moves it clear, for as long as the result is up. `headed` is where the page was
+ * sent to show the result, since it may still be on its way. A card's offset box is where it
+ * settles, without the slide it comes in on. Returns a cleanup.
+ */
+function dodgeToasts(result: HTMLElement | null, headed: number) {
+  const arriving = performance.now() + SCROLL_TIME;
+  let seen: Element | null = null;
+  const check = () => {
+    const toast = document.querySelector<HTMLElement>(".rr-toast");
+    if (!toast || toast === seen || !result) return;
+    seen = toast;
+    // Where the page is, or is about to be, and where the result sits on screen there.
+    const from = performance.now() < arriving ? headed : window.scrollY;
+    const box = result.getBoundingClientRect();
+    const shift = window.scrollY - from;
+    const [top, left] = [toast.offsetTop, toast.offsetLeft];
+    const [bottom, right] = [top + toast.offsetHeight, left + toast.offsetWidth];
+    if (right <= box.left || left >= box.right || bottom <= box.top + shift || top >= box.bottom + shift) return;
+    const y = aim(result, from, 16, top > window.innerHeight / 2 ? { bottom: top } : { top: bottom });
+    if (Math.abs(y - from) >= 2) scrollToY(y);
+  };
+  check();
+  const watch = new MutationObserver(check);
+  watch.observe(document.body, { childList: true, subtree: true });
+  return () => watch.disconnect();
 }
 
 /**
@@ -186,6 +242,8 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
   const hudBits = useRef<HTMLSpanElement>(null);
   /** The phase as of the last handler, so a timer and a tap can't both move the game on. */
   const phaseRef = useRef<Phase>("pick");
+  /** performance.now() until which taps and keys are ignored. See SETTLE. */
+  const settleUntil = useRef(0);
   const focusCard = useRef(false);
 
   const [game, setGame] = useState(() => {
@@ -229,13 +287,23 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
     }
   }, [pair]);
 
+  /** Whether a tap or key is still too close on the heels of the last pick or pair to count. */
+  const settling = () => !reached(settleUntil.current);
+  const settle = () => (settleUntil.current = later(SETTLE));
+
   function choose(side: Side) {
-    if (phaseRef.current !== "pick") return;
+    if (phaseRef.current !== "pick" || settling()) return;
     phaseRef.current = "reveal";
+    settle();
     const win = fmt(pair.scores[pair.answer]);
     const lose = fmt(pair.scores[1 - pair.answer]);
     setPick(side);
     setPhase("reveal");
+    // On a short screen, a phone on its side, the feet of long cards can sit under the fold
+    // while they're read. The scores and the stamp are the point of the reveal, so they come
+    // up; the next pair brings the question back. Nothing moves when they're on screen already.
+    const arena = board.current?.querySelector(".cl-arena") ?? null;
+    if (onScreen(arena)) reveal(arena);
     if (!isRight(pair, side)) {
       announce(S.announce.wrong(win, lose));
       return;
@@ -259,6 +327,7 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
   function advance() {
     if (phaseRef.current !== "reveal") return;
     phaseRef.current = "pick";
+    settle();
     const next = game.run.next();
     setGame((g) => ({ ...g, pair: next, onQuestion: next.fresh ? 1 : g.onQuestion + 1 }));
     setPick(null);
@@ -278,7 +347,7 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
 
   /** Cuts the beat short: on to the next pair, or to the result. */
   function skip() {
-    if (phaseRef.current !== "reveal") return;
+    if (phaseRef.current !== "reveal" || settling()) return;
     if (right) advance();
     else finish();
   }
@@ -287,6 +356,7 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
     const run = createRun(data, points, seed === undefined ? randomSeed() : seed + (game.id + 1) * SEED_STEP);
     const first = run.next();
     phaseRef.current = "pick";
+    settle();
     focusCard.current = true;
     setGame({ id: game.id + 1, run, pair: first, onQuestion: 1 });
     setPhase("pick");
@@ -383,8 +453,10 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
       const el = root.current!;
       resultHead.current?.focus({ preventScroll: true });
       // Only pull the result into view if they're still looking at the game.
-      if (onScreen(el)) reveal(el.querySelector(".cl-result"));
-      if (reduced()) return;
+      const result = el.querySelector<HTMLElement>(".cl-result");
+      const headed = (onScreen(el) ? reveal(result) : null) ?? window.scrollY;
+      const undodge = dodgeToasts(result, headed);
+      if (reduced()) return undodge;
       const tl = gsap.timeline();
       tl.fromTo(".cl-result", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }).fromTo(
         ".cl-result-body > *, .cl-result-best",
@@ -395,7 +467,10 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
       if (streak > 0) countUp(tl, el.querySelector(".cl-result-n")?.firstChild, streak, 0, 0.05);
       const host = el.querySelector<HTMLElement>(".cl-result .cl-confetti");
       if (host && streak >= 5 && (bestBefore === null || streak > bestBefore)) tl.add(burst(host), 0.45);
-      return () => host?.replaceChildren();
+      return () => {
+        undodge();
+        host?.replaceChildren();
+      };
     },
     { scope: root, dependencies: [phase, game.id], revertOnUpdate: true },
   );
@@ -528,10 +603,10 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
         ) : (
           // Both versions are in the page; the stylesheet shows the one for the device in hand.
           <p className="cl-hint" aria-hidden="true">
-            {phase === "reveal" && right ? (
+            {phase === "reveal" ? (
               <>
-                {S.game.gap(fmt(pair.gap))} <span className="cl-hint-touch">{S.game.skipTouch}</span>
-                <span className="cl-hint-keys">{S.game.skip}</span>
+                {S.game.gap(fmt(pair.gap))} <span className="cl-hint-touch">{right ? S.game.skipTouch : S.game.endTouch}</span>
+                <span className="cl-hint-keys">{right ? S.game.skip : S.game.end}</span>
               </>
             ) : (
               <>

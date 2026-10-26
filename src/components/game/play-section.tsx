@@ -45,7 +45,7 @@ export type PlaySectionProps = {
  * Seed of the round shown without scripts: the first pair the game deals from it. Any seed
  * works; this one deals a pair that reads at a glance (a docs question, the docs app wins).
  */
-const EXAMPLE_SEED = 12;
+const EXAMPLE_SEED = 3;
 
 export function PlaySection({ id = "play", className, renderPoster, game }: PlaySectionProps) {
   const root = useRef<HTMLElement>(null);
@@ -70,14 +70,16 @@ export function PlaySection({ id = "play", className, renderPoster, game }: Play
     near.observe(section);
 
     // The game is taller than the poster and changes height as it's played. The pinned scenes
-    // below measured the page when it loaded, so they need to measure again.
+    // below measured the page when it loaded, so they need to measure again. Measuring takes a
+    // few frames' worth of work, so it waits until a new pair has slid in and typed its question,
+    // rather than stalling them. Nobody below the game is looked at in that time.
     let height = section.offsetHeight;
     let timer = 0;
     const resized = new ResizeObserver(() => {
       if (section.offsetHeight === height) return;
       height = section.offsetHeight;
       window.clearTimeout(timer);
-      timer = window.setTimeout(() => ScrollTrigger.refresh(), 150);
+      timer = window.setTimeout(() => ScrollTrigger.refresh(), 900);
     });
     resized.observe(section);
 
