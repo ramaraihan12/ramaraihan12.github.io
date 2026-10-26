@@ -366,7 +366,7 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
         tl.call(() => el.querySelectorAll<HTMLElement>(sel).forEach((s) => (s.dataset.state = "pressed")), [], at);
       press(".cl-stamp-win", 0.42);
       if (right) {
-        tl.fromTo(el.querySelector(".cl-streak-n"), { scale: 1.6 }, { scale: 1, duration: 0.5, ease: "back.out(3)" }, 0.45);
+        tl.fromTo(el.querySelector(".cl-streak-n"), { scale: 1.45 }, { scale: 1, duration: 0.5, ease: "back.out(3)" }, 0.45);
       } else {
         tl.to(card(pick), { keyframes: { x: [0, -7, 6, -4, 2, 0] }, duration: 0.42, ease: "none" }, 0.5);
         press(".cl-stamp-pick", 0.62);

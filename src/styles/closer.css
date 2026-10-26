@@ -23,6 +23,9 @@
     background: var(--nn-sky, var(--malam));
     color: var(--mori);
     touch-action: manipulation;
+    /* Confetti flies wide. Left alone it widens the page, and a phone then widens its layout
+       viewport, dragging the fixed header along. Up and down it can go where it likes. */
+    overflow-x: clip;
   }
 
   /* ---------- The question and the streak ---------- */
@@ -151,7 +154,8 @@
     line-height: 0.88;
     letter-spacing: -0.03em;
     color: var(--kunyit);
-    transform-origin: 50% 60%;
+    /* It sits against the right edge, so the pop grows leftward. */
+    transform-origin: 100% 60%;
   }
 
   .cl-streak-label,
