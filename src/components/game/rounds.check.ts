@@ -185,7 +185,7 @@ for (const run of runs) {
     } else if (pair.trap) earlyTraps++;
   }
 }
-// Not every question can set a trap (nothing shares a word with "Who is Rama Raihan?"), so the rate that matters is among the rounds that could.
+// Not every question can set a trap in every band (it takes a lower note that shares a word with the question and a higher one that doesn't), so the rate that matters is among the rounds that could.
 const canTrap = data.questions.map((q) =>
   BANDS.map((band) => {
     const asked = stems(q.text);
