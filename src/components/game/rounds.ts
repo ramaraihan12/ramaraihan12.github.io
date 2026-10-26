@@ -83,9 +83,10 @@ export type Band = {
   It agreed with the model on 84% of pairs with agree under 0.3, and on under half of those
   over 0.7. The gap on its own barely moved it (53% under 0.03, about 60% above). Played
   through these bands, it reaches STREAK_GOAL in about one run in nine, and 13 in one in 30.
-  That was on thirteen questions. On the ten now, with the weighted question order in
-  createRun, a simulated player who gets those same shares right reaches 5 in one run in
-  three, 10 in about one in eleven, and 13 in about one in 27.
+  That was on thirteen questions. On the ten now, with the weighted question order and the
+  late pairs kept near each question's best notes, a simulated player who gets those same
+  shares right reaches 5 in one run in three, 10 in about one in eleven, and 13 in about one
+  in 25.
 */
 export const BANDS: readonly Band[] = [
   { from: 0, min: 0.12, max: Infinity, agree: 0.3 },
@@ -105,6 +106,15 @@ const TRAP_RATE = 1 / 3;
 
 /** The gap at which heat reaches 0. Anything wider is an easy call. */
 const HEAT_SPAN = 0.2;
+
+/**
+ * From this round on, the higher note should be one of the question's real matches: no further
+ * than NEAR_BEST behind its closest note. Then the close calls are two good matches a hair apart,
+ * not two misses. A cut by rank can't do this, since some questions have three real matches and
+ * some six, and past those come the notes that score well on everything.
+ */
+const NEAR_FROM = 6;
+const NEAR_BEST = 0.1;
 
 /**
  * How much a note is still wanted 1, 2, 3 and 4 pairs after it was shown. The last pair's notes
@@ -179,6 +189,8 @@ type Option = {
   agree: number;
   /** Where the lower note ranks among the question's notes, 0 (last) to 1 (first). */
   depth: number;
+  /** How far the higher note's score is behind the question's closest note. */
+  behind: number;
 };
 
 type Deck = {
@@ -190,8 +202,11 @@ type Deck = {
   clear: number;
 };
 
-/** One step of loosening the rules: the gaps allowed, whether both notes must be new since the last pair, whether a pair may come back. */
-type Stage = { min: number; max: number; apart: boolean; again: boolean };
+/**
+ * One step of loosening the rules: the gaps allowed, whether the higher note must be NEAR_BEST,
+ * whether both notes must be new since the last pair, whether a pair may come back.
+ */
+type Stage = { min: number; max: number; near: boolean; apart: boolean; again: boolean };
 
 const pairKey = (a: number, b: number) => (a < b ? `${a}:${b}` : `${b}:${a}`);
 
@@ -216,6 +231,7 @@ function buildDeck(data: CloserData, points: readonly NoteRef[], index: number):
 
   const byScore = [...valid].sort((a, b) => scores[a] - scores[b]);
   const percentile = new Map(byScore.map((i, rank) => [i, byScore.length > 1 ? rank / (byScore.length - 1) : 1]));
+  const best = byScore.length > 0 ? scores[byScore[byScore.length - 1]] : 0;
 
   // The words a note shares with the question, matched by stem and given as the question has them.
   const asked = new Map(keywords(String(q?.text ?? "")).map((w) => [stem(w), w]));
@@ -256,6 +272,7 @@ function buildDeck(data: CloserData, points: readonly NoteRef[], index: number):
         weight: alike * relevance,
         agree: counted > 0 ? wins / counted : 0.5,
         depth: percentile.get(lo) ?? 0,
+        behind: best - scores[hi],
       });
     }
   }
@@ -350,21 +367,24 @@ export function createRun(data: CloserData, points: readonly NoteRef[], seed: nu
 
   /*
     The pairs a round may deal, loosest rule last. First the round's band, widened a step at a
-    time, then the whole range above the floor. Only then are the variety rules let go: a note
-    may show twice running, then a pair may come back, and last of all the gap may drop under
-    the floor. Small data reaches those; the real notes never should. The last stage takes
-    anything, so a usable question always deals.
+    time; from NEAR_FROM on that's done twice, first with the higher note NEAR_BEST, so a wider
+    gap comes before a note that misses. Then the whole range above the floor. Only then are
+    the variety rules let go: a note may show twice running, then a pair may come back, and
+    last of all the gap may drop under the floor. Small data reaches those; the real notes
+    never should. The last stage takes anything, so a usable question always deals.
   */
   function stages(r: number) {
     const band = bandFor(r);
     const out: Stage[] = [];
-    for (let w = 0; w <= 6; w++) {
-      out.push({ min: Math.max(GAP_FLOOR, band.min - 0.01 * w), max: band.max + 0.02 * w, apart: true, again: false });
+    for (const near of r >= NEAR_FROM ? [true, false] : [false]) {
+      for (let w = 0; w <= 6; w++) {
+        out.push({ min: Math.max(GAP_FLOOR, band.min - 0.01 * w), max: band.max + 0.02 * w, near, apart: true, again: false });
+      }
     }
-    out.push({ min: GAP_FLOOR, max: Infinity, apart: true, again: false });
-    out.push({ min: GAP_FLOOR, max: Infinity, apart: false, again: false });
-    out.push({ min: GAP_FLOOR, max: Infinity, apart: false, again: true });
-    out.push({ min: 0, max: Infinity, apart: false, again: true });
+    out.push({ min: GAP_FLOOR, max: Infinity, near: false, apart: true, again: false });
+    out.push({ min: GAP_FLOOR, max: Infinity, near: false, apart: false, again: false });
+    out.push({ min: GAP_FLOOR, max: Infinity, near: false, apart: false, again: true });
+    out.push({ min: 0, max: Infinity, near: false, apart: false, again: true });
     return out;
   }
 
@@ -409,6 +429,7 @@ export function createRun(data: CloserData, points: readonly NoteRef[], seed: nu
           (o) =>
             o.gap >= s.min &&
             o.gap <= s.max &&
+            (!s.near || o.behind <= NEAR_BEST + 1e-9) &&
             (!traps || o.lure !== null) &&
             (!s.apart || (!inLast(o.lo) && !inLast(o.hi))) &&
             (s.again || !shownPairs.has(pairKey(o.lo, o.hi))),
