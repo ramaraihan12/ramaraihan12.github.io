@@ -94,7 +94,7 @@
     }
   }
 
-  /* ---------- Poster: a truntum night, the question as its turmeric flower ---------- */
+  /* ---------- Poster: two notes tied to the question, one thread taut, one slack ---------- */
 
   .nn-poster {
     display: grid;
@@ -117,29 +117,131 @@
     background: var(--nn-sky);
   }
 
-  /* Three rings out from the question, fainter and looser as they go: a line, dashes, dots. */
+  .nn-poster-sky {
+    fill: var(--nn-ink);
+    opacity: 0.55;
+  }
+
+  .nn-poster-sky-big {
+    opacity: 0.75;
+  }
+
+  .nn-poster-glow-in {
+    stop-color: var(--nn-accent);
+    stop-opacity: 0.3;
+  }
+
+  .nn-poster-glow-out {
+    stop-color: var(--nn-accent);
+    stop-opacity: 0;
+  }
+
+  .nn-poster-ping {
+    fill: none;
+    stroke: var(--nn-accent);
+    stroke-width: 1;
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: nn-ping 2.4s ease-out infinite;
+  }
+
+  /* The two threads: the closer note's pulled taut in kunyit, the other hanging loose in mori. */
+  .nn-poster-thread[data-pull="taut"] {
+    fill: var(--nn-accent);
+  }
+
+  .nn-poster-thread[data-pull="slack"] {
+    fill: none;
+    stroke: var(--nn-ink);
+    stroke-opacity: 0.55;
+    stroke-width: 0.9;
+    stroke-linecap: round;
+  }
+
   .nn-poster-ring {
     fill: none;
     stroke: var(--nn-accent);
-    stroke-width: 1.3;
+    stroke-width: 1.2;
     stroke-linecap: round;
-    stroke-opacity: 0.7;
 
-    &[data-i="1"] {
-      stroke-dasharray: 9 6;
-      stroke-opacity: 0.42;
-    }
-
-    &[data-i="2"] {
-      stroke-dasharray: 0.1 6;
-      stroke-width: 1.6;
-      stroke-opacity: 0.3;
+    &[data-far] {
+      stroke: var(--nn-ink);
+      stroke-opacity: 0.4;
+      stroke-dasharray: 0.1 3.5;
+      stroke-width: 1.5;
     }
   }
 
-  .nn-poster-dots circle {
+  .nn-poster-star {
     fill: var(--nn-ink);
-    opacity: 0.8;
+    opacity: 0.85;
+
+    &[data-near] {
+      fill: var(--nn-accent);
+      opacity: 1;
+    }
+  }
+
+  /* The cloth along the bottom: the same blank cotton, pola and dyes as the game's (.cl-cloth). */
+  .nn-poster-cloth-blank {
+    fill: color-mix(in oklab, var(--mori) 5%, var(--malam));
+  }
+
+  .nn-poster-cecek {
+    fill: color-mix(in oklab, var(--mori) 30%, transparent);
+  }
+
+  .nn-poster-panel {
+    stroke: var(--malam);
+    stroke-width: 0.6;
+  }
+
+  .nn-poster-k {
+    --k-ground: var(--nila);
+    --k-body: color-mix(in oklab, var(--soga) 72%, var(--nila));
+    --k-line: color-mix(in oklab, var(--mori) 80%, var(--nila));
+
+    &[data-dye="warm"] {
+      --k-body: var(--soga);
+      --k-line: var(--kunyit);
+    }
+
+    &[data-dye="hot"] {
+      --k-ground: var(--kunyit);
+      --k-body: var(--soga);
+      --k-line: var(--malam);
+    }
+
+    &[data-dye="pola"] {
+      --k-ground: transparent;
+      --k-body: transparent;
+      --k-line: color-mix(in oklab, var(--pudar) 30%, transparent);
+    }
+  }
+
+  .nn-poster-k-ground {
+    fill: var(--k-ground);
+  }
+
+  .nn-poster-k-body {
+    fill: var(--k-body);
+  }
+
+  .nn-poster-k-line,
+  .nn-poster-k-fine {
+    fill: none;
+    stroke: var(--k-line);
+    stroke-width: 0.7;
+    stroke-linejoin: round;
+  }
+
+  .nn-poster-k-fine {
+    stroke-width: 0.45;
+  }
+
+  .nn-poster-k-seed {
+    fill: var(--k-line);
   }
 
   .nn-poster-flower {
@@ -181,8 +283,8 @@
     color: var(--nn-accent);
   }
 
-  /* The question as the opening scene asked it, caret and all. */
-  .nn-poster-question {
+  /* The game's name, with the opening scene's caret after it. */
+  .nn-poster-name {
     font-family: var(--font-display);
     font-weight: 800;
     font-variation-settings: "wdth" 100;
