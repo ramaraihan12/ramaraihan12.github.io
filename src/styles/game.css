@@ -343,9 +343,21 @@
     display: block;
     -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--cl-fade));
     mask-image: linear-gradient(to right, transparent, #000 var(--cl-fade));
+
+    /* The pola: the pencil drawing a batik starts as, here kawung, faint on the cloth that
+       hasn't been waxed yet. The dyed panels cover it as they come. */
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: color-mix(in oklab, var(--pudar) 24%, transparent);
+      -webkit-mask: var(--cl-kawung-line) 0 50% / var(--cl-tile) var(--cl-tile) repeat;
+      mask: var(--cl-kawung-line) 0 50% / var(--cl-tile) var(--cl-tile) repeat;
+    }
   }
 
   .cl-cloth-track {
+    position: relative;
     display: flex;
     justify-content: flex-end;
     height: 100%;
@@ -490,6 +502,10 @@
         radial-gradient(circle, var(--cl-cecek) 0.9px, transparent 1.35px) 0 calc(var(--cl-seret) / 2 - 3.5px) / 7px 7px repeat-x,
         radial-gradient(circle, var(--cl-cecek) 0.9px, transparent 1.35px) 0 calc(100% - var(--cl-seret) / 2 + 3.5px) / 7px 7px repeat-x,
         var(--cl-blank);
+
+      &::before {
+        inset: var(--cl-seret) 0;
+      }
     }
 
     & .cl-cloth-track {
