@@ -5,7 +5,7 @@
 """Builds src/content/closer.json, the data behind Closer, the game in the play section.
 
 Embeds every note in scripts/notes.json the same way embed_notes.py does (same context header,
-same local model through Ollama, normalised), then embeds a dozen short questions a recruiter or
+same local model through Ollama, normalised), then embeds twelve short questions a recruiter or
 client might ask and saves the cosine score of every note for every question. The game shows two
 notes and the player guesses which one the model scores closer, so these are the real scores.
 
@@ -32,10 +32,10 @@ QUESTIONS = [
     ("ship", "Can he ship an app to production?"),
     ("ai", "What has he built with AI?"),
     ("laravel", "Does he work with Laravel?"),
-    ("based", "Where is he based?"),
     ("payments", "Can he handle payments?"),
     ("documents", "How does he search inside documents?"),
     ("local", "Does he run models locally?"),
+    ("providers", "Can he switch between AI providers?"),
     # "What does he build for fun?" and "What are his side projects?" both topped out on
     # about.md and stack/python, so the side projects get a concrete question instead.
     ("youtube", "Has he built anything for YouTube?"),
@@ -43,7 +43,11 @@ QUESTIONS = [
     ("remote", "Can he work with a remote team?"),
     ("tests", "How does he test his code?"),
     ("react", "Does he know React?"),
-    ("who", "Who is Rama Raihan?"),
+    # "Who is Rama Raihan?" and "Where is he based?" are gone: only one or two notes answer
+    # them, so after the first few pairs the model was choosing between notes that both miss,
+    # and a reader can't call that. Chatbot, RAG and agent questions were tried in their place
+    # and put the generic AI notes above the project that answers them (shop-support-bot came
+    # ninth for "Can he build a chatbot?"), so "providers" is the one that came in.
 ]
 
 # Qwen3-Embedding wants an instruction on the query side only.
