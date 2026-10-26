@@ -29,8 +29,11 @@ gsap.registerPlugin(useGSAP);
 export const BEST_KEY = "rr:closer:best";
 /** Seconds a right call stays up, long enough to read both scores. Any tap or key skips it. */
 const BEAT = 1.35;
-/** A wrong call gets a moment to land before the result takes over. Skippable too. */
-const LAST_BEAT = 1.1;
+/**
+ * A wrong call gets longer: the shake and the soga stamp land at about 0.9s, and the player
+ * needs a moment with both scores before the result takes over. Skippable too.
+ */
+const LAST_BEAT = 1.7;
 /**
  * Milliseconds a tap or key is ignored after a pick or a new pair, so the second click of a
  * double click can't skip the scores it just revealed, or pick blind in the pair after.
@@ -542,10 +545,10 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
         ) : (
           // Both versions are in the page; the stylesheet shows the one for the device in hand.
           <p className="cl-hint" aria-hidden="true">
-            {phase === "reveal" && right ? (
+            {phase === "reveal" ? (
               <>
-                {S.game.gap(fmt(pair.gap))} <span className="cl-hint-touch">{S.game.skipTouch}</span>
-                <span className="cl-hint-keys">{S.game.skip}</span>
+                {S.game.gap(fmt(pair.gap))} <span className="cl-hint-touch">{right ? S.game.skipTouch : S.game.endTouch}</span>
+                <span className="cl-hint-keys">{right ? S.game.skip : S.game.end}</span>
               </>
             ) : (
               <>
