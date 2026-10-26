@@ -129,34 +129,37 @@ function onScreen(el: Element | null) {
   return !!box && box.bottom > 0 && box.top < window.innerHeight;
 }
 
+/** How long scrollToY takes to get somewhere (lib/scroll.ts), and a little more. */
+const SCROLL_TIME = 1500;
+
 /**
- * The achievement card for finishing turns up a moment after the result: bottom left on a wide
- * screen, right over the big number and Play again, or under the header on a narrow one. When
- * it lands on the result, the result moves clear of it. `from` is where the page was already
- * headed, since it may still be scrolling there. The card's offset box is where it settles,
- * without the slide it comes in on. Returns a cleanup.
+ * Achievement cards turn up a moment after the result: bottom left on a wide screen, right over
+ * the big number and Play again, or under the header on a narrow one. Each one that lands on
+ * the result moves it clear, for as long as the result is up. `headed` is where the page was
+ * sent to show the result, since it may still be on its way. A card's offset box is where it
+ * settles, without the slide it comes in on. Returns a cleanup.
  */
-function dodgeToast(result: HTMLElement | null, from: number) {
+function dodgeToasts(result: HTMLElement | null, headed: number) {
+  const arriving = performance.now() + SCROLL_TIME;
+  let seen: Element | null = null;
   const check = () => {
     const toast = document.querySelector<HTMLElement>(".rr-toast");
-    if (!toast || !result) return false;
+    if (!toast || toast === seen || !result) return;
+    seen = toast;
+    // Where the page is, or is about to be, and where the result sits on screen there.
+    const from = performance.now() < arriving ? headed : window.scrollY;
     const box = result.getBoundingClientRect();
+    const shift = window.scrollY - from;
     const [top, left] = [toast.offsetTop, toast.offsetLeft];
-    if (!onScreen(result) || left + toast.offsetWidth <= box.left || left >= box.right) return true;
-    const low = top > window.innerHeight / 2;
-    const y = aim(result, from, 16, low ? { bottom: top } : { top: top + toast.offsetHeight });
+    const [bottom, right] = [top + toast.offsetHeight, left + toast.offsetWidth];
+    if (right <= box.left || left >= box.right || bottom <= box.top + shift || top >= box.bottom + shift) return;
+    const y = aim(result, from, 16, top > window.innerHeight / 2 ? { bottom: top } : { top: bottom });
     if (Math.abs(y - from) >= 2) scrollToY(y);
-    return true;
   };
-  if (check()) return () => {};
-  const watch = new MutationObserver(() => check() && watch.disconnect());
+  check();
+  const watch = new MutationObserver(check);
   watch.observe(document.body, { childList: true, subtree: true });
-  // If the card is coming at all, it's here well within this. It's only earned once.
-  const stop = window.setTimeout(() => watch.disconnect(), 3000);
-  return () => {
-    watch.disconnect();
-    window.clearTimeout(stop);
-  };
+  return () => watch.disconnect();
 }
 
 /**
@@ -452,7 +455,7 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
       // Only pull the result into view if they're still looking at the game.
       const result = el.querySelector<HTMLElement>(".cl-result");
       const headed = (onScreen(el) ? reveal(result) : null) ?? window.scrollY;
-      const undodge = dodgeToast(result, headed);
+      const undodge = dodgeToasts(result, headed);
       if (reduced()) return undodge;
       const tl = gsap.timeline();
       tl.fromTo(".cl-result", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }).fromTo(
