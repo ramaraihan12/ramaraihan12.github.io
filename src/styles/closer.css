@@ -730,6 +730,7 @@
   }
 
   .cl-static-label {
+    display: block;
     font-family: var(--font-mono);
     font-variation-settings: "wdth" 87.5;
     font-size: 0.72rem;
@@ -737,6 +738,7 @@
   }
 
   .cl-static-q {
+    display: block;
     margin-top: 0.35rem;
     font-family: var(--font-display);
     font-weight: 800;

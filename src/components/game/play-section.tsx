@@ -41,8 +41,11 @@ export type PlaySectionProps = {
   game?: CloserProps;
 };
 
-/** Seed of the round shown without scripts. Any seed works; this one is the game's own first deal. */
-const EXAMPLE_SEED = 1;
+/**
+ * Seed of the round shown without scripts: the first pair the game deals from it. Any seed
+ * works; this one deals a pair that reads at a glance (a docs question, the docs app wins).
+ */
+const EXAMPLE_SEED = 12;
 
 export function PlaySection({ id = "play", className, renderPoster, game }: PlaySectionProps) {
   const root = useRef<HTMLElement>(null);
