@@ -1,115 +1,100 @@
 /*
-  Every word the Nearest Neighbors game shows or announces, in one place so the final copy can
-  be dropped in without touching the components. The question and the notes themselves come
-  from retrieval.json. Functions take the numbers they need, since the number of notes and the
-  size of the top list come from the data too.
+  Every word Closer shows or announces, in one place so the copy can change without touching
+  the components. The questions come from closer.json and the notes from retrieval.json.
+  Scores arrive already formatted ("0.412"), so every line prints them the same way the cards do.
 
   Where the page copy (playCopy in src/content/copy.ts) has the same string, it's read from
-  there, so it's written once. Those functions keep their old arguments so the game doesn't
-  change; playCopy already counts from the data, so some of the arguments go unused.
+  there, so it's written once.
 */
 
 import { playCopy } from "@/content/copy";
 
-const numberWords = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
-
-/** "five" for 5, digits past twelve. */
-export const numberWord = (n: number) => numberWords[n] ?? String(n);
-
-const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-
 /** 1024 as "1,024". */
 const thousands = (n: number) => n.toLocaleString("en-US");
 
-/** A string from playCopy that still takes the old arguments, so the calls stay as they are. */
-function fixed<A extends unknown[]>(text: string): (...args: A) => string {
-  return () => text;
-}
-
-/** The old result lines, for a top list that isn't five long (playCopy has one line per score out of five). */
-function resultLine(hits: number, k: number, dims: number) {
-  if (hits === k) return `${capitalize(numberWord(k))} for ${numberWord(k)}. You'd make a decent embedding model, and you didn't even need a GPU.`;
-  if (hits === k - 1) return "One got away. That happens to real retrievers too.";
-  if (hits === 0) return "Bold picks. The model disagrees with every one, but it's only a model.";
-  if (hits / k >= 0.5) return `Not bad for someone working in 2 dimensions instead of ${thousands(dims)}.`;
-  if (hits / k >= 0.4) return `Meaning is slippery. The model had ${thousands(dims)} numbers, you had a hunch.`;
-  return "Honestly, a few of these surprised me too, and I wrote them.";
+/** ["laravel", "php"] as “laravel” and “php”. */
+function quoted(words: readonly string[]) {
+  const q = words.map((w) => `“${w}”`);
+  return q.length < 2 ? q.join("") : `${q.slice(0, -1).join(", ")} and ${q[q.length - 1]}`;
 }
 
 export const strings = {
   section: {
     eyebrow: playCopy.eyebrow,
     title: playCopy.title,
-    intro: fixed<[k: number]>(playCopy.intro),
+    intro: playCopy.intro,
   },
 
   poster: {
     kicker: "mini game",
     name: playCopy.title,
-    stats: (n: number, k: number) => [`${n} notes`, `pick ${k}`, "scored by cosine"],
+    stats: (notes: number, questions: number) => [`${questions} questions`, `${notes} notes`, "two at a time", "one miss ends it"],
     play: "Play",
     loading: "Shuffling…",
-    failed: (k: number) => `The game didn't load, sorry. Here are the ${numberWord(k)} it was hiding.`,
+    failed: "The game didn't load, sorry. Here's a round I played earlier.",
   },
 
-  /** Shown when scripts don't run. The real top results are listed after it. */
+  /** Shown when scripts don't run: one round, already played. */
   static: {
-    lead: fixed<[k: number]>(playCopy.noScript),
-    listLabel: fixed<[k: number]>(playCopy.realTop),
+    lead: playCopy.noScript,
+    label: "an example round",
+    questionLabel: "query",
+    notesLabel: "The two notes",
     scoreLabel: "similarity",
+    closer: "closer",
   },
 
   game: {
     questionLabel: "query",
-    instruction: (k: number) => `Pick the ${numberWord(k)} notes you think are closest in meaning to the question.`,
-    cardsLabel: playCopy.notesLabel,
-    counter: ((n: number) => playCopy.picked(n)) as (n: number, k: number) => string,
-    best: (best: number, k: number) => `best ${best}/${k}`,
-    check: fixed<[k: number]>(playCopy.check),
-    checking: "Checking…",
-    needMore: (left: number) => `Pick ${left} more`,
-    full: (k: number) => `That's ${numberWord(k)}. Unpick one to swap it.`,
-    checkEarly: (left: number) => `Pick ${numberWord(left)} more first.`,
-    start: (n: number, k: number) => `${capitalize(numberWord(n))} notes. Pick the ${numberWord(k)} closest in meaning to the question.`,
-    picked: "picked",
+    /** Which pair this is on the current question. */
+    pairOf: (n: number, of: number) => `pair ${n} of ${of}`,
+    newQuestion: "new question",
+    how: "Which note does the model score closer to it?",
+    notesLabel: "The two notes",
+    scoreLabel: "cosine",
+    /** Stands in for a score until the pick, same width so nothing moves. */
+    hidden: "?.???",
+    stampCloser: "closer",
+    stampPick: "your pick",
+    streak: "streak",
+    best: (n: number) => `best ${n}`,
+    /** The hint under the cloth, for a touch screen and for a mouse and keyboard. */
+    touch: "Tap the note you think is closer.",
+    keys: "Click a note, or press 1 or 2. The arrow keys work too.",
+    gap: (gap: string) => `${gap} apart.`,
+    skipTouch: "Tap for the next pair.",
+    skip: "Click or press any key for the next pair.",
+    clothEmpty: "Each right call adds a motif to this cloth.",
   },
 
-  map: {
-    query: "question",
-    looksClose: "looks close",
-    legendQuery: "the question",
-    legendPick: "your pick",
-    legendTop: (k: number) => `real top ${k}`,
-    caption: (dims: number) => `2D squash of ${thousands(dims)} dims`,
+  announce: {
+    start: (question: string) => `Question: ${question} Pick the note the model scores closer.`,
+    newQuestion: (question: string) => `New question: ${question}`,
+    right: (win: string, lose: string, streak: number) => `Right, ${win} to ${lose}. Streak ${streak}.`,
+    wrong: (win: string, lose: string) => `Not that one. The other note scored ${win}, yours ${lose}.`,
+    goal: (goal: number) => `That's ${goal} in a row, the goal. Keep going if you like.`,
   },
 
-  verdict: {
-    rank: (rank: number) => `#${rank}`,
-    scoreLabel: "similarity",
-    found: "you found it",
-    skipped: "the model picked this one",
-    miss: (k: number) => `not in the top ${k}`,
-    trap: {
-      near: "close on the map",
-      group: (group: string) => `${group}, like a real match`,
-      words: (shared: string[]) => `shares “${shared.join("”, “")}” with the question`,
-      plain: "just a decoy",
-    },
-  },
-
-  result: {
-    score: (hits: number, k: number) => `${hits} of ${k} right`,
-    metricLabel: (k: number) => `precision@${k}`,
+  over: {
+    /** The result heading, for screen readers. The big number stands in for it on screen. */
+    head: (streak: number) => `Game over. Streak of ${streak}.`,
+    streakLabel: (streak: number) => (streak === 1 ? "right call" : "in a row"),
+    best: (n: number) => `best ${n}`,
     newBest: "new best",
-    /** One line per score: playCopy's, as long as its list fits this many picks. */
-    line: (hits: number, k: number, dims: number) =>
-      (k === playCopy.results.length - 1 ? playCopy.results[hits] : undefined) ?? resultLine(hits, k, dims),
-    /** The honest bit: the map is a squash, so close on it isn't close in meaning. */
-    squash: (decoy: string, hit: string, dims: number) =>
-      `On the map, ${decoy} sits closer to the question than ${hit}, but ${hit} is the real match. The map squashes ${thousands(dims)} numbers into 2, so close there is only a hint.`,
-    squashPlain: fixed<[dims: number]>(playCopy.mapNote),
-    announce: (hits: number, k: number, precision: string) =>
-      `You got ${hits} of ${k}. Precision at ${k} is ${precision}.`,
+    line: (streak: number, goal: number, dims: number) => {
+      if (streak === 0) return "Out on the first pair. The model has had more practice.";
+      if (streak < 3) return "A short run. Sudden death is like that.";
+      if (streak < 6) return `Not bad. The model needed ${thousands(dims)} numbers per note to do that.`;
+      if (streak < goal) return "That's a proper run. You read my notes the way the model does.";
+      return `${streak} in a row. Either you think in vectors or you read my notes very closely.`;
+    },
+    /** Why the last pair went the way it did. */
+    why: {
+      trap: (words: readonly string[], win: string, lose: string) =>
+        `Your pick shares ${quoted(words)} with the question and still lost, ${lose} to ${win}. The model compares meaning, not shared words.`,
+      close: (win: string, lose: string) => `${win} vs ${lose}. The model barely split them, so that one was close to a coin toss.`,
+      plain: (win: string, lose: string) => `The other note scored ${win} to your ${lose}. To the model, it was closer in meaning.`,
+    },
     again: playCopy.again,
     answer: "See the real answer",
   },
