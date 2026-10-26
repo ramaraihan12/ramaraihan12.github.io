@@ -2,10 +2,13 @@
 
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { type ComponentType, type ReactNode, useEffect, useRef, useState } from "react";
+import { CapStamp } from "@/components/art";
+import closer from "@/content/closer.json";
 import retrieval from "@/content/retrieval.json";
 import { elementMarker, setMarker } from "@/lib/stage";
-import type { NearestNeighborsProps } from "./nearest-neighbors";
+import type { CloserProps } from "./closer";
 import { Poster } from "./poster";
+import { createRun } from "./rounds";
 import { strings as S } from "./strings";
 
 /*
@@ -14,12 +17,12 @@ import { strings as S } from "./strings";
   (so pressing Play feels instant) and mounted only when someone presses Play.
 */
 
-type Game = ComponentType<NearestNeighborsProps>;
+type Game = ComponentType<CloserProps>;
 
 let loading: Promise<Game> | null = null;
 function loadGame() {
-  loading ??= import("./nearest-neighbors").then(
-    (m) => m.NearestNeighbors,
+  loading ??= import("./closer").then(
+    (m) => m.Closer,
     (error) => {
       loading = null;
       throw error;
@@ -35,17 +38,16 @@ export type PlaySectionProps = {
   /** Replaces the default illustrated poster. Receives the Play button to place. */
   renderPoster?: (action: ReactNode) => ReactNode;
   /** Passed through to the game once it's loaded. */
-  game?: NearestNeighborsProps;
+  game?: CloserProps;
 };
 
-const DECOYS = 7;
+/** Seed of the round shown without scripts. Any seed works; this one is the game's own first deal. */
+const EXAMPLE_SEED = 1;
 
 export function PlaySection({ id = "play", className, renderPoster, game }: PlaySectionProps) {
   const root = useRef<HTMLElement>(null);
   const [Game, setGame] = useState<Game | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "failed">("idle");
-  const k = retrieval.top.length;
-  const n = k + Math.min(game?.decoys ?? DECOYS, retrieval.points.length - k);
   const titleId = `${id}-title`;
 
   useEffect(() => {
@@ -125,40 +127,60 @@ export function PlaySection({ id = "play", className, renderPoster, game }: Play
           {S.section.title}
         </h2>
         <p id={`${id}-how`} className="lead nn-intro">
-          {S.section.intro(k)}
+          {S.section.intro}
         </p>
 
         {Game ? (
           <Game {...game} />
         ) : (
           <>
-            {renderPoster ? renderPoster(button) : <Poster data={retrieval} n={n} k={k} action={button} />}
+            {renderPoster ? (
+              renderPoster(button)
+            ) : (
+              <Poster notes={retrieval.points.length} questions={closer.questions.length} action={button} />
+            )}
 
-            {/* Without scripts there's no game, so the answer it hides is shown instead. */}
-            <div className="nn-static" data-failed={status === "failed" || undefined}>
-              <p className="nn-static-lead">{status === "failed" ? S.poster.failed(k) : S.static.lead(k)}</p>
-              <ol className="nn-static-list" aria-label={S.static.listLabel(k)}>
-                {retrieval.top.map((t, rank) => {
-                  const note = retrieval.points[t.index];
-                  return (
-                    <li key={t.index}>
-                      <p className="nn-static-head">
-                        <span className="nn-static-rank">{rank + 1}</span>
-                        <span>{note.source}</span>
-                        <span className="nn-static-score">
-                          <span className="sr-only">{S.static.scoreLabel} </span>
-                          {t.score.toFixed(3)}
-                        </span>
-                      </p>
-                      <p className="nn-static-text">{note.text}</p>
-                    </li>
-                  );
-                })}
-              </ol>
+            {/* Without scripts there's no game, so one round is shown already played. */}
+            <div className="cl-static" data-failed={status === "failed" || undefined}>
+              <p className="cl-static-lead">{status === "failed" ? S.poster.failed : S.static.lead}</p>
+              <Example />
             </div>
           </>
         )}
       </div>
     </section>
+  );
+}
+
+/** One pair from the game's first deal, with both real scores and the closer note stamped. */
+function Example() {
+  const pair = createRun(closer, retrieval.points, EXAMPLE_SEED).next();
+  return (
+    <figure className="cl-static-round">
+      <figcaption>
+        <span className="cl-static-label">{S.static.label}</span>
+        <span className="sr-only">: </span>
+        <span className="cl-static-q">{pair.question.text}</span>
+      </figcaption>
+      <ol className="cl-static-notes" aria-label={S.static.notesLabel}>
+        {pair.notes.map((index, side) => {
+          const note = retrieval.points[index];
+          const win = side === pair.answer;
+          return (
+            <li key={index} data-win={win || undefined}>
+              <p className="cl-static-head">
+                <span>{note.source}</span>
+                <span className="cl-static-score">
+                  <span className="sr-only">{S.static.scoreLabel} </span>
+                  {pair.scores[side].toFixed(3)}
+                </span>
+              </p>
+              <p className="cl-static-text">{note.text}</p>
+              {win ? <CapStamp className="cl-stamp">{S.static.closer}</CapStamp> : null}
+            </li>
+          );
+        })}
+      </ol>
+    </figure>
   );
 }
