@@ -100,36 +100,18 @@ export const alsoCopy = {
   note: "Most of my client work lives in private repos, so it isn't listed here.",
 } as const;
 
-/** New: the Nearest Neighbors game. */
+/**
+ * New: Closer, the game in the play section. Only the section's own words are here. Everything
+ * the game says once it's running is in src/components/game/strings.ts.
+ */
 export const playCopy = {
   eyebrow: "play",
-  title: "Nearest Neighbors",
-  intro: `Here's the question and a handful of my notes. Pick the ${countWord(topK)} you think a retriever would bring back.`,
-  notesLabel: "Notes to pick from",
-  pickLabel: (source: string) => `Pick the note from ${source}`,
-  picked: (n: number) => `${n} of ${topK} picked`,
-  check: "Check my picks",
+  title: "Closer",
+  intro:
+    "One question, two of my notes. Pick the one the model reads as closer. The scores are real, from the model above, and one wrong call ends the run.",
+  /** When scripts don't run. One round, already played, comes after it. */
+  noScript: "This game needs JavaScript, so here's one round, already played.",
   again: "Play again",
-  clear: "Clear",
-  yourPicks: "Your picks",
-  realTop: `The real top ${countWord(topK)}`,
-  /** Shown above the result line. */
-  score: (hits: number) => `precision@${topK}: ${hits}/${topK}`,
-  /** Index is the number of correct picks. */
-  results: [
-    "You and the model read this question very differently. Both readings are allowed.",
-    "One shared neighbor. The model is a stubborn reader.",
-    "Not bad for someone working in two dimensions.",
-    "More right than wrong. You think a bit like an embedding model.",
-    "One away. The model is getting nervous.",
-    `Perfect. Are you secretly ${dims} numbers?`,
-  ],
-  /** Be honest about the map. */
-  mapNote: `The map squashes ${dims} numbers into 2 with PCA, so dots that look close may not be. The real ranking uses cosine similarity on all ${dims}.`,
-  /** When scripts don't run. */
-  noScript: `This game needs JavaScript. The real top ${countWord(topK)} are in the retrieve step above.`,
-  /** With reduced motion the game still works, just without animation. */
-  reducedMotion: "Motion is off, so the results show up all at once.",
 } as const;
 
 /** From src/components/answer-scene.tsx. The answer itself lives in story.ts. */
@@ -192,10 +174,10 @@ export type Achievement = { title: string; body: string };
 /** New: toasts for small things found along the way. */
 export const achievements = {
   allStages: { title: "Whole pipeline", body: "You visited every stage of the pipeline." },
-  gameDone: { title: "Retriever for a minute", body: "You finished Nearest Neighbors. Thanks for standing in for the model." },
+  gameDone: { title: "Close call", body: "You played a run of Closer. The model says it was right the whole time." },
   gamePerfect: {
-    title: `${countWord(topK, true)} for ${countWord(topK)}`,
-    body: `Every pick matched the real top ${countWord(topK)}. Nice.`,
+    title: "Ten in a row",
+    body: `You read ten pairs the way the model does. Are you secretly ${dims} numbers?`,
   },
   konami: { title: "Batik mode", body: "You found it. Up, up, down, down still works." },
   consoleSource: { title: "Source reader", body: "You found the note in the console. Hi, fellow developer." },
