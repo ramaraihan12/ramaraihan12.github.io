@@ -305,6 +305,278 @@
     text-wrap: pretty;
   }
 
+  /* ---------- Cloth: one batik panel per right call (cloth.tsx) ---------- */
+
+  /*
+    In play, one row under the cards: dyed panels on a strip of blank cloth whose long edges are
+    dotted, the cecek a seret border starts as. Panels fill from the left. Once the row is full
+    the newest stay in view and the oldest slide off under a fade on the left. The spacer does
+    that: while there's free space it takes it, so the row starts at the left; once there's
+    none, flex-end pushes the overflow out on the left instead of the right. Never wider than
+    its box, so it can't scroll the page.
+  */
+  .cl-cloth {
+    --cl-h: 3.375rem;
+    --cl-seret: 0.5rem;
+    --cl-w: 2.5rem;
+    --cl-tile: calc(var(--cl-h) - var(--cl-seret) * 2);
+    --cl-fade: 1.5rem;
+    --cl-blank: color-mix(in oklab, var(--mori) 5%, var(--malam));
+    --cl-cecek: color-mix(in oklab, var(--mori) 30%, transparent);
+    --cl-seam: color-mix(in oklab, var(--malam) 80%, transparent);
+    --cl-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+    position: relative;
+    display: block;
+    height: var(--cl-h);
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 0.35rem;
+    background:
+      radial-gradient(circle, var(--cl-cecek) 0.8px, transparent 1.25px) 0 calc(var(--cl-seret) / 2 - 3.5px) / 7px 7px repeat-x,
+      radial-gradient(circle, var(--cl-cecek) 0.8px, transparent 1.25px) 0 calc(100% - var(--cl-seret) / 2 + 3.5px) / 7px 7px repeat-x,
+      var(--cl-blank);
+  }
+
+  .cl-cloth-field {
+    position: absolute;
+    inset: var(--cl-seret) 0;
+    display: block;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--cl-fade));
+    mask-image: linear-gradient(to right, transparent, #000 var(--cl-fade));
+  }
+
+  .cl-cloth-track {
+    display: flex;
+    justify-content: flex-end;
+    height: 100%;
+    padding-inline: var(--cl-fade) 0.375rem;
+    overflow: hidden;
+
+    &::after {
+      content: "";
+      flex: 1 0 0;
+    }
+  }
+
+  /*
+    A panel is a box of ground with two masked layers on it: the dye in the motif's bodies
+    (::before) and the wax line over them (::after). Each kind brings its two masks, each dye
+    its three colours. The mask lines up with the panels before it in the same run of a kind.
+  */
+  .cl-cloth-panel {
+    --cl-ground: var(--nila);
+    --cl-tint: color-mix(in oklab, var(--soga) 72%, var(--nila));
+    --cl-ink: color-mix(in oklab, var(--mori) 80%, var(--nila));
+    --cl-x: calc(var(--run, 0) * var(--cl-w) * -1);
+    position: relative;
+    flex: none;
+    width: var(--cl-w);
+    height: 100%;
+    border-left: 1px solid var(--cl-seam);
+    background: var(--cl-ground);
+    animation: cl-cloth-unroll 0.45s var(--cl-ease) both;
+
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      -webkit-mask-image: var(--cl-mask);
+      mask-image: var(--cl-mask);
+      -webkit-mask-position: var(--cl-x) 50%;
+      mask-position: var(--cl-x) 50%;
+      -webkit-mask-size: var(--cl-tile) var(--cl-tile);
+      mask-size: var(--cl-tile) var(--cl-tile);
+      -webkit-mask-repeat: repeat;
+      mask-repeat: repeat;
+    }
+
+    /* The dye soaks up from the bottom, after the wax is down. */
+    &::before {
+      --cl-mask: var(--cl-body);
+      background: var(--cl-tint);
+      animation: cl-cloth-dye 0.7s 0.35s var(--cl-ease) both;
+    }
+
+    /* The wax line spreads out from the middle, the way a canting's line pools. */
+    &::after {
+      --cl-mask: var(--cl-line);
+      background: var(--cl-ink);
+      animation: cl-cloth-wax 0.55s 0.12s ease-out both;
+    }
+  }
+
+  .cl-cloth-panel[data-kind="kawung"] {
+    --cl-line: var(--cl-kawung-line);
+    --cl-body: var(--cl-kawung-body);
+  }
+
+  .cl-cloth-panel[data-kind="parang"] {
+    --cl-line: var(--cl-parang-line);
+    --cl-body: var(--cl-parang-body);
+  }
+
+  .cl-cloth-panel[data-kind="truntum"] {
+    --cl-line: var(--cl-truntum-line);
+    --cl-body: var(--cl-truntum-body);
+  }
+
+  /* An easy call stays calm (the defaults above); a closer one warms the line to kunyit; the
+     closest are dyed turmeric through, with soga bodies and the wax gone dark. */
+  .cl-cloth-panel[data-dye="warm"] {
+    --cl-tint: var(--soga);
+    --cl-ink: var(--kunyit);
+  }
+
+  .cl-cloth-panel[data-dye="hot"] {
+    --cl-ground: var(--kunyit);
+    --cl-tint: var(--soga);
+    --cl-ink: var(--malam);
+  }
+
+  /* Where the question changed, a wax line across the cloth. */
+  .cl-cloth-panel[data-turn] {
+    border-left: 2px solid var(--kunyit);
+  }
+
+  /*
+    Game over: the whole cloth as a keepsake. Larger panels wrapped into rows, a parang hem at
+    both ends like the footer's, and a fringe past the hems. Whatever the last row doesn't fill
+    is blank cloth, the part still waiting for wax. With no panels it's all blank, one row tall,
+    hemmed: a cloth that was about to be started.
+  */
+  .cl-cloth[data-final] {
+    --cl-h: clamp(4.75rem, 4vw + 3.5rem, 6rem);
+    --cl-tile: var(--cl-h);
+    --cl-cell: clamp(3.75rem, 3vw + 2.75rem, 5rem);
+    --cl-seret: 0.75rem;
+    --cl-hem: 1.875rem;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    filter: drop-shadow(0 18px 22px rgb(0 0 0 / 0.45));
+
+    /* The fringe: loose threads past each hem. */
+    &::before,
+    &::after {
+      content: "";
+      display: block;
+      height: 0.5rem;
+      margin-inline: 0.25rem;
+      background: repeating-linear-gradient(to right, transparent 0 2px, color-mix(in oklab, var(--mori) 45%, transparent) 2px 3.25px);
+    }
+
+    &::after {
+      -webkit-mask-image: linear-gradient(to bottom, #000, transparent);
+      mask-image: linear-gradient(to bottom, #000, transparent);
+    }
+
+    &::before {
+      -webkit-mask-image: linear-gradient(to top, #000, transparent);
+      mask-image: linear-gradient(to top, #000, transparent);
+    }
+
+    & .cl-cloth-field {
+      position: relative;
+      inset: auto;
+      padding-block: var(--cl-seret);
+      -webkit-mask-image: none;
+      mask-image: none;
+      background:
+        radial-gradient(circle, var(--cl-cecek) 0.9px, transparent 1.35px) 0 calc(var(--cl-seret) / 2 - 3.5px) / 7px 7px repeat-x,
+        radial-gradient(circle, var(--cl-cecek) 0.9px, transparent 1.35px) 0 calc(100% - var(--cl-seret) / 2 + 3.5px) / 7px 7px repeat-x,
+        var(--cl-blank);
+    }
+
+    & .cl-cloth-track {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(var(--cl-cell), 1fr));
+      grid-auto-rows: var(--cl-h);
+      min-height: var(--cl-h);
+      height: auto;
+      padding: 0;
+      overflow: visible;
+
+      &::after {
+        content: none;
+      }
+    }
+
+    & .cl-cloth-panel {
+      width: auto;
+      height: auto;
+      border-top: 1px solid var(--cl-seam);
+      container-type: inline-size;
+      animation: cl-cloth-lay 0.5s calc(var(--i) * 70ms) var(--cl-ease) both;
+
+      &::before,
+      &::after {
+        --cl-x: calc(var(--run, 0) * -100cqw);
+      }
+
+      &::before {
+        animation: cl-cloth-dye 0.7s calc(var(--i) * 70ms + 0.25s) var(--cl-ease) both;
+      }
+
+      &::after {
+        animation: cl-cloth-wax 0.55s calc(var(--i) * 70ms + 0.1s) ease-out both;
+      }
+    }
+  }
+
+  /* The footer's hem: one row of parang in soga and kunyit on malam, under a wax line. */
+  .cl-cloth-hem {
+    --cl-wax: linear-gradient(
+      var(--cl-out, to bottom),
+      color-mix(in oklab, var(--kunyit) 45%, var(--malam)) 0 1px,
+      var(--malam) 1px 4px,
+      var(--kunyit) 4px 5.5px,
+      var(--malam) 5.5px
+    );
+    position: relative;
+    display: block;
+    height: calc(var(--cl-hem) + 5.5px);
+    background: var(--cl-wax);
+
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0 0 5.5px;
+      -webkit-mask-image: var(--cl-mask);
+      mask-image: var(--cl-mask);
+      -webkit-mask-position: center;
+      mask-position: center;
+      -webkit-mask-size: var(--cl-hem) var(--cl-hem);
+      mask-size: var(--cl-hem) var(--cl-hem);
+    }
+
+    &::before {
+      --cl-mask: var(--cl-parang-body);
+      background: var(--soga);
+    }
+
+    &::after {
+      --cl-mask: var(--cl-parang-line);
+      background: var(--kunyit);
+    }
+
+    &:first-child {
+      --cl-out: to top;
+    }
+
+    &:last-child {
+      &::before,
+      &::after {
+        inset: 5.5px 0 0;
+      }
+    }
+  }
+
   /* ---------- Game layout ---------- */
 
   .nn-game {
@@ -1197,8 +1469,51 @@
   }
 }
 
+/* A new panel of cloth: it unrolls into the row, the wax spreads, then the dye soaks in. */
+@keyframes cl-cloth-unroll {
+  from {
+    width: 0;
+  }
+}
+
+@keyframes cl-cloth-wax {
+  from {
+    clip-path: circle(0% at 50% 50%);
+  }
+
+  to {
+    clip-path: circle(75% at 50% 50%);
+  }
+}
+
+@keyframes cl-cloth-dye {
+  from {
+    opacity: 0;
+    clip-path: inset(100% 0 0);
+  }
+
+  to {
+    opacity: 1;
+    clip-path: inset(0);
+  }
+}
+
+/* The keepsake is laid out a panel at a time. */
+@keyframes cl-cloth-lay {
+  from {
+    opacity: 0;
+    translate: 0 0.5rem;
+  }
+}
+
 /* No lifts, pops or pings. The states still change, just instantly. */
 @media (prefers-reduced-motion: reduce) {
+  .cl-cloth *,
+  .cl-cloth *::before,
+  .cl-cloth *::after {
+    animation: none !important;
+  }
+
   .nn *,
   .nn *::before,
   .nn *::after {
