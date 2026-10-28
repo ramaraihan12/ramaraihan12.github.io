@@ -68,7 +68,9 @@ export const viewport: Viewport = {
   - The page finished loading 4 seconds ago and the scripts still haven't shown a sign of life.
     The load event waits for every script the page starts with, and src/lib/scroll.ts sets
     data-scripts as soon as the browser runs it, long before the engine starts.
-  - 20 seconds have passed and the engine still isn't up, whatever the reason.
+  - 20 seconds have passed and the engine still isn't up, unless the scripts are running and the
+    page has finished loading. Then all that's left is the phone working through the scenes, and
+    however long that takes, dropping to the plain layout mid-intro would be worse.
   Giving up sets data-engine="late", which keeps the page plain for the rest of this view: when
   the scripts do turn up, the scenes build their plain versions too, rather than rearranging a
   page someone's already reading. See scrollyOn() in src/lib/scroll.ts.
@@ -92,7 +94,9 @@ const scrollyScript = `(() => {
   addEventListener("load", () => setTimeout(() => {
     if (!root.dataset.scripts) plain();
   }, 4000));
-  setTimeout(plain, 20000);
+  setTimeout(() => {
+    if (!root.dataset.scripts || document.readyState !== "complete") plain();
+  }, 20000);
 })();`;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
