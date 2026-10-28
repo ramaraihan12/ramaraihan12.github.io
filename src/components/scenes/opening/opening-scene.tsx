@@ -100,6 +100,7 @@ export function OpeningScene({ land }: { land: ReactNode }) {
       const section = root.current!;
       const q = <E extends Element = HTMLElement>(sel: string) => section.querySelector<E>(sel)!;
       const stage = q(".qs-stage");
+      const pinBox = q(".qs-pin");
       const mapBox = q(".qs-map");
       const canvas = q<HTMLCanvasElement>(".qs-canvas");
       const tip = q(".qs-tip");
@@ -310,6 +311,10 @@ export function OpeningScene({ land }: { land: ReactNode }) {
             trigger: stage,
             refreshPriority: PRIORITY.query,
             pin: true,
+            // The stage is pinned inside the box it already sits in. Left alone, ScrollTrigger
+            // moves it into a new box, and out and back on every refresh, and each move starts
+            // the question's entrance over.
+            pinSpacer: pinBox,
             start: "top top",
             end: () => `+=${window.innerHeight * SCROLL}`,
             scrub: 0.6,
@@ -443,106 +448,109 @@ export function OpeningScene({ land }: { land: ReactNode }) {
 
   return (
     <section id="top" ref={root} className="qs" aria-labelledby="hero-title">
-      <div className="qs-stage">
-        {land}
+      {/* The pin's spacer, here from the start so pinning never moves the stage. A plain box otherwise. */}
+      <div className="qs-pin">
+        <div className="qs-stage">
+          {land}
 
-        {/* The map repeats the notes for mouse users. The cards below carry the same content. */}
-        <div className="qs-map" aria-hidden="true">
-          <canvas className="qs-canvas" />
-          <div className="qs-tip" hidden>
-            <p className="qs-tip-src" />
-            <p className="qs-tip-text" />
+          {/* The map repeats the notes for mouse users. The cards below carry the same content. */}
+          <div className="qs-map" aria-hidden="true">
+            <canvas className="qs-canvas" />
+            <div className="qs-tip" hidden>
+              <p className="qs-tip-src" />
+              <p className="qs-tip-text" />
+            </div>
           </div>
-        </div>
 
-        <div className="qs-hero container-page">
-          <p className="qs-eyebrow eyebrow">{queryCopy.eyebrow}</p>
-          <h1 id="hero-title" className="qs-title">
-            <span className="sr-only">{retrieval.question}</span>
-            <span aria-hidden="true">
-              {LINES.map((line, li) => (
-                <span key={li} className="qs-line">
-                  {line.map((index, k) => (
-                    <Fragment key={index}>
-                      {/* Phones put the surname on its own line, so the name can stay big. */}
-                      {index === SURNAME ? <span className="qs-wrap" /> : null}
-                      <Token index={index} lineStart={k === 0} />
+          <div className="qs-hero container-page">
+            <p className="qs-eyebrow eyebrow">{queryCopy.eyebrow}</p>
+            <h1 id="hero-title" className="qs-title">
+              <span className="sr-only">{retrieval.question}</span>
+              <span aria-hidden="true">
+                {LINES.map((line, li) => (
+                  <span key={li} className="qs-line">
+                    {line.map((index, k) => (
+                      <Fragment key={index}>
+                        {/* Phones put the surname on its own line, so the name can stay big. */}
+                        {index === SURNAME ? <span className="qs-wrap" /> : null}
+                        <Token index={index} lineStart={k === 0} />
+                      </Fragment>
+                    ))}
+                    {li === LINES.length - 1 ? <span className="qs-caret" /> : null}
+                  </span>
+                ))}
+              </span>
+            </h1>
+            <p className="qs-intro">{intro}</p>
+            <p className="qs-hint" aria-hidden="true">
+              {queryCopy.scrollHint} <span className="qs-hint-arrow">↓</span>
+            </p>
+          </div>
+
+          <ol className="qs-steps container-page">
+            <li className="qs-step" id="tokens">
+              <p className="eyebrow">{queryCopy.stepEyebrows.tokens}</p>
+              <p className="qs-step-text">{steps.tokens}</p>
+              <ol className="tok-row" aria-label={queryCopy.tokensLabel}>
+                {tokens.map((t) => (
+                  <li key={t.id}>
+                    <span>{t.text.replace(" ", "·")}</span>
+                    <span className="tok-row-id">{t.id}</span>
+                  </li>
+                ))}
+              </ol>
+            </li>
+            <li className="qs-step qs-step-embed" id="embed">
+              <div className="qs-step-body">
+                <p className="eyebrow">{queryCopy.stepEyebrows.embed}</p>
+                <p className="qs-step-text">{steps.embed}</p>
+                <p className="vec">
+                  [
+                  {retrieval.queryHead.map((v, i) => (
+                    <Fragment key={i}>
+                      <span className="vec-n">{formatNumber(v)},</span>{" "}
                     </Fragment>
                   ))}
-                  {li === LINES.length - 1 ? <span className="qs-caret" /> : null}
-                </span>
-              ))}
-            </span>
-          </h1>
-          <p className="qs-intro">{intro}</p>
-          <p className="qs-hint" aria-hidden="true">
-            {queryCopy.scrollHint} <span className="qs-hint-arrow">↓</span>
-          </p>
-        </div>
-
-        <ol className="qs-steps container-page">
-          <li className="qs-step" id="tokens">
-            <p className="eyebrow">{queryCopy.stepEyebrows.tokens}</p>
-            <p className="qs-step-text">{steps.tokens}</p>
-            <ol className="tok-row" aria-label={queryCopy.tokensLabel}>
-              {tokens.map((t) => (
-                <li key={t.id}>
-                  <span>{t.text.replace(" ", "·")}</span>
-                  <span className="tok-row-id">{t.id}</span>
-                </li>
-              ))}
-            </ol>
-          </li>
-          <li className="qs-step qs-step-embed" id="embed">
-            <div className="qs-step-body">
-              <p className="eyebrow">{queryCopy.stepEyebrows.embed}</p>
-              <p className="qs-step-text">{steps.embed}</p>
-              <p className="vec">
-                [
-                {retrieval.queryHead.map((v, i) => (
-                  <Fragment key={i}>
-                    <span className="vec-n">{formatNumber(v)},</span>{" "}
-                  </Fragment>
-                ))}
-                <span className="vec-n vec-more">{queryCopy.moreNumbers(retrieval.dims - retrieval.queryHead.length)}</span>]
-              </p>
-            </div>
-            {/* All 1,024 numbers as one kawung cloth: a petal per number, kunyit above zero, soga below. */}
-            <div className="qs-cloth" aria-hidden="true">
-              <KawungField ref={cloth} values={QUERY_VECTOR} progress={still} origin={origin} />
-            </div>
-          </li>
-          <li className="qs-step">
-            <p className="eyebrow">{queryCopy.stepEyebrows.retrieve}</p>
-            <p className="qs-step-text">{steps.retrieve}</p>
-          </li>
-        </ol>
-
-        <span className="qs-halo" aria-hidden="true" />
-        <span className="qs-sun" aria-hidden="true" />
-        <span className="qs-splash" aria-hidden="true" />
-
-        <div className="qs-results" id="retrieve">
-          <p className="qs-results-head eyebrow">{queryCopy.resultsHead(retrieval.top.length, retrieval.points.length)}</p>
-          <ol className="qs-cards">
-            {retrieval.top.map((t, rank) => {
-              const note = retrieval.points[t.index];
-              return (
-                <li key={t.index} className="qs-card" style={{ "--s": t.score } as CSSProperties}>
-                  <p className="qs-card-head">
-                    <span className="qs-card-rank">{rank + 1}</span>
-                    <span className="qs-card-src">{note.source}</span>
-                    <span className="qs-card-score">
-                      <span className="sr-only">{queryCopy.scoreLabel} </span>
-                      {t.score.toFixed(3)}
-                    </span>
-                  </p>
-                  <p className="qs-card-text">{note.text}</p>
-                  <span className="qs-card-bar" aria-hidden="true" />
-                </li>
-              );
-            })}
+                  <span className="vec-n vec-more">{queryCopy.moreNumbers(retrieval.dims - retrieval.queryHead.length)}</span>]
+                </p>
+              </div>
+              {/* All 1,024 numbers as one kawung cloth: a petal per number, kunyit above zero, soga below. */}
+              <div className="qs-cloth" aria-hidden="true">
+                <KawungField ref={cloth} values={QUERY_VECTOR} progress={still} origin={origin} />
+              </div>
+            </li>
+            <li className="qs-step">
+              <p className="eyebrow">{queryCopy.stepEyebrows.retrieve}</p>
+              <p className="qs-step-text">{steps.retrieve}</p>
+            </li>
           </ol>
+
+          <span className="qs-halo" aria-hidden="true" />
+          <span className="qs-sun" aria-hidden="true" />
+          <span className="qs-splash" aria-hidden="true" />
+
+          <div className="qs-results" id="retrieve">
+            <p className="qs-results-head eyebrow">{queryCopy.resultsHead(retrieval.top.length, retrieval.points.length)}</p>
+            <ol className="qs-cards">
+              {retrieval.top.map((t, rank) => {
+                const note = retrieval.points[t.index];
+                return (
+                  <li key={t.index} className="qs-card" style={{ "--s": t.score } as CSSProperties}>
+                    <p className="qs-card-head">
+                      <span className="qs-card-rank">{rank + 1}</span>
+                      <span className="qs-card-src">{note.source}</span>
+                      <span className="qs-card-score">
+                        <span className="sr-only">{queryCopy.scoreLabel} </span>
+                        {t.score.toFixed(3)}
+                      </span>
+                    </p>
+                    <p className="qs-card-text">{note.text}</p>
+                    <span className="qs-card-bar" aria-hidden="true" />
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
         </div>
       </div>
     </section>
