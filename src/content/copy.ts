@@ -121,8 +121,8 @@ export const answerCopy = {
   title: "The answer",
   citeLabel: (n: number) => `source ${n}`,
   sourcesLabel: "Sources",
-  photoSmallAlt: "Rama Raihan in a black tuxedo and bow tie",
-  photoLargeAlt: "Rama Raihan in a black tuxedo and bow tie, standing in a garden",
+  /** One alt for both crops, the square on phones and the portrait, so it says only what both show. */
+  photoAlt: "Rama Raihan in a black tuxedo and bow tie",
   note: `The tokens, numbers and scores up top are real, from a model on my laptop. This answer isn't generated. I wrote it from those ${countWord(topK)} notes.`,
   allNotes: `All ${retrieval.points.length} notes`,
 } as const;

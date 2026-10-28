@@ -75,12 +75,14 @@
     filter: none;
   }
 
+  /* The image can be a <picture>: its <img> gets what a bare one would, so the copies match. */
   .duotone-fade {
     position: relative;
     display: block;
     isolation: isolate;
 
-    & > :first-child {
+    & > :first-child,
+    & > picture:first-child > img {
       display: block;
     }
   }
@@ -93,7 +95,8 @@
     pointer-events: none;
     transition: opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
 
-    & > * {
+    & > *,
+    & > picture > img {
       display: block;
       width: 100%;
       height: 100%;

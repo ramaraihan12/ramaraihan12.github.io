@@ -82,20 +82,6 @@
     opacity: 0;
   }
 
-  .answer-photo-large {
-    display: none !important;
-
-    @media (width >= 48rem) {
-      display: block !important;
-    }
-  }
-
-  .answer-photo-small {
-    @media (width >= 48rem) {
-      display: none !important;
-    }
-  }
-
   .answer-text {
     max-width: 46rem;
     font-size: clamp(1.25rem, 2.45vw, 2.1rem);
