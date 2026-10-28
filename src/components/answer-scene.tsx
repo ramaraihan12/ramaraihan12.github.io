@@ -1,4 +1,3 @@
-import Image from "next/image";
 import type { CSSProperties } from "react";
 import { Fragment } from "react";
 import { BatikFrame } from "@/components/art/batik-frame";
@@ -72,23 +71,23 @@ export function AnswerScene() {
                 two colors as the page. It comes back to its own colors on hover. */}
             <BatikFrame tile="photo-frame" width="var(--answer-frame-w)" radius="0.5rem">
               <Duotone>
-                {/* A head-and-shoulders crop on phones, where the full portrait would be tiny. */}
-                <Image
-                  src="/images/rama-avatar.jpg"
-                  alt={answerCopy.photoSmallAlt}
-                  width={384}
-                  height={384}
-                  sizes="96px"
-                  className="answer-photo-small"
-                />
-                <Image
-                  src="/images/rama.jpg"
-                  alt={answerCopy.photoLargeAlt}
-                  width={900}
-                  height={1200}
-                  sizes="(min-width: 768px) 320px, 1px"
-                  className="answer-photo-large"
-                />
+                {/* One small file per screen: the portrait from 48rem up, and on phones a
+                    head-and-shoulders crop, where the full portrait would be tiny. Eager at low
+                    priority: it comes down with the page without holding up the hero, so it's
+                    cached long before the scroll gets here. As a lazy image it only started
+                    when the visitor got here, long after the frame around it. */}
+                <picture>
+                  <source media="(min-width: 48rem)" srcSet="/images/rama.webp" width={640} height={853} />
+                  <img
+                    src="/images/rama-avatar.webp"
+                    alt={answerCopy.photoAlt}
+                    width={256}
+                    height={256}
+                    loading="eager"
+                    fetchPriority="low"
+                    decoding="async"
+                  />
+                </picture>
               </Duotone>
             </BatikFrame>
           </div>
