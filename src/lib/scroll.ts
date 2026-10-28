@@ -5,6 +5,15 @@ import Lenis from "lenis";
 gsap.registerPlugin(ScrollTrigger);
 
 /*
+  The scripts' first sign of life, for layout.tsx's fallback. The browser runs this module when
+  React reaches the first component that imports it, at the start of hydration, and not at all
+  if one of the page's chunks failed to load. On a slow phone that's seconds before the scenes
+  are built and startEngine() runs, and the fallback reads this to tell a slow page from a
+  broken one. Client modules also run during the static export, where there's no document.
+*/
+if (typeof document !== "undefined") document.documentElement.dataset.scripts = "running";
+
+/*
   The pinned scenes need some room. Below these sizes, or with reduced motion, the page is a
   plain document and every scene shows its content in normal flow. The pinned layouts in
   src/styles/ use the same queries, so keep them in sync.
@@ -24,9 +33,10 @@ export const REDUCE_MQ = "(prefers-reduced-motion: reduce)";
 export const PRIORITY = { query: 5, play: 4, tools: 3, work: 2, answer: 1 } as const;
 
 /**
- * Whether the scenes get their pinned, animated layout: motion is allowed, and the scripts
- * started before layout.tsx's fallback gave up on them (data-engine="late"). Once the plain page
- * has been shown, it stays plain for this page view.
+ * Whether the scenes get their pinned, animated layout: motion is allowed, and layout.tsx's
+ * fallback hasn't given up on the scripts (data-engine="late"). It only does that when they
+ * failed or took far too long, and once the plain page has been shown, it stays plain for this
+ * page view.
  *
  * It also puts html.scrolly in step before returning, so the stylesheet already matches when the
  * scene that asked starts measuring. The inline script sets the class before first paint; after
@@ -54,7 +64,8 @@ export function startEngine() {
   const root = document.documentElement;
   const reduce = matchMedia(REDUCE_MQ);
 
-  // Tells layout.tsx's fallback the scripts made it. If it already gave up, "late" stays.
+  // Tells layout.tsx's fallback the engine is up, so it stops watching. If it already gave up,
+  // "late" stays.
   root.dataset.engine ??= "on";
 
   const sync = () => {
