@@ -74,6 +74,10 @@ export const viewport: Viewport = {
   Giving up sets data-engine="late", which keeps the page plain for the rest of this view: when
   the scripts do turn up, the scenes build their plain versions too, rather than rearranging a
   page someone's already reading. See scrollyOn() in src/lib/scroll.ts.
+
+  It also notes the first wheel, touch, key or click (data-moved). A link to a section or a reload
+  partway down is put in its place once the scenes are built, which on a slow phone can be
+  seconds in, and src/lib/stage.ts leaves alone anyone who has started moving by then.
 */
 const scrollyScript = `(() => {
   const root = document.documentElement;
@@ -97,6 +101,9 @@ const scrollyScript = `(() => {
   setTimeout(() => {
     if (!root.dataset.scripts || document.readyState !== "complete") plain();
   }, 20000);
+  for (const type of ["wheel", "touchstart", "keydown", "pointerdown"]) {
+    addEventListener(type, () => (root.dataset.moved = ""), { capture: true, passive: true, once: true });
+  }
 })();`;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
