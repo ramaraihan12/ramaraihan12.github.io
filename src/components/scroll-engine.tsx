@@ -16,7 +16,7 @@ import { watchStages } from "@/lib/stage";
  * data-engine="on" here is how layout.tsx's fallback learns the engine is up. On a slow phone
  * that can be many seconds after the scripts arrived, so the fallback doesn't count the wait as
  * a failure: src/lib/scroll.ts marks the scripts as running as soon as the browser runs it, and
- * with that mark there, the fallback waits for this (up to its 20-second cap).
+ * with that mark there and the page loaded, the fallback waits for this however long it takes.
  *
  * Moving this to a layout effect would change when ScrollTrigger's first full refresh happens,
  * and the answer scene's header-tone trigger relies on today's timing (it reads the answer
