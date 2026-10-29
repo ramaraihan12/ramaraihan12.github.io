@@ -415,6 +415,9 @@ export function OpeningScene({ land }: { land: ReactNode }) {
         // timeline has rendered, so bring it in line once that's done, and after every refresh.
         const settleCloth = requestAnimationFrame(drawCloth);
         ScrollTrigger.addEventListener("refresh", drawCloth);
+        // The iris too: a refresh opens it while it measures and renders it shut again without
+        // firing onUpdate, so past the fold the cloth came back over the map.
+        ScrollTrigger.addEventListener("refresh", closeIris);
 
         const st = tl.scrollTrigger!;
         const at = (label: string) => () => st.start + (st.end - st.start) * (tl.labels[label] / tl.duration());
@@ -434,6 +437,7 @@ export function OpeningScene({ land }: { land: ReactNode }) {
           ScrollTrigger.removeEventListener("refreshInit", resize);
           ScrollTrigger.removeEventListener("refresh", repaint);
           ScrollTrigger.removeEventListener("refresh", drawCloth);
+          ScrollTrigger.removeEventListener("refresh", closeIris);
           window.removeEventListener("pointermove", onPoint);
           clothBox.style.clipPath = "";
           rig.kill();
