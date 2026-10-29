@@ -69,19 +69,55 @@ function onScroll() {
 }
 
 /*
-  Where a link to a section (/#work) lands. The browser jumps to the anchor early, while the page
-  is still short, before the pinned scenes have added their length, and then the page grows under
-  it. So the page places itself again after every refresh, once the scenes are measured, where the
-  nav would take the reader. Fonts arriving or the game changing height measure the page again,
-  so this keeps at it until the reader does something themselves. layout.tsx's inline script
-  notes the first wheel, touch, key or click, from before the scripts arrive. Later layout
-  changes, like a phone turned sideways, are keep-place.ts's job.
+  Where a page load lands. A link to a section (/#work) and a reload partway down are both placed
+  early, while the page is still short: the browser jumps to the anchor or puts the old scroll
+  position back before the pinned scenes have added their length, and then the page grows under
+  it. So the page places itself again after every refresh, once the scenes are measured: after a
+  reload or a step back in history, where the reader was; after a link, where the nav would take
+  them. The browser's own restoring stays on. It doesn't undo this, it's right without scripts,
+  and it still brings Back to the right spot after an in-page link. Fonts arriving or the game
+  changing height measure the page again, so this keeps at it until the reader does something
+  themselves. layout.tsx's inline script notes the first wheel, touch, key or click, from before
+  the scripts arrive. Later layout changes, like a phone turned sideways, are keep-place.ts's job.
 */
 
+const PLACE = "stage-place";
+
+/** The page's top-level blocks. A pinned scene's is its pin spacer, which keeps its place in the flow. */
+const blocks = () => Array.from(document.querySelector("main")?.children ?? []);
 const pageTop = (el: Element) => el.getBoundingClientRect().top + window.scrollY;
+
+/**
+ * The reader's place as a block and how far into it, which holds up when a block above changes
+ * height (a game that was open isn't after a reload).
+ */
+function savePlace() {
+  const all = blocks();
+  const i = Math.max(0, all.findLastIndex((el) => pageTop(el) <= window.scrollY));
+  if (!all[i]) return;
+  try {
+    sessionStorage.setItem(PLACE, JSON.stringify({ i, dy: window.scrollY - pageTop(all[i]) }));
+  } catch {}
+}
+
+function savedPlace(): { i: number; dy: number } | null {
+  try {
+    return JSON.parse(sessionStorage.getItem(PLACE) ?? "null");
+  } catch {
+    return null;
+  }
+}
 
 /** A function, since the answer changes every time the scenes measure the page again. */
 function landing(): (() => number) | undefined {
+  const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+  const place = nav?.type === "reload" || nav?.type === "back_forward" ? savedPlace() : null;
+  if (place) {
+    return () => {
+      const block = blocks()[place.i];
+      return block ? pageTop(block) + place.dy : window.scrollY;
+    };
+  }
   const el = location.hash && document.getElementById(location.hash.slice(1));
   if (!el) return;
   return () => {
@@ -96,6 +132,7 @@ function landing(): (() => number) | undefined {
 
 function placeOnLoad() {
   let target = landing();
+  let landed = false;
   const land = () => {
     if (!target) return;
     if (document.documentElement.dataset.moved !== undefined) {
@@ -104,9 +141,25 @@ function placeOnLoad() {
     }
     const y = target();
     if (Math.abs(y - window.scrollY) >= 1) jumpToY(y);
+    landed = true;
+  };
+  // Before the page was placed, this would save where it was waiting rather than where it was
+  // going, so it doesn't. It saves whenever the page goes out of sight too, since a phone can
+  // drop a tab in the background without a pagehide and reload it later.
+  const save = () => {
+    if (landed || !target) savePlace();
+  };
+  const onHidden = () => {
+    if (document.hidden) save();
   };
   ScrollTrigger.addEventListener("refresh", land);
-  return () => ScrollTrigger.removeEventListener("refresh", land);
+  window.addEventListener("pagehide", save);
+  document.addEventListener("visibilitychange", onHidden);
+  return () => {
+    ScrollTrigger.removeEventListener("refresh", land);
+    window.removeEventListener("pagehide", save);
+    document.removeEventListener("visibilitychange", onHidden);
+  };
 }
 
 export function watchStages() {
