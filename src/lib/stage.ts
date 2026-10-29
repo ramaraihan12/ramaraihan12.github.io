@@ -1,6 +1,6 @@
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { stages, type StageId } from "@/content/story";
-import { scrollToY } from "./scroll";
+import { jumpToY, scrollToY } from "./scroll";
 
 /**
  * Which stop of the pipeline you're at. Each stage registers where it starts (`at`) and where
@@ -68,13 +68,56 @@ function onScroll() {
   frame = requestAnimationFrame(update);
 }
 
+/*
+  Where a link to a section (/#work) lands. The browser jumps to the anchor early, while the page
+  is still short, before the pinned scenes have added their length, and then the page grows under
+  it. So the page places itself again after every refresh, once the scenes are measured, where the
+  nav would take the reader. Fonts arriving or the game changing height measure the page again,
+  so this keeps at it until the reader does something themselves. layout.tsx's inline script
+  notes the first wheel, touch, key or click, from before the scripts arrive. Later layout
+  changes, like a phone turned sideways, are keep-place.ts's job.
+*/
+
+const pageTop = (el: Element) => el.getBoundingClientRect().top + window.scrollY;
+
+/** A function, since the answer changes every time the scenes measure the page again. */
+function landing(): (() => number) | undefined {
+  const el = location.hash && document.getElementById(location.hash.slice(1));
+  if (!el) return;
+  return () => {
+    // In a pinned scene, where something is depends on the scroll, so a link into one lands where
+    // its stage does: a source in the answer, with the answer written out.
+    const host = el.closest(".pin-spacer") ? el.closest(stages.map((s) => s.href).join()) : el;
+    const stage = stages.find((s) => s.href === `#${host?.id}`);
+    const m = stage && markers.get(stage.id);
+    return m ? m.to() : pageTop(el) - headerOffset();
+  };
+}
+
+function placeOnLoad() {
+  let target = landing();
+  const land = () => {
+    if (!target) return;
+    if (document.documentElement.dataset.moved !== undefined) {
+      target = undefined;
+      return;
+    }
+    const y = target();
+    if (Math.abs(y - window.scrollY) >= 1) jumpToY(y);
+  };
+  ScrollTrigger.addEventListener("refresh", land);
+  return () => ScrollTrigger.removeEventListener("refresh", land);
+}
+
 export function watchStages() {
   window.addEventListener("scroll", onScroll, { passive: true });
   ScrollTrigger.addEventListener("refresh", measure);
   measure();
+  const stopPlacing = placeOnLoad();
   return () => {
     window.removeEventListener("scroll", onScroll);
     ScrollTrigger.removeEventListener("refresh", measure);
+    stopPlacing();
   };
 }
 
