@@ -2,11 +2,13 @@
 
 import { useEffect } from "react";
 import "lenis/dist/lenis.css";
+import { keepPlace } from "@/lib/keep-place";
 import { startEngine } from "@/lib/scroll";
 import { watchStages } from "@/lib/stage";
 
 /**
- * Starts smooth scrolling and stage tracking. Being rendered first doesn't make this run first:
+ * Starts smooth scrolling, stage tracking, and keeping your place across a change of layout
+ * (src/lib/keep-place.ts). Being rendered first doesn't make this run first:
  * the scenes set up in useGSAP, a layout effect, and React runs every layout effect before any
  * useEffect. So the scenes are built by the time Lenis starts. That's fine, because neither
  * needs the other at setup, and which layout the scenes build doesn't depend on this order
@@ -26,7 +28,9 @@ export function ScrollEngine() {
   useEffect(() => {
     const stop = startEngine();
     const unwatch = watchStages();
+    const unkeep = keepPlace();
     return () => {
+      unkeep();
       unwatch();
       stop();
     };

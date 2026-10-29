@@ -126,3 +126,23 @@ export function scrollToY(y: number) {
     window.scrollTo({ top, behavior: matchMedia(REDUCE_MQ).matches ? "auto" : "smooth" });
   }
 }
+
+/**
+ * Puts the page at y at once, for putting the reader back after the layout changed under them.
+ * The scenes show that spot straight away too, instead of scrubbing their way over to it.
+ */
+export function jumpToY(y: number) {
+  const top = Math.max(0, Math.round(y));
+  if (lenis) {
+    // Lenis measures the page on its own schedule, and with the old height it would stop short.
+    lenis.resize();
+    lenis.scrollTo(top, { immediate: true, force: true });
+  } else {
+    window.scrollTo(0, top);
+  }
+  ScrollTrigger.update();
+  for (const trigger of ScrollTrigger.getAll()) {
+    const scrub = trigger.getTween();
+    if (scrub?.isActive()) scrub.progress(1);
+  }
+}

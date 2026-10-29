@@ -37,6 +37,18 @@ export function setMarkers(entries: [StageId, Marker][]) {
   return () => removers.forEach((remove) => remove());
 }
 
+/** Where each stage starts in the layout as it is now, for src/lib/keep-place.ts. */
+export function stageStarts() {
+  const starts: [StageId, number][] = [];
+  for (const [id, m] of markers) {
+    // Skipped like in measure() while its scene is being rebuilt.
+    try {
+      starts.push([id, m.at()]);
+    } catch {}
+  }
+  return starts;
+}
+
 function measure() {
   cache.clear();
   for (const [id, m] of markers) {
