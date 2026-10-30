@@ -74,8 +74,11 @@
     text-underline-offset: 0.3em;
     transition: color 0.2s;
 
-    &:hover {
-      color: var(--kunyit);
+    /* Only where there's a pointer to hover with, or a tap leaves the name turmeric on the way back. */
+    @media (hover: hover) {
+      &:hover {
+        color: var(--kunyit);
+      }
     }
   }
 

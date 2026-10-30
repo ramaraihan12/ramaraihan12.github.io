@@ -110,8 +110,11 @@
       color: var(--hdr-muted);
       transition: color 0.2s;
 
-      &:hover {
-        color: var(--hdr-ink);
+      /* Only where there's a pointer to hover with, or a tap on a tablet leaves it lit. */
+      @media (hover: hover) {
+        &:hover {
+          color: var(--hdr-ink);
+        }
       }
 
       &[aria-current] {
@@ -161,8 +164,11 @@
       border-color 0.2s,
       color 0.2s;
 
-    &:hover {
-      border-color: var(--hdr-accent);
+    /* Same as the nav: a tap to copy on a phone shouldn't leave the border lit. */
+    @media (hover: hover) {
+      &:hover {
+        border-color: var(--hdr-accent);
+      }
     }
   }
 
