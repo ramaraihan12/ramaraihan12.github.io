@@ -51,9 +51,10 @@ export function SiteHeader() {
 
   // The label's stamp press waits for the first real change, so it doesn't fire on load.
   const nowRef = useRef<HTMLParagraphElement>(null);
+  const seenRef = useRef(active);
   useEffect(() => {
-    nowRef.current?.setAttribute("data-ready", "");
-  }, []);
+    if (seenRef.current !== active) nowRef.current?.setAttribute("data-ready", "");
+  }, [active]);
 
   // The dot slides under whichever stage is active.
   useEffect(() => {
