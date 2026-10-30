@@ -68,8 +68,10 @@ const ground = {
   one flies into its citation as the answer reaches it. The ring's line is the note's score:
   the same weight as its citation's box and its number in the source list.
 
-  Directions are on screen (the map's y points up). `far` is where a note drifts in from, in
-  parts of the screen; `near` is how far from the dot it waits, in px at desktop size.
+  Directions are on screen (the map's y points up). `far` is where a note drifts in from: the
+  note's own direction from the dot and how far out along it (in half screens), so every note
+  comes in on its own ray and no two paths cross. `near` is how far from the dot it waits, in
+  px at desktop size.
 */
 const RING = 9;
 
@@ -92,14 +94,16 @@ const notes = top.map(({ n, score, note }) => {
   const dy = -(note.y - retrieval.query.y);
   const d = Math.hypot(dx, dy) || 1;
   const [ux, uy] = [dx / d, dy / d];
-  const near = 64 + 150 * d;
+  // The fourth note would sit against the second, so it waits a little further out.
+  const near = 64 + 150 * d + (n === 4 ? 16 : 0);
   return {
     n,
     score,
     source: note.source,
-    side: ux < -0.2 ? "left" : "right",
+    // The fourth note reads leftwards, away from the second one it would pass on the way in.
+    side: ux < -0.2 || n === 4 ? "left" : "right",
     near: [ux * near, uy * near],
-    far: [ux * (0.12 + 0.35 * d), uy * (0.1 + 0.3 * d) - 0.28],
+    far: [ux, uy, 0.4 + 0.5 * d],
     paths: ringPaths(note.source, n - 1),
   };
 });
@@ -136,7 +140,7 @@ function AnswerNotes() {
 
 /** One word, with "[n]" turned into a citation link. */
 function Word({ word }: { word: string }) {
-  return word.split(/(\[\d\])/).map((part, k) => {
+  const parts = word.split(/(\[\d\])/).map((part, k) => {
     const cite = part.match(/^\[(\d)\]$/);
     if (cite) {
       const n = Number(cite[1]);
@@ -154,6 +158,8 @@ function Word({ word }: { word: string }) {
       </span>
     ) : null;
   });
+  // A word with a citation stays in one piece, so "[5]." never wraps onto a line of its own.
+  return parts.length > 1 ? <span className="w-cite">{parts}</span> : parts;
 }
 
 /**
@@ -245,11 +251,13 @@ export function AnswerScene() {
                 <span className="answer-source-n">{n}</span>
                 {href ? (
                   <a href={href} className="answer-source-name">
-                    {note.source}
+                    <span className="answer-source-text">{note.source}</span>
                     <ArrowUpRightIcon className="size-3" />
                   </a>
                 ) : (
-                  <span className="answer-source-name">{note.source}</span>
+                  <span className="answer-source-name">
+                    <span className="answer-source-text">{note.source}</span>
+                  </span>
                 )}
                 <span className="answer-source-score">{score.toFixed(3)}</span>
               </li>

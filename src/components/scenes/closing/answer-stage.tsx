@@ -36,14 +36,27 @@ export function AnswerStage({ children }: { children: ReactNode }) {
 
       // A tap on a citation or a source lights it with its sentence and source. Mouse and
       // keyboard do it in CSS (answer.css); a finger has no hover, so it sets data-lit here.
-      // Tapping the same one again, or anywhere else, puts it out.
+      // A mouse click does nothing here, or the highlight would stay after the pointer left.
+      // Tapping the same one again, or touching anywhere else, puts it out, and so does
+      // scrolling the answer off the screen.
+      const hitSelector = ".cite[data-note], .answer-sources li[data-note]";
+      let pointer = "";
+      const onDown = (e: PointerEvent) => {
+        pointer = e.pointerType;
+        if (!(e.target as Element).closest(hitSelector)) delete section.dataset.lit;
+      };
       const onTap = (e: Event) => {
-        const hit = (e.target as Element).closest<HTMLElement>(".cite[data-note], .answer-sources li[data-note]");
-        const n = hit?.dataset.note;
+        if (pointer === "mouse") return;
+        const n = (e.target as Element).closest<HTMLElement>(hitSelector)?.dataset.note;
         if (n && section.dataset.lit !== n) section.dataset.lit = n;
         else delete section.dataset.lit;
       };
+      document.addEventListener("pointerdown", onDown, true);
       section.addEventListener("click", onTap);
+      const away = new IntersectionObserver(([entry]) => {
+        if (!entry.isIntersecting) delete section.dataset.lit;
+      });
+      away.observe(section);
 
       const mm = gsap.matchMedia();
       // gsap only runs this while at least one condition matches. "motion" and "reduce" make
@@ -136,33 +149,46 @@ export function AnswerStage({ children }: { children: ReactNode }) {
             .to(fly, { opacity: 0, duration: 0.08 }, lands - 0.1)
             .fromTo(cite, { "--ink": 0 }, { "--ink": 1, duration: 0.14, ease: "power2.out" }, lands - 0.1);
         });
-        tl.set(notes, { "--dye": 1 }, 0.4).to(".an-label", { opacity: 0, duration: 0.25 }, 0.55);
+        // Each note is dyed as the flood's edge reaches it: the circle grows from 7px to the
+        // corners on power1.inOut over the first unit, so invert that for the note's distance.
+        const sb = rect(section);
+        const reach = Math.hypot(window.innerWidth, window.innerHeight) / 2 + 20;
+        notes.forEach((note) => {
+          const b = rect(note);
+          const d = Math.hypot(b.left + b.width / 2 - (sb.left + sb.width / 2), b.top + b.height / 2 - (sb.top + sb.height / 2));
+          const p = Math.min(1, Math.max(0, (d - 7) / (reach - 7)));
+          const when = p < 0.5 ? Math.sqrt(p / 2) : 1 - Math.sqrt((1 - p) / 2);
+          tl.fromTo(note, { "--dye": 0 }, { "--dye": 1, duration: 0.08 }, Math.min(when, 0.85));
+        });
+        tl.to(".an-label", { opacity: 0, duration: 0.25 }, 0.55);
 
         // Before the pin: the notes arrive from the edges. This scrubs on its own trigger, the
         // stretch of scroll leading up to the pin, where there used to be only the seed dot.
-        gsap.fromTo(
-          notes.map((n) => n.querySelector(".an-drift")),
-          {
-            x: (i: number) => (Number(notes[i].dataset.far!.split(" ")[0]) * window.innerWidth),
-            y: (i: number) => (Number(notes[i].dataset.far!.split(" ")[1]) * window.innerHeight),
-            opacity: 0,
+        // Each comes in along its own ray from the dot, the nearer ones first, so no two cross.
+        const drifts = notes.map((n) => n.querySelector<HTMLElement>(".an-drift")!);
+        const far = notes.map((n) => n.dataset.far!.split(" ").map(Number));
+        const order = far.map((f, i) => i).sort((i, j) => far[i][2] - far[j][2]);
+        const arrive = gsap.timeline({
+          defaults: { ease: "power2.out" },
+          scrollTrigger: {
+            trigger: section,
+            refreshPriority: PRIORITY.answer - 0.25,
+            start: "top 90%",
+            end: "top top",
+            scrub: 0.6,
+            invalidateOnRefresh: true,
           },
-          {
-            x: 0,
-            y: 0,
-            opacity: 1,
-            ease: "power2.out",
-            stagger: 0.12,
-            scrollTrigger: {
-              trigger: section,
-              refreshPriority: PRIORITY.answer - 0.25,
-              start: "top 90%",
-              end: "top top",
-              scrub: 0.6,
-              invalidateOnRefresh: true,
-            },
-          },
-        );
+        });
+        order.forEach((i, k) => {
+          const [ux, uy, f] = far[i];
+          const reachOut = () => f * Math.hypot(window.innerWidth, window.innerHeight);
+          arrive.fromTo(
+            drifts[i],
+            { x: () => ux * reachOut(), y: () => uy * reachOut(), opacity: 0 },
+            { x: 0, y: 0, opacity: 1, duration: 1 },
+            k * 0.12,
+          );
+        });
 
         const st = tl.scrollTrigger!;
         const at = (label: string) => st.start + (st.end - st.start) * (tl.labels[label] / tl.duration());
@@ -195,7 +221,11 @@ export function AnswerStage({ children }: { children: ReactNode }) {
           section.removeEventListener("focusin", onFocus);
         };
       });
-      return () => section.removeEventListener("click", onTap);
+      return () => {
+        document.removeEventListener("pointerdown", onDown, true);
+        section.removeEventListener("click", onTap);
+        away.disconnect();
+      };
     },
     { scope: root },
   );

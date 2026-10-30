@@ -186,7 +186,7 @@
      draws the line from the first word to the last, like a canting. It goes on slower than
      it comes off: --draw is only set while lit. */
   .answer-s,
-  .answer-source-name {
+  .answer-source-text {
     background: linear-gradient(var(--wax), var(--wax)) no-repeat 0 calc(100% - 0.04em) / calc(var(--lit, 0) * 100%) 0.16em;
     transition: background-size var(--draw, 0.2s) cubic-bezier(0.3, 0.6, 0.3, 1);
 
@@ -217,8 +217,13 @@
       align-items: center;
       gap: 0.25rem;
       text-decoration: underline;
+      text-decoration-color: color-mix(in oklab, currentColor calc((1 - var(--lit, 0)) * 100%), transparent);
       text-underline-offset: 0.25em;
     }
+  }
+
+  .w-cite {
+    white-space: nowrap;
   }
 
   .answer-source-n {
@@ -358,18 +363,18 @@
        timeline as it passes) and then they're nila on turmeric like the rest of the answer. */
     & .an-note {
       --dye: 0;
-      --on: color-mix(in oklab, var(--nila) calc(var(--dye) * 100%), var(--mori));
-      --in: color-mix(in oklab, var(--nila) calc(var(--dye) * 100%), var(--kunyit));
+      --an-on: color-mix(in oklab, var(--nila) calc(var(--dye) * 100%), var(--mori));
+      --an-in: color-mix(in oklab, var(--nila) calc(var(--dye) * 100%), var(--kunyit));
     }
 
     & .an-ring-line {
       fill: none;
-      stroke: var(--on);
+      stroke: var(--an-on);
       stroke-linejoin: round;
     }
 
     & .an-ring-core {
-      fill: var(--in);
+      fill: var(--an-in);
     }
 
     & .an-ring-cecek {
@@ -383,7 +388,7 @@
       font-family: var(--font-mono);
       font-size: 0.66rem;
       line-height: 1;
-      color: var(--in);
+      color: var(--an-in);
     }
 
     & .an-note[data-side="left"] .an-rank {
@@ -397,11 +402,53 @@
       font-size: 0.68rem;
       line-height: 1;
       white-space: nowrap;
-      color: var(--on);
+      color: var(--an-on);
     }
 
     & .an-score {
       opacity: 0.6;
+    }
+  }
+
+  /* Shorter screens (most laptops and phones): less air round the sources, so the last line of
+     the note stays above the hem instead of running over its lines. */
+  @media (max-height: 820px) {
+    .scrolly {
+      & .answer {
+        --hem-h: 1.2rem;
+      }
+
+      & .answer-inner {
+        padding-block: calc(var(--header-h) + 0.5rem) calc(var(--hem-h) + 0.25rem);
+      }
+
+      & .answer-grid {
+        margin-top: 0.75rem;
+        gap: 1rem;
+      }
+
+      & .answer-sources {
+        margin-top: 1rem;
+        padding-top: 0.7rem;
+      }
+
+      & .answer-note {
+        margin-top: 0.5rem;
+      }
+    }
+  }
+
+  /* Too short for a hem: the text already fills the screen, so the cloth just runs to the
+     edge, as it did before the hem, rather than drawing lines through the last line. */
+  @media (max-height: 700px) {
+    .scrolly {
+      & .answer {
+        --hem-h: 0rem;
+      }
+
+      & .answer-bg::after {
+        display: none;
+      }
     }
   }
 
@@ -423,6 +470,19 @@
 
       & .answer-note {
         font-size: 0.8rem;
+      }
+    }
+  }
+
+  @media (max-width: 767px) and (max-height: 820px) {
+    .scrolly {
+      & .answer-photo {
+        width: 5rem;
+      }
+
+      & .answer-text {
+        font-size: clamp(1rem, 4.7vw, 1.2rem);
+        line-height: 1.28;
       }
     }
   }
