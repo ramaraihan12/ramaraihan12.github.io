@@ -138,7 +138,8 @@
     width: calc(var(--chip) * 0.26em);
   }
 
-  .tok-id {
+  .tok-id,
+  .tok-cut {
     display: none;
   }
 
@@ -446,19 +447,55 @@
       pointer-events: none;
     }
 
+    /* The token's number in the tokenizer's vocabulary, counted up to by the scene. */
     & .tok-id {
       position: absolute;
-      top: calc(100% + 0.1em);
+      top: calc(100% + 0.05em);
       left: 50%;
       display: block;
       font-family: var(--font-mono);
-      font-variation-settings: "wdth" 87.5;
-      font-size: max(0.7rem, 0.1em);
-      font-weight: 400;
-      letter-spacing: 0;
-      color: var(--pudar);
+      font-variation-settings: "wdth" 100;
+      font-variant-numeric: tabular-nums;
+      font-size: max(0.76rem, 0.135em);
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: rgb(239 233 220 / 0.82);
       translate: -50% 0;
       opacity: 0;
+    }
+
+    & .tok-name .tok-id {
+      color: var(--kunyit);
+    }
+
+    /* Where the tokenizer cut a name: a line of wax dots down the seam between the pieces,
+       drawn top to bottom by the scene through --cut. */
+    & .tok-cut {
+      position: absolute;
+      top: -0.06em;
+      left: -0.105em;
+      display: block;
+      width: 0.14em;
+      height: 1.4em;
+      color: var(--mori);
+      pointer-events: none;
+      --cut: 0;
+      clip-path: inset(0 0 calc((1 - var(--cut)) * 100%) 0);
+
+      & svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+      }
+
+      & path {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 3.6;
+        stroke-linecap: round;
+        stroke-dasharray: 0.1 9.2;
+      }
     }
 
     /* On the tokenized state the chips can be picked up (see chip-drag.ts). pan-y leaves
@@ -612,6 +649,11 @@
       opacity: 0;
     }
 
+    /* While the cloth gathers into the notes, the map is over it. */
+    & .qs-stage.is-gathering .qs-map {
+      z-index: 2;
+    }
+
     & .qs-cards {
       grid-template-columns: 1fr;
     }
@@ -673,8 +715,10 @@
         width: auto;
       }
 
+      /* One slot. It is clipped, so a card on its way in or out slides past the edge. */
       & .qs-cards {
         display: grid;
+        overflow: hidden;
       }
 
       & .qs-card {
