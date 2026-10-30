@@ -9,7 +9,7 @@
   web fonts. Colours are read from the page's tokens, with the same values as fallback.
 */
 
-import { BATIK_KINDS, batikSvg } from "@/components/art/patterns";
+import { BATIK_KINDS, batikSvg, batikTileSize } from "@/components/art/patterns";
 import { site } from "@/content/site";
 import type { Motif } from "./cloth";
 import { strings as S } from "./strings";
@@ -78,6 +78,10 @@ function spaced(ctx: CanvasRenderingContext2D, text: string, x: number, y: numbe
   (ctx as CanvasRenderingContext2D & { letterSpacing?: string }).letterSpacing = "0px";
 }
 
+function setStretch(ctx: CanvasRenderingContext2D, v: "expanded" | "semi-condensed" | "normal") {
+  if ("fontStretch" in ctx) (ctx as CanvasRenderingContext2D & { fontStretch: string }).fontStretch = v;
+}
+
 export async function drawCloth({ motifs, streak, best }: ExportInput) {
   const F = fonts();
   const nila = token("--nila", "#0f1a47");
@@ -89,7 +93,7 @@ export async function drawCloth({ motifs, streak, best }: ExportInput) {
   // Make sure the faces are in before anything is measured or drawn.
   try {
     await Promise.all([
-      document.fonts.load(`700 120px ${F.display}`),
+      document.fonts.load(`800 120px ${F.display}`),
       document.fonts.load(`500 22px ${F.mono}`),
       document.fonts.load(`700 22px ${F.mono}`),
       document.fonts.load(`500 30px ${F.sans}`),
@@ -113,25 +117,25 @@ export async function drawCloth({ motifs, streak, best }: ExportInput) {
   const hem = 54;
   const clothH = rows * cell;
 
+  const tileSize = (kind: string) => Math.round(cell * (kind === "truntum" ? 1.4 : 1));
+
   const used = new Set<string>();
   motifs.forEach((m) => used.add(`${m.kind}:${dyeOf(m.heat)}`));
   const tiles = new Map<string, HTMLImageElement>();
   await Promise.all(
     [...used].map(async (key) => {
       const [kind, dye] = key.split(":") as [(typeof BATIK_KINDS)[number], Dye];
-      const k = kind === "truntum" ? 1.4 : 1;
-      const probe = batikSvg(kind, { ...dyes[dye] });
-      const size = Number(/width="([\d.]+)"/.exec(probe)?.[1] ?? 120);
-      const svg = batikSvg(kind, { ...dyes[dye], scale: (cell * k) / size });
+      // A whole number of pixels, so tiles meet without a hairline between them.
+      const t = tileSize(kind);
+      const svg = batikSvg(kind, { ...dyes[dye], scale: t / batikTileSize(kind) });
       tiles.set(key, await load(svgUrl(svg)));
     }),
   );
-  const hemSize = Number(/width="([\d.]+)"/.exec(batikSvg("parang"))?.[1] ?? 120);
-  const hemTile = await load(svgUrl(batikSvg("parang", { ink: mori, ground: nila, scale: hem / hemSize })));
+  const hemTile = await load(svgUrl(batikSvg("parang", { ink: mori, ground: nila, scale: hem / batikTileSize("parang") })));
 
   // Height: head, hem, cloth, hem, fringe, then the label block and the foot.
-  const headH = 128;
-  const labelH = 380;
+  const headH = 128 + 34;
+  const labelH = 190;
   const H = PAD + headH + hem + clothH + hem + 34 + 56 + labelH + PAD - 20;
 
   const canvas = document.createElement("canvas");
@@ -160,13 +164,29 @@ export async function drawCloth({ motifs, streak, best }: ExportInput) {
   ctx.fillStyle = soga;
   spaced(ctx, date.toUpperCase(), W - PAD, PAD + 22, 3, "right");
   ctx.fillStyle = nila;
-  ctx.font = `700 64px ${F.display}`;
+  ctx.font = `800 64px ${F.display}`;
   ctx.textAlign = "left";
+  // The site sets its display type wide; so does the tag.
+  setStretch(ctx, "expanded");
   ctx.fillText(S.save.title, PAD, PAD + 100);
+  // Its small mono labels run a touch narrow.
+  setStretch(ctx, "semi-condensed");
 
   // The cloth, hemmed at both ends.
   const x0 = Math.round((W - clothW) / 2);
   let y = PAD + headH;
+
+  // Fringe: loose threads past a hem, down below the foot of the cloth and up above its head.
+  const fringe = (yy: number, dir: 1 | -1) => {
+    ctx.strokeStyle = mix(soga, mori, 0.6);
+    ctx.lineWidth = 2;
+    for (let fx = x0 + 4; fx < x0 + clothW - 2; fx += 7) {
+      ctx.beginPath();
+      ctx.moveTo(fx, yy);
+      ctx.lineTo(fx + ((fx * 7) % 5) - 2, yy + dir * (20 + ((fx * 13) % 14)));
+      ctx.stroke();
+    }
+  };
 
   const hemBand = (yy: number) => {
     ctx.save();
@@ -178,6 +198,7 @@ export async function drawCloth({ motifs, streak, best }: ExportInput) {
     ctx.fillRect(0, 0, clothW, hem);
     ctx.restore();
   };
+  fringe(y, -1);
   hemBand(y);
   y += hem;
 
@@ -200,8 +221,7 @@ export async function drawCloth({ motifs, streak, best }: ExportInput) {
     ctx.rect(px, py, cell, cell);
     ctx.clip();
     // Panels of one run share the tile, so the field carries on across the cut.
-    const k = m.kind === "truntum" ? 1.4 : 1;
-    const t = cell * k;
+    const t = tileSize(m.kind);
     const shift = ((run[i] * cell) % t + t) % t;
     for (let tx = -shift; tx < cell; tx += t) {
       for (let ty = 0; ty < cell; ty += t) ctx.drawImage(tile, px + tx, py + ty, t, t);
@@ -252,15 +272,7 @@ export async function drawCloth({ motifs, streak, best }: ExportInput) {
   hemBand(y);
   y += hem;
 
-  // Fringe: loose threads past the hem.
-  ctx.strokeStyle = mix(soga, mori, 0.6);
-  ctx.lineWidth = 2;
-  for (let fx = x0 + 4; fx < x0 + clothW - 2; fx += 7) {
-    ctx.beginPath();
-    ctx.moveTo(fx, y);
-    ctx.lineTo(fx + ((fx * 7) % 5) - 2, y + 20 + ((fx * 13) % 14));
-    ctx.stroke();
-  }
+  fringe(y, 1);
   y += 34 + 56;
 
   // The label: the number the run came to, and the small print a maker writes on the tag.
@@ -271,28 +283,21 @@ export async function drawCloth({ motifs, streak, best }: ExportInput) {
   ctx.lineTo(W - PAD, y - 28);
   ctx.stroke();
 
+  // The streak, set small in mono like the rest of the print, with the dye key under it.
   ctx.fillStyle = nila;
-  ctx.font = `700 230px ${F.display}`;
-  ctx.textAlign = "left";
-  ctx.fillText(String(streak), PAD - 6, y + 190);
-  const numW = ctx.measureText(String(streak)).width;
-  const tx = PAD + numW + 36;
-  ctx.font = `700 30px ${F.sans}`;
-  ctx.fillText(S.over.streakLabel(streak), tx, y + 120);
-  ctx.font = `500 22px ${F.mono}`;
-  ctx.fillStyle = soga;
-  spaced(ctx, S.over.best(best).toUpperCase(), tx, y + 164, 2);
+  ctx.font = `700 28px ${F.mono}`;
+  spaced(ctx, `${streak} ${S.over.streakLabel(streak)} · ${S.over.best(best)}`.toUpperCase(), PAD, y + 20, 2);
 
-  // The dyes, as a maker's key.
   const key: [Dye, string][] = [
     ["calm", S.save.key.calm],
     ["warm", S.save.key.warm],
     ["hot", S.save.key.hot],
   ];
-  let kx = PAD;
-  const ky = y + 262;
   ctx.font = `500 20px ${F.mono}`;
-  for (const [dye, label] of key) {
+  const widths = key.map(([, label]) => 44 + ctx.measureText(label).width + label.length);
+  let kx = PAD;
+  const ky = y + 76;
+  key.forEach(([dye, label], i) => {
     const d = dyes[dye];
     ctx.fillStyle = d.ground;
     ctx.fillRect(kx, ky - 22, 30, 30);
@@ -300,16 +305,16 @@ export async function drawCloth({ motifs, streak, best }: ExportInput) {
     ctx.fillRect(kx + 8, ky - 14, 14, 14);
     ctx.fillStyle = nila;
     spaced(ctx, label, kx + 44, ky, 1);
-    kx += 44 + ctx.measureText(label).width + label.length + 36;
-  }
+    kx += widths[i] + 36;
+  });
 
   // The foot: where the cloth came from.
   ctx.fillStyle = nila;
   ctx.font = `700 24px ${F.mono}`;
-  spaced(ctx, site.url.replace(/^https?:\/\//, ""), PAD, y + 330, 1);
+  spaced(ctx, site.url.replace(/^https?:\/\//, ""), PAD, y + 148, 1);
   ctx.font = `500 20px ${F.mono}`;
   ctx.fillStyle = soga;
-  spaced(ctx, `${site.name} · ${site.location}`.toUpperCase(), W - PAD, y + 330, 2, "right");
+  spaced(ctx, `${site.name} · ${site.location}`.toUpperCase(), W - PAD, y + 148, 2, "right");
 
   return canvas;
 }
@@ -319,7 +324,29 @@ function toBlob(canvas: HTMLCanvasElement) {
 }
 
 /** What happened, so the button can say so. */
-export type SaveResult = "shared" | "saved" | "cancelled";
+export type SaveResult = { result: "shared" | "saved" | "cancelled" } | { result: "ready"; file: File };
+
+function download(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}
+
+/** The share sheet. Call it first thing in a tap handler, with no await before it. */
+export async function shareFile(file: File): Promise<"shared" | "cancelled" | "blocked" | "failed"> {
+  try {
+    await navigator.share({ files: [file], title: S.save.title, text: site.url });
+    return "shared";
+  } catch (e) {
+    if (e instanceof DOMException && e.name === "AbortError") return "cancelled";
+    return e instanceof DOMException && e.name === "NotAllowedError" ? "blocked" : "failed";
+  }
+}
 
 export async function saveCloth(input: ExportInput): Promise<SaveResult> {
   const blob = await toBlob(await drawCloth(input));
@@ -330,22 +357,17 @@ export async function saveCloth(input: ExportInput): Promise<SaveResult> {
   // computer gets a download: its share sheets are rarely what anyone wants here.
   const phone = window.matchMedia("(pointer: coarse)").matches;
   if (phone && typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file], title: S.save.title, text: site.url });
-      return "shared";
-    } catch (e) {
-      if (e instanceof DOMException && e.name === "AbortError") return "cancelled";
-      // Anything else: fall through to the download.
+    const r = await shareFile(file);
+    if (r === "shared" || r === "cancelled") return { result: r };
+    if (r === "failed") {
+      download(blob, name);
+      return { result: "saved" };
     }
+    // The browser wants a fresh tap for the share sheet, since the picture took a moment to draw.
+    // Hand the file back and let the button ask again, instead of dropping a download on a phone.
+    return { result: "ready", file };
   }
 
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 10_000);
-  return "saved";
+  download(blob, name);
+  return { result: "saved" };
 }

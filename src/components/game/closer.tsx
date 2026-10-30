@@ -642,35 +642,70 @@ type ResultProps = {
 };
 
 function SaveCloth({ motifs, streak, best }: { motifs: readonly Motif[]; streak: number; best: number }) {
-  const [state, setState] = useState<"idle" | "busy" | "done" | "shared" | "failed">("idle");
+  const [state, setState] = useState<"idle" | "busy" | "done" | "shared" | "failed" | "ready">("idle");
   const timer = useRef(0);
+  const file = useRef<File | null>(null);
   useEffect(() => () => window.clearTimeout(timer.current), []);
+
+  const settle = (next: typeof state) => {
+    setState(next);
+    window.clearTimeout(timer.current);
+    if (next !== "idle" && next !== "ready") timer.current = window.setTimeout(() => setState("idle"), 2600);
+  };
+
+  // Fetch the drawing code when a finger or the keyboard gets near, so the tap itself waits less.
+  const warm = () => void import("./cloth-export");
 
   async function save() {
     if (state === "busy") return;
-    setState("busy");
-    let next: typeof state = "idle";
     try {
-      // The drawing code is its own chunk, fetched on the first click.
+      if (file.current) {
+        // The picture is already made: ask for the share sheet straight away, while the tap is fresh.
+        const f = file.current;
+        const { shareFile } = await import("./cloth-export");
+        const r = await shareFile(f);
+        if (r === "blocked") return;
+        file.current = null;
+        settle(r === "shared" ? "shared" : "idle");
+        return;
+      }
+      setState("busy");
       const { saveCloth } = await import("./cloth-export");
       const r = await saveCloth({ motifs, streak, best });
-      next = r === "saved" ? "done" : r === "shared" ? "shared" : "idle";
+      if (r.result === "ready") {
+        file.current = r.file;
+        settle("ready");
+      } else {
+        settle(r.result === "saved" ? "done" : r.result === "shared" ? "shared" : "idle");
+      }
     } catch {
-      next = "failed";
+      settle("failed");
     }
-    setState(next);
-    window.clearTimeout(timer.current);
-    if (next !== "idle") timer.current = window.setTimeout(() => setState("idle"), 2600);
   }
 
-  const label = { idle: S.save.button, busy: S.save.busy, done: S.save.done, shared: S.save.shared, failed: S.save.failed }[state];
+  const labels = { idle: S.save.button, busy: S.save.busy, done: S.save.done, shared: S.save.shared, failed: S.save.failed, ready: S.save.share };
+  const label = labels[state];
+  const other = state !== "idle";
   return (
-    <button type="button" className="nn-btn nn-btn-line cl-save" aria-disabled={state === "busy" || undefined} onClick={save}>
-      {label}
+    <>
+      <button
+        type="button"
+        className="nn-btn nn-btn-line cl-save"
+        aria-disabled={state === "busy" || undefined}
+        onClick={save}
+        onPointerDown={warm}
+        onFocus={warm}
+      >
+        {/* Both labels share one box, so the buttons beside it don't move when the words change. */}
+        <span aria-hidden={other || undefined} style={other ? { visibility: "hidden" } : undefined}>
+          {S.save.button}
+        </span>
+        {other ? <span>{label}</span> : null}
+      </button>
       <span className="sr-only" role="status">
-        {state === "idle" ? "" : label}
+        {other ? label : ""}
       </span>
-    </button>
+    </>
   );
 }
 

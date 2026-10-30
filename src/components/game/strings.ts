@@ -108,7 +108,8 @@ export const strings = {
     busy: "Weaving…",
     done: "Saved",
     shared: "Shared",
-    failed: "That didn't work, sorry.",
+    failed: "Not saved, sorry",
+    share: "Share it",
     /** On the picture itself. */
     head: "Closer, a mini game",
     title: "My cloth",

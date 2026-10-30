@@ -820,3 +820,12 @@
     scale: none;
   }
 }
+
+/* Save the cloth: the idle label sets the width, any other label sits over it in the same cell. */
+.cl-save {
+  display: inline-grid;
+  justify-items: center;
+}
+.cl-save > span {
+  grid-area: 1 / 1;
+}
