@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { type PointerEvent as ReactPointerEvent, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { rng, wobble } from "@/components/art/rng";
-import { notFoundCopy as T } from "@/content/copy";
+import "@/styles/not-found.css";
+import { notFoundCopy as T } from "./not-found-copy";
 
 /*
   The 404 page: a blank cloth. Draw on it with the pointer and that's wax; press Dip and the cloth
@@ -12,12 +13,15 @@ import { notFoundCopy as T } from "@/content/copy";
 
   One canvas. Strokes are kept as points in screen pixels, so a resize or the dye can draw them
   again. Wax is drawn opaque, which lets the newest stroke be drawn over itself while the pointer
-  moves. The dye is a fill clipped below a wavy front that rises with the animation: first every
+  moves, so a move only draws the stroke in hand. The dye is a fill clipped below a wavy front that rises with the animation: first every
   stroke in wax colours, then the dye over them, then the strokes again in cotton colour inside
   the dye. Only the dip animates, and only that one frame loop runs. With reduced motion the
   front jumps to the top and the kawung appears at once.
 
-  Styles are in src/styles/extras.css (.nf-*).
+  While the dye rises, a pale copy of the words is clipped to the same front, so each line turns
+  light just as the dye reaches it, and the real words and buttons swap over when it is done.
+
+  Styles are in src/styles/not-found.css, loaded with this file only.
 */
 
 type Pt = readonly [number, number];
@@ -32,7 +36,7 @@ const COLORS = {
 const BRUSH = 9;
 const DIP_MS = 1500;
 const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
-const MAX_PATH = 44;
+const MAX_PATH = 32;
 
 /** A line through the points, smoothed by curving to the middle of each segment. */
 function trace(ctx: CanvasRenderingContext2D, pts: readonly Pt[], closed = false) {
@@ -96,20 +100,39 @@ function front(x: number, p: number, h: number) {
  * petals that run from the centre toward its corners, the same construction as the batik tiles.
  * Drawn from the middle outward, petals first.
  */
-function kawungStrokes(w: number, h: number): Stroke[] {
+type Rect = { left: number; top: number; right: number; bottom: number };
+const hits = (a: Rect, b: Rect) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+const pad = (r: Rect, n: number): Rect => ({ left: r.left - n, top: r.top - n, right: r.right + n, bottom: r.bottom + n });
+
+function kawungStrokes(w: number, h: number, text: Rect, actions: Rect): Stroke[] {
   const r = rng(404);
-  const s = Math.max(66, Math.min(112, Math.min(w, h) / 5.5));
-  const cx = w > 900 ? w * 0.64 : w / 2;
-  const cy = w > 900 ? h * 0.58 : h * 0.7;
+  const gap = 20;
+  const wide = w > h;
+  // The free part of the cloth: beside the words on a wide screen, under them on a tall one,
+  // and in both cases above the buttons.
+  const free: Rect = wide
+    ? { left: text.right + gap, top: gap, right: w - gap, bottom: actions.top - gap }
+    : { left: gap, top: text.bottom + gap, right: w - gap, bottom: actions.top - gap };
+  const fw = Math.max(120, free.right - free.left);
+  const fh = Math.max(120, free.bottom - free.top);
+  const rings = Math.min(fw, fh) < 380 ? 2 : 3;
+  const s = Math.max(40, Math.min(112, Math.min(fw, fh) / (rings * 2 + 1.4)));
+  const cx = free.left + fw / 2;
+  const cy = free.top + fh / 2;
   const half = (s * Math.SQRT2) / 4;
   const a = half * 0.88;
   const b = a * 0.62;
+  const keepOut = [pad(actions, 8), pad(text, 4)];
+  const clear = (x: number, y: number, rad: number) => {
+    const box: Rect = { left: x - rad, top: y - rad, right: x + rad, bottom: y + rad };
+    return !keepOut.some((k) => hits(box, k));
+  };
   const flowers: { x: number; y: number; d: number }[] = [];
-  for (let i = -3; i <= 3; i++) {
-    for (let j = -3; j <= 3; j++) {
+  for (let i = -rings; i <= rings; i++) {
+    for (let j = -rings; j <= rings; j++) {
       if ((i + j) % 2 !== 0) continue;
       const d = Math.hypot(i, j);
-      if (d > 3) continue;
+      if (d > rings) continue;
       flowers.push({ x: cx + i * s, y: cy + j * s, d });
     }
   }
@@ -120,7 +143,8 @@ function kawungStrokes(w: number, h: number): Stroke[] {
       const angle = Math.PI / 4 + (k * Math.PI) / 2;
       const px = f.x + Math.cos(angle) * half;
       const py = f.y + Math.sin(angle) * half;
-      if (px < -a || px > w + a || py < -a || py > h + a) continue;
+      if (px < a || px > w - a || py < a || py > h - a) continue;
+      if (!clear(px, py, a * 1.2)) continue;
       const pts: Pt[] = [];
       const steps = 28;
       for (let n = 0; n < steps; n++) {
@@ -137,6 +161,7 @@ function kawungStrokes(w: number, h: number): Stroke[] {
       out.push({ pts, closed: true });
     }
     // The dot at the heart.
+    if (!clear(f.x, f.y, 6)) continue;
     const heart: Pt[] = Array.from({ length: 10 }, (_, n) => {
       const t = (n / 10) * Math.PI * 2;
       return [f.x + Math.cos(t) * 3.2 + wobble(r, 0.5), f.y + Math.sin(t) * 3.2 + wobble(r, 0.5)] as const;
@@ -146,7 +171,7 @@ function kawungStrokes(w: number, h: number): Stroke[] {
   return out;
 }
 
-type Phase = "blank" | "waxed" | "dyed";
+type Phase = "blank" | "waxed" | "dipping" | "dyed";
 
 /** The address as the visitor typed it, short enough to sit in a heading. */
 function readPath() {
@@ -160,13 +185,20 @@ function readPath() {
 
 export function Cloth() {
   const canvas = useRef<HTMLCanvasElement>(null);
+  const pale = useRef<HTMLDivElement>(null);
+  const textEl = useRef<HTMLDivElement>(null);
+  const actionsEl = useRef<HTMLDivElement>(null);
   const strokes = useRef<Stroke[]>([]);
   const drawing = useRef<Stroke | null>(null);
+  const pointer = useRef(-1);
   const rise = useRef(0);
   const frame = useRef(0);
   const timers = useRef<number[]>([]);
+  const kawungLeft = useRef<Stroke[]>([]);
   const phase = useRef<Phase>("blank");
   const [view, setView] = useState<Phase>("blank");
+  // Dipped with no wax on it: the hint says so instead of claiming the wax held.
+  const [plain, setPlain] = useState(false);
   // Empty on the server and on the first client render, then the real address.
   const path = useSyncExternalStore(() => () => {}, readPath, () => "");
 
@@ -202,6 +234,18 @@ export function Cloth() {
     ctx.restore();
   }, []);
 
+  /** The pale words follow the same edge as the dye. */
+  const clipPale = useCallback((p: number) => {
+    const el = pale.current;
+    if (!el) return;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const pts = [`0 ${h}px`];
+    for (let x = 0; x <= w + 12; x += 12) pts.push(`${x}px ${front(x, p, h).toFixed(1)}px`);
+    pts.push(`${w}px ${h}px`);
+    el.style.clipPath = `polygon(${pts.join(",")})`;
+  }, []);
+
   const fit = useCallback(() => {
     const el = canvas.current;
     if (!el) return;
@@ -209,7 +253,8 @@ export function Cloth() {
     el.width = Math.round(window.innerWidth * dpr);
     el.height = Math.round(window.innerHeight * dpr);
     paint();
-  }, [paint]);
+    if (phase.current === "dipping") clipPale(rise.current);
+  }, [paint, clipPale]);
 
   useEffect(() => {
     fit();
@@ -223,18 +268,21 @@ export function Cloth() {
   }, [fit]);
 
   const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const locked = () => phase.current === "dipping" || phase.current === "dyed";
 
   const stopKawung = () => {
     for (const t of timers.current) window.clearTimeout(t);
-    timers.current = [];
+    // Emptied in place: the cleanup holds this same array.
+    timers.current.length = 0;
   };
 
   const onDown = (e: ReactPointerEvent<HTMLCanvasElement>) => {
-    if (phase.current === "dyed" || e.button > 0) return;
+    if (locked() || e.button > 0 || drawing.current) return;
     stopKawung();
     e.currentTarget.setPointerCapture(e.pointerId);
     const s: Stroke = { pts: [[e.clientX, e.clientY]], closed: false };
     drawing.current = s;
+    pointer.current = e.pointerId;
     strokes.current.push(s);
     setPhase("waxed");
     paint();
@@ -242,7 +290,7 @@ export function Cloth() {
 
   const onMove = (e: ReactPointerEvent<HTMLCanvasElement>) => {
     const s = drawing.current;
-    if (!s) return;
+    if (!s || e.pointerId !== pointer.current) return;
     // Coalesced events keep a fast stroke from turning into straight lines between frames.
     const events = e.nativeEvent.getCoalescedEvents?.() ?? [];
     const list = events.length ? events : [e.nativeEvent];
@@ -251,44 +299,65 @@ export function Cloth() {
       if (Math.hypot(ev.clientX - last[0], ev.clientY - last[1]) < 2) continue;
       s.pts.push([ev.clientX, ev.clientY]);
     }
-    paint();
+    // Only the stroke in hand: wax is opaque, so drawing it again over itself is enough.
+    const el = canvas.current;
+    const ctx = el?.getContext("2d");
+    if (!el || !ctx) return;
+    const dpr = el.width / window.innerWidth;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    waxOn(ctx, s);
   };
 
-  const onUp = () => {
+  const onUp = (e: ReactPointerEvent<HTMLCanvasElement>) => {
+    if (e.pointerId !== pointer.current) return;
     drawing.current = null;
+    pointer.current = -1;
   };
 
   const dip = () => {
-    if (phase.current === "dyed") return;
+    if (locked()) return;
     stopKawung();
     // A kawung still being drawn is finished first, so the dye finds all of it.
     if (kawungLeft.current.length) {
       strokes.current.push(...kawungLeft.current);
       kawungLeft.current = [];
     }
-    setPhase("dyed");
+    drawing.current = null;
+    pointer.current = -1;
+    setPlain(strokes.current.length === 0);
     cancelAnimationFrame(frame.current);
     if (reduced()) {
       rise.current = 1;
       paint();
+      setPhase("dyed");
       return;
     }
+    // Words and buttons keep their waxed look until the dye has passed them.
+    setPhase("dipping");
     const t0 = performance.now();
     const tick = (now: number) => {
       const t = Math.min(1, (now - t0) / DIP_MS);
       rise.current = ease(t);
       paint();
-      if (t < 1) frame.current = requestAnimationFrame(tick);
+      if (t < 1) {
+        clipPale(rise.current);
+        frame.current = requestAnimationFrame(tick);
+      } else {
+        setPhase("dyed");
+      }
     };
     frame.current = requestAnimationFrame(tick);
   };
 
-  const kawungLeft = useRef<Stroke[]>([]);
-
   const kawung = () => {
-    if (phase.current === "dyed") return;
+    if (locked()) return;
     stopKawung();
-    const all = kawungStrokes(window.innerWidth, window.innerHeight);
+    const text = textEl.current?.getBoundingClientRect();
+    const actions = actionsEl.current?.getBoundingClientRect();
+    if (!text || !actions) return;
+    const all = kawungStrokes(window.innerWidth, window.innerHeight, text, actions);
     setPhase("waxed");
     if (reduced()) {
       strokes.current.push(...all);
@@ -312,9 +381,53 @@ export function Cloth() {
     kawungLeft.current = [];
     strokes.current = [];
     rise.current = 0;
+    setPlain(false);
     setPhase("blank");
     paint();
   };
+
+  const dipping = view === "dipping";
+  const hint =
+    view === "dyed" ? (plain ? T.hint.plain : T.hint.dyed) : T.hint[dipping ? (plain ? "blank" : "waxed") : view];
+
+  /** The words and buttons. Drawn twice while dipping: the real ones, and a pale copy over them. */
+  const layer = (isPale: boolean) => (
+    <div className={isPale ? "nf-layer nf-pale" : "nf-layer"} ref={isPale ? pale : undefined} aria-hidden={isPale || undefined}>
+      <div className="nf-text" ref={isPale ? undefined : textEl}>
+        <p className="nf-eyebrow">{T.eyebrow}</p>
+        <h1 className="nf-title">
+          {T.heading} <code className="nf-path">{path || T.pathFallback}</code>
+          {path.endsWith("…") ? "" : "."}
+        </h1>
+        <p className="nf-lede">{T.lede}</p>
+        <p className="nf-hint">{hint}</p>
+      </div>
+
+      <div className="nf-actions" ref={isPale ? undefined : actionsEl}>
+        {view === "dyed" ? (
+          <button type="button" className="nf-btn nf-btn-line" onClick={again}>
+            {T.again}
+          </button>
+        ) : (
+          <>
+            <button type="button" className="nf-btn nf-btn-solid" onClick={dip} disabled={dipping} tabIndex={isPale ? -1 : undefined}>
+              {T.dip}
+            </button>
+            <button type="button" className="nf-btn nf-btn-line" onClick={kawung} disabled={dipping} tabIndex={isPale ? -1 : undefined}>
+              {T.kawung}
+            </button>
+          </>
+        )}
+        {isPale ? (
+          <span className="nf-btn nf-btn-link">{T.home}</span>
+        ) : (
+          <Link className="nf-btn nf-btn-link" href="/" prefetch={false}>
+            {T.home}
+          </Link>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div className="nf" data-phase={view}>
@@ -329,37 +442,8 @@ export function Cloth() {
         onPointerCancel={onUp}
       />
       <div className="nf-threads" aria-hidden="true" />
-
-      <div className="nf-text">
-        <p className="nf-eyebrow">{T.eyebrow}</p>
-        <h1 className="nf-title">
-          {T.heading} <code className="nf-path">{path || T.pathFallback}</code>.
-        </h1>
-        <p className="nf-lede">{T.lede}</p>
-        <p className="nf-hint" aria-live="polite">
-          {T.hint[view]}
-        </p>
-      </div>
-
-      <div className="nf-actions">
-        {view === "dyed" ? (
-          <button type="button" className="nf-btn nf-btn-line" onClick={again}>
-            {T.again}
-          </button>
-        ) : (
-          <>
-            <button type="button" className="nf-btn nf-btn-solid" onClick={dip}>
-              {T.dip}
-            </button>
-            <button type="button" className="nf-btn nf-btn-line" onClick={kawung}>
-              {T.kawung}
-            </button>
-          </>
-        )}
-        <Link className="nf-btn nf-btn-link" href="/" prefetch={false}>
-          {T.home}
-        </Link>
-      </div>
+      {layer(false)}
+      {dipping ? layer(true) : null}
       <p className="sr-only" role="status">
         {view === "dyed" ? T.announceDyed : ""}
       </p>
