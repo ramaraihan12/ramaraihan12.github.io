@@ -46,24 +46,50 @@ export function ToolsMotion(props: ComponentPropsWithoutRef<"section">) {
       mm.add({ motion: MOTION_MQ, reduce: REDUCE_MQ }, (ctx) => {
         if (ctx.conditions?.reduce || !scrollyOn()) return;
 
-        const bands = gsap.utils.toArray<HTMLElement>(".tool-band", section).map((band) => ({
-          band,
-          print: band.querySelector<HTMLElement>(".tool-print"),
-          caps: [...band.querySelectorAll<HTMLElement>(".tool-cap")],
-        }));
+        const bands = gsap.utils
+          .toArray<HTMLElement>(".tool-band", section)
+          .map((band) => ({
+            band,
+            print: band.querySelector<HTMLElement>(".tool-print"),
+            caps: [...band.querySelectorAll<HTMLElement>(".tool-cap")],
+          }));
 
-        for (const { band, print, caps } of bands) {
+        for (const [index, { band, print, caps }] of bands.entries()) {
           for (const cap of caps) {
             const stamp = cap.querySelector<HTMLElement>(".cap-stamp");
             if (stamp) stamp.dataset.state = "scrub";
           }
 
+          const span = () =>
+            Math.round(
+              Math.min(
+                window.innerHeight * SPAN,
+                LEAD_PX + caps.length * CAP_PX,
+              ),
+            );
+          // The first band must be finished where the nav lands the section (its top under the
+          // header), or a jump to #tools shows half-blank names. Measured on refresh.
+          const landing = () => {
+            const header =
+              document.querySelector(".site-header")?.clientHeight ?? 0;
+            return Math.round(
+              header +
+                band.getBoundingClientRect().top -
+                section.getBoundingClientRect().top,
+            );
+          };
+
           const tl = gsap.timeline({
             defaults: { ease: "none" },
             scrollTrigger: {
               trigger: band,
-              start: "top 85%",
-              end: () => `+=${Math.round(Math.min(window.innerHeight * SPAN, LEAD_PX + caps.length * CAP_PX))}`,
+              start:
+                index === 0
+                  ? () =>
+                      `top ${Math.min(window.innerHeight, landing() + span())}px`
+                  : "top 85%",
+              end:
+                index === 0 ? () => `top ${landing()}px` : () => `+=${span()}`,
               scrub: 0.5,
               invalidateOnRefresh: true,
               refreshPriority: PRIORITY.tools,
@@ -75,15 +101,28 @@ export function ToolsMotion(props: ComponentPropsWithoutRef<"section">) {
           if (print) {
             const cells = () => {
               const { paddingTop, paddingBottom } = getComputedStyle(print);
-              const cell = print.clientHeight - parseFloat(paddingTop) - parseFloat(paddingBottom);
+              const cell =
+                print.clientHeight -
+                parseFloat(paddingTop) -
+                parseFloat(paddingBottom);
               return Math.ceil(print.clientWidth / Math.max(1, cell));
             };
-            tl.fromTo(print, { "--cells": 0 }, { "--cells": cells, snap: { "--cells": 1 }, duration: PRINT }, 0);
+            tl.fromTo(
+              print,
+              { "--cells": 0 },
+              { "--cells": cells, snap: { "--cells": 1 }, duration: PRINT },
+              0,
+            );
           }
 
           caps.forEach((cap, i) => {
             const at = FIRST + i * BEAT;
-            tl.fromTo(cap, { "--press": 0 }, { "--press": 1.06, duration: DROP, ease: "power2.in" }, at).to(
+            tl.fromTo(
+              cap,
+              { "--press": 0 },
+              { "--press": 1.06, duration: DROP, ease: "power2.in" },
+              at,
+            ).to(
               cap,
               { "--press": 1, duration: SETTLE, ease: "power1.out" },
               at + DROP,
