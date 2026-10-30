@@ -7,7 +7,7 @@ import { type CSSProperties, Fragment, type ReactNode, useRef, useState } from "
 import { KawungField, type KawungFieldHandle } from "@/components/art/kawung-field";
 import { queryCopy } from "@/content/copy";
 import { intro, retrieval, steps } from "@/content/story";
-import { EmbeddingMap, type Frame } from "@/lib/embedding-map";
+import { EmbeddingMap, type Frame, IRIS_SHARE } from "@/lib/embedding-map";
 import { MOBILE_MQ, PRIORITY, REDUCE_MQ, SCENE_MQ, scrollyOn } from "@/lib/scroll";
 import { elementMarker, setMarkers } from "@/lib/stage";
 import { chipDrag } from "./chip-drag";
@@ -24,6 +24,8 @@ const LINES = [
   tokens.slice(NAME).map((_, i) => NAME + i),
 ];
 const isName = (i: number) => i >= NAME && tokens[i].text !== "?";
+// The second piece of a name ("ama" after " R", "han" after " Rai"): the canting cuts the line here.
+const isPiece = (i: number) => i > 0 && /^[a-z]/.test(tokens[i].text);
 
 /** The question's 1,024 numbers. Module level, so the cloth lays itself out once. */
 const QUERY_VECTOR: readonly number[] = retrieval.queryVector;
@@ -72,6 +74,13 @@ function Token({ index, lineStart }: { index: number; lineStart: boolean }) {
   const leadingSpace = text.startsWith(" ");
   return (
     <span className={isName(index) ? "tok tok-name" : "tok"} style={{ "--i": index } as CSSProperties}>
+      {isPiece(index) ? (
+        <span className="tok-cut" aria-hidden="true">
+          <svg viewBox="0 0 10 110">
+            <path d="M5 2 C 2.5 18 7.5 30 4.6 52 S 7 88 5 108" />
+          </svg>
+        </span>
+      ) : null}
       {leadingSpace ? <span className={lineStart ? "tok-sp tok-sp-start" : "tok-sp"} /> : null}
       {text.trimStart()}
       <span className="tok-id">{id}</span>
@@ -220,6 +229,7 @@ export function OpeningScene({ land }: { land: ReactNode }) {
 
         const chips = gsap.utils.toArray<HTMLElement>(".qs-title .tok", section);
         const ids = gsap.utils.toArray<HTMLElement>(".qs-title .tok-id", section);
+        const cuts = gsap.utils.toArray<HTMLElement>(".qs-title .tok-cut", section);
         const [stepTokens, , stepRetrieve] = gsap.utils.toArray<HTMLElement>(".qs-step", section);
         const embedBody = q(".qs-step-embed .qs-step-body");
         const numbers = gsap.utils.toArray<HTMLElement>(".vec-n", section);
@@ -250,10 +260,15 @@ export function OpeningScene({ land }: { land: ReactNode }) {
         // Resizing the canvas clears it, and a refresh renders the timeline without firing
         // onUpdate, so repaint once it settles unless the loop is already drawing.
         const repaint = () => {
+          lift();
+          writeIds();
           if (!looping) map.draw(performance.now());
         };
         ScrollTrigger.addEventListener("refresh", repaint);
 
+        // While the cloth gathers into the notes, the map is drawn over it, so the flowers
+        // that leave it stay in sight on their way.
+        const lift = () => stage.classList.toggle("is-gathering", map.state.gather > 0 && map.state.gather < 1);
         const loop = () => map.draw(performance.now());
         const play = (on: boolean) => {
           if (on === looping) return;
@@ -290,6 +305,9 @@ export function OpeningScene({ land }: { land: ReactNode }) {
         const captionIn = { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" };
         const captionOut = { opacity: 0, y: -16, duration: 0.35, ease: "power2.in" };
         const sink = { v: 0 };
+        // One counter per token id. The page carries the real number; the scene counts up to it.
+        const count = tokens.map(() => ({ v: 1 }));
+        const writeIds = () => ids.forEach((el, i) => (el.textContent = String(Math.round(tokens[i].id * count[i].v))));
         const weave = { p: 0 };
         const drawCloth = () => cloth.current?.draw(weave.p);
         // The cloth closes in on the dot like an iris. A clip, not a scale: the cloth measures
@@ -323,6 +341,7 @@ export function OpeningScene({ land }: { land: ReactNode }) {
           },
           // The scrub keeps easing for a moment after the scene leaves the screen.
           onUpdate: () => {
+            lift();
             map.draw(performance.now());
             drag.set(tl.time() >= T.drag[0] && tl.time() <= T.drag[1]);
           },
@@ -349,14 +368,18 @@ export function OpeningScene({ land }: { land: ReactNode }) {
           )
           .fromTo(splash, { opacity: 0.9, scale: 0.25 }, { opacity: 0, scale: 2.4, duration: 0.45, ease: "power1.out", immediateRender: false }, 1.35)
           .addLabel("tokens", T.tokens)
-          .fromTo(ids, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.07 }, 0.7)
+          .fromTo(ids, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.3, stagger: 0.06 }, 0.7)
           .fromTo(stepTokens, { opacity: 0, y: 16 }, captionIn, 0.8)
           .addLabel("tokenized", T.tokenized)
           .to(stepTokens, captionOut, 2.0)
+          // The canting cuts each name where the tokenizer did, one pen stroke after the other,
+          // and every token's number counts up to its place in the vocabulary.
+          .fromTo(cuts, { "--cut": 0 }, { "--cut": 1, duration: 0.45, ease: "power1.inOut", stagger: 0.3 }, 0.55)
+          .fromTo(count, { v: 0 }, { v: 1, duration: 0.6, ease: "power2.out", stagger: 0.05, onUpdate: writeIds }, 0.85)
 
           // Embed. The tokens go into the dot one after another, and the dot draws the answer
           // back out as a kawung cloth: every petal one of the 1,024 numbers.
-          .to(ids, { opacity: 0, duration: 0.2 }, 2.1)
+          .to([ids, cuts], { opacity: 0, duration: 0.2 }, 2.1)
           .fromTo(
             chips,
             { x: 0, y: 0, scale: 1, opacity: 1 },
@@ -385,8 +408,10 @@ export function OpeningScene({ land }: { land: ReactNode }) {
           // The cloth closes into the dot: 1,024 numbers become one point among the notes. The
           // canvas takes the dot over from the sun, and the map blooms out around it.
           .fromTo(iris, { open: 1 }, { open: 0, duration: 0.6, ease: "power2.in", immediateRender: false, onUpdate: closeIris }, T.fold)
+          // As it closes, the flowers of the cloth leave it for the notes (see embedding-map.ts).
+          .to(map.state, { gather: 1, duration: 0.6 / IRIS_SHARE, ease: "none" }, T.fold)
           .to(halo, { opacity: 0, scale: 0.4, duration: 0.3, ease: "power2.in" }, T.fold + 0.3)
-          .to(embedBody, captionOut, T.fold + 0.1)
+          .to(embedBody, captionOut, T.fold - 0.3)
           .to(sun, { opacity: 0, duration: 0.12 }, T.swap)
           .to(map.state, { query: 1, duration: 0.12 }, T.swap)
           .to(map.state, { alpha: 1, bloom: 1, duration: 1.4, ease: "power1.out" }, T.bloom)
@@ -398,15 +423,19 @@ export function OpeningScene({ land }: { land: ReactNode }) {
         // Retrieve: one line out to each of the five closest notes, and its card.
         retrieval.top.forEach((_, rank) => {
           const at = T.hits + rank * 0.75;
-          tl.to(map.state.hits[rank], { v: 1, duration: 0.45, ease: "power1.out" }, at).fromTo(
-            cards[rank],
-            { opacity: 0, y: 24 },
-            { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
-            at + 0.25,
-          );
-          // Phones have room for one card at a time, so the previous one steps back.
+          tl.to(map.state.hits[rank], { v: 1, duration: 0.45, ease: "power1.out" }, at);
           if (mobile && rank > 0) {
-            tl.to(cards[rank - 1], { opacity: 0, y: -14, scale: 0.96, duration: 0.3 }, at + 0.25);
+            // Phones have room for one card at a time. The slot is clipped, and the new card
+            // slides up over the old one like a sheet of paper, on its own opaque ground. The
+            // old card stays put until it is covered, so whatever the scroll stops at, one card
+            // reads whole and the other is only a head peeking out, never two sliced lines.
+            const slot = () => cards[rank].parentElement!.offsetHeight + 12;
+            gsap.set(cards[rank], { zIndex: rank + 1 });
+            tl.set(cards[rank], { opacity: 1 }, at + 0.1)
+              .fromTo(cards[rank], { y: slot }, { y: 0, duration: 0.3, ease: "power2.inOut" }, at + 0.1)
+              .to(cards[rank - 1], { opacity: 0, duration: 0.1 }, at + 0.32);
+          } else {
+            tl.fromTo(cards[rank], { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, at + 0.25);
           }
         });
         tl.addLabel("done").to({}, { duration: 0.8 });
@@ -440,6 +469,8 @@ export function OpeningScene({ land }: { land: ReactNode }) {
           ScrollTrigger.removeEventListener("refresh", closeIris);
           window.removeEventListener("pointermove", onPoint);
           clothBox.style.clipPath = "";
+          stage.classList.remove("is-gathering");
+          ids.forEach((el, i) => (el.textContent = String(tokens[i].id)));
           rig.kill();
           drag.kill();
           removeHover();
