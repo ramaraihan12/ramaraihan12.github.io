@@ -67,16 +67,34 @@ export function ToolsMotion(props: ComponentPropsWithoutRef<"section">) {
                 LEAD_PX + caps.length * CAP_PX,
               ),
             );
-          // The first band must be finished where the nav lands the section (its top under the
-          // header), or a jump to #tools shows half-blank names. Measured on refresh.
+          // The first band must be finished where the section lands: under the header for the
+          // nav, or under the scroll-padding for a native #tools jump. Either way a jump shows
+          // printed names, not half-blank ones. Measured on refresh.
           const landing = () => {
-            const header =
-              document.querySelector(".site-header")?.clientHeight ?? 0;
+            const header = Math.max(
+              document.querySelector(".site-header")?.clientHeight ?? 0,
+              parseFloat(
+                getComputedStyle(document.documentElement).scrollPaddingTop,
+              ) || 0,
+            );
             return Math.round(
               header +
                 band.getBoundingClientRect().top -
                 section.getBoundingClientRect().top,
             );
+          };
+          // Band 0 is held to the landing only when it is really on screen there. On a short
+          // screen (a phone on its side) it sits at the fold, so holding it would squeeze the
+          // caps into a few px or print them before they show; it gets a normal window then.
+          const first = () => {
+            const vh = window.innerHeight;
+            const land = landing();
+            const s = span();
+            if (vh - land >= s * 0.5) {
+              return { start: Math.min(vh, land + s), end: land };
+            }
+            const start = Math.round(vh * 0.85);
+            return { start, end: start - s };
           };
 
           const tl = gsap.timeline({
@@ -84,12 +102,9 @@ export function ToolsMotion(props: ComponentPropsWithoutRef<"section">) {
             scrollTrigger: {
               trigger: band,
               start:
-                index === 0
-                  ? () =>
-                      `top ${Math.min(window.innerHeight, landing() + span())}px`
-                  : "top 85%",
+                index === 0 ? () => `top ${first().start}px` : "top 85%",
               end:
-                index === 0 ? () => `top ${landing()}px` : () => `+=${span()}`,
+                index === 0 ? () => `top ${first().end}px` : () => `+=${span()}`,
               scrub: 0.5,
               invalidateOnRefresh: true,
               refreshPriority: PRIORITY.tools,
