@@ -27,12 +27,14 @@
     text-underline-offset: 0.14em;
     transition: font-variation-settings 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
 
-    &:hover {
-      --w: 118;
+    @media (hover: hover) {
+      &:hover {
+        --w: 118;
+      }
     }
 
     /* The address itself is the label, so the copy shows up as a tag after it. */
-    &[data-copied]::after {
+    &[data-copied]:not([data-stamp])::after {
       content: "copied";
       display: inline-block;
       margin-left: 0.6rem;
@@ -153,6 +155,318 @@
 
     @media (prefers-reduced-motion: reduce) {
       transition: none;
+    }
+  }
+
+
+  /* ---------- copied stamp: pressed beside the address ---------- */
+
+  .email-stamped {
+    position: relative;
+    display: inline-block;
+    margin-top: 2.5rem;
+
+    & > .contact-email {
+      margin-top: 0;
+    }
+  }
+
+  /* The cap lands on the top right corner of the address, in the gap under the lead, so
+     nothing moves and it never covers the letters. */
+  .email-stamp {
+    position: absolute;
+    right: 0.4rem;
+    bottom: 100%;
+    margin-bottom: 0.1rem;
+    font-size: clamp(0.95rem, 1.2vw + 0.55rem, 1.15rem);
+    font-weight: 700;
+    pointer-events: none;
+  }
+
+  /* ---------- ask-again: the picker under the email ---------- */
+
+  .ask {
+    margin-top: 3.5rem;
+    padding-top: 1.5rem;
+    border-top: 1.5px dashed color-mix(in oklab, var(--nila) 35%, transparent);
+  }
+
+  .ask-label {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--on-kunyit-muted);
+  }
+
+  .ask-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.9rem;
+
+    @media (width < 40rem) {
+      gap: 0.4rem;
+    }
+  }
+
+  .ask-chip {
+    padding: 0.4rem 0.8rem;
+    border: 1.5px solid var(--nila);
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: left;
+    color: var(--nila);
+    transition:
+      background-color 0.2s,
+      color 0.2s;
+
+    @media (width < 40rem) {
+      padding: 0.35rem 0.7rem;
+      font-size: 0.8rem;
+    }
+
+    @media (hover: hover) {
+      &:hover {
+        background: rgb(15 26 71 / 0.08);
+      }
+    }
+
+    &[aria-pressed="true"] {
+      background: var(--nila);
+      color: var(--kunyit);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--nila);
+      outline-offset: 3px;
+    }
+  }
+
+  .ask-out {
+    margin-top: 1.5rem;
+  }
+
+  .ask-note,
+  .ask-head {
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.72rem;
+    color: var(--on-kunyit-muted);
+  }
+
+  .ask-hits {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 0.7rem;
+    max-width: 44rem;
+    list-style: none;
+    padding: 0;
+  }
+
+  /* Same card as the retrieval step, on cloth: score and file on a line, the note under it,
+     and a bar as long as the score. */
+  .ask-hit {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.15rem 0.8rem;
+    padding: 0.8rem 1rem 1.25rem;
+    border: 1.5px solid var(--nila);
+    border-radius: 0.5rem;
+    animation: ask-in 0.4s ease-out both;
+    animation-delay: calc(var(--i) * 90ms);
+  }
+
+  .ask-score {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-variation-settings: "wdth" 110;
+    font-size: 1.3rem;
+    line-height: 1.1;
+  }
+
+  .ask-src {
+    align-self: center;
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.72rem;
+    color: var(--on-kunyit-muted);
+  }
+
+  .ask-text {
+    grid-column: 1 / -1;
+    margin-top: 0.2rem;
+    font-size: 0.92rem;
+    line-height: 1.45;
+  }
+
+  .ask-bar {
+    position: absolute;
+    left: 1rem;
+    right: 1rem;
+    bottom: 0.4rem;
+    height: 3px;
+    background: var(--nila);
+    transform-origin: left;
+    scale: var(--score) 1;
+    border-radius: 2px;
+    animation: ask-bar 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: calc(var(--i) * 90ms + 150ms);
+  }
+
+  @keyframes ask-in {
+    from {
+      opacity: 0;
+      translate: 0 0.5rem;
+    }
+  }
+
+  @keyframes ask-bar {
+    from {
+      scale: 0 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ask-hit,
+    .ask-bar {
+      animation: none;
+    }
+  }
+
+  /* ---------- layangan: a kite over Merbabu ---------- */
+
+  /* A square in the bottom right of the band, so the kite hangs in the open sky right of the
+     summit and the string comes down to the near hill. */
+  .layangan {
+    position: absolute;
+    right: 3%;
+    bottom: 0;
+    height: 88%;
+    aspect-ratio: 1;
+    overflow: visible;
+    --lg-paper: var(--mori);
+    --lg-line: var(--nila);
+    --lg-string: color-mix(in oklab, var(--mori) 75%, transparent);
+    pointer-events: none;
+
+    & .lg-skin {
+      fill: url(#lg-parang);
+    }
+    & .lg-edge,
+    & .lg-spar,
+    & .lg-tail,
+    & .lg-string {
+      fill: none;
+      stroke: var(--lg-line);
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    & .lg-edge {
+      stroke-width: 0.55;
+    }
+    & .lg-spar {
+      stroke-width: 0.25;
+      opacity: 0.6;
+    }
+    & .lg-tail {
+      stroke: var(--soga);
+      stroke-width: 0.4;
+    }
+    & .lg-knot {
+      fill: var(--soga);
+    }
+    & .lg-string {
+      stroke: var(--lg-string);
+      stroke-width: 0.28;
+    }
+    & .lg-hand {
+      fill: var(--lg-string);
+    }
+
+    & .lg-sway {
+      transform-box: view-box;
+      transform-origin: 22px 92px;
+      animation: lg-sway 9s ease-in-out infinite alternate;
+      animation-play-state: paused;
+    }
+
+    & .lg-kite {
+      transform-box: fill-box;
+      transform-origin: 50% 40%;
+      animation: lg-tilt 5.3s ease-in-out infinite alternate;
+      animation-play-state: paused;
+    }
+
+    & .layangan-up,
+    & .layangan-down {
+      transition: opacity 1.2s ease;
+    }
+    & .layangan-down {
+      opacity: 0;
+    }
+  }
+
+  /* Dusk and the small hours of morning: the sky is pale, the string reads in nila. */
+  .contact-sky[data-phase="dusk"] .layangan,
+  .contact-sky[data-phase="morning"] .layangan {
+    --lg-string: color-mix(in oklab, var(--pudar) 80%, transparent);
+  }
+
+  /* Only moves while the band is on screen. */
+  .contact-sky[data-live] .layangan .lg-sway,
+  .contact-sky[data-live] .layangan .lg-kite {
+    animation-play-state: running;
+  }
+
+  /* Night: the kite is brought in. */
+  .contact-sky[data-phase="night"] .layangan {
+    --lg-line: var(--mori);
+    --lg-string: var(--pudar);
+
+    & .lg-skin {
+      fill: url(#lg-parang-night);
+    }
+    & .lg-tail {
+      stroke: var(--soga-2);
+    }
+    & .lg-knot {
+      fill: var(--soga-2);
+    }
+    & .lg-sway,
+    & .lg-kite {
+      animation: none;
+    }
+    & .layangan-up {
+      opacity: 0;
+    }
+    & .layangan-down {
+      opacity: 1;
+    }
+  }
+
+  @keyframes lg-sway {
+    from {
+      rotate: -1.4deg;
+    }
+    to {
+      rotate: 1.4deg;
+    }
+  }
+
+  @keyframes lg-tilt {
+    from {
+      rotate: -6deg;
+    }
+    to {
+      rotate: 5deg;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .layangan .lg-sway,
+    .layangan .lg-kite {
+      animation: none;
     }
   }
 

@@ -190,3 +190,14 @@ export const consoleGreeting = [
   "The answer at the end isn't generated. I wrote it.",
   `Source: ${site.source}`,
 ] as const;
+
+/** From src/components/scenes/closing/ask-again.tsx. The picker under the email. */
+export const askAgainCopy = {
+  label: "Not sure what to write? Try a question on my notes first.",
+  loading: "Searching the notes…",
+  failed: "The notes didn't load. Email works too.",
+  /** Reads before the list: "closest 3 of 51 notes · cosine similarity". */
+  head: (k: number, total: number) => `closest ${k} of ${total} notes · cosine similarity`,
+  /** Screen-reader announcement when a question is picked. */
+  announce: (q: string, k: number) => `${q} The ${k} closest notes are listed below.`,
+} as const;
