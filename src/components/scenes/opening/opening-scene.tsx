@@ -261,6 +261,7 @@ export function OpeningScene({ land }: { land: ReactNode }) {
         // onUpdate, so repaint once it settles unless the loop is already drawing.
         const repaint = () => {
           lift();
+          writeIds();
           if (!looping) map.draw(performance.now());
         };
         ScrollTrigger.addEventListener("refresh", repaint);
@@ -424,15 +425,16 @@ export function OpeningScene({ land }: { land: ReactNode }) {
           const at = T.hits + rank * 0.75;
           tl.to(map.state.hits[rank], { v: 1, duration: 0.45, ease: "power1.out" }, at);
           if (mobile && rank > 0) {
-            // Phones have room for one card at a time. The slot is clipped, and the old card
-            // slides out the top as the new one slides in from the bottom, so two cards never
-            // sit on top of each other, whatever the scroll stops at.
+            // Phones have room for one card at a time. The slot is clipped, and the new card
+            // slides up over the old one like a sheet of paper, on its own opaque ground. The
+            // old card stays put until it is covered, so whatever the scroll stops at, one card
+            // reads whole and the other is only a head peeking out, never two sliced lines.
             const slot = () => cards[rank].parentElement!.offsetHeight + 12;
-            tl.to(cards[rank - 1], { opacity: 0, y: () => -slot(), duration: 0.3, ease: "power2.inOut" }, at + 0.1).fromTo(
-              cards[rank],
-              { opacity: 0, y: slot },
-              { opacity: 1, y: 0, duration: 0.3, ease: "power2.inOut" },
-              at + 0.1,
+            gsap.set(cards[rank], { zIndex: rank + 1 });
+            tl.set(cards[rank], { opacity: 1 }, at + 0.1).fromTo(cards[rank], { y: slot }, { y: 0, duration: 0.3, ease: "power2.inOut" }, at + 0.1).set(
+              cards[rank - 1],
+              { opacity: 0 },
+              at + 0.4,
             );
           } else {
             tl.fromTo(cards[rank], { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, at + 0.25);

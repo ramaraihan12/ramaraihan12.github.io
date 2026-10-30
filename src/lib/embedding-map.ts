@@ -51,6 +51,18 @@ const TAU = Math.PI * 2;
 /** One flower of the truntum ground: where it sits, how it's turned and how big. */
 type Flower = Point & { turn: number; size: number; loose: boolean };
 
+/** A cloth flower on its way to a note. */
+type Donor = { note: number; flower: number; launch: number; bow: number };
+
+/** Where a group label may sit, nearest its centre first. */
+const SPOTS: Point[] = [{ x: 0, y: 0 }];
+for (const r of [14, 24, 36, 50, 66, 86, 110, 140]) {
+  for (let k = 0; k < 16; k++) {
+    const a = (k / 16) * TAU + (r % 5) * 0.2;
+    SPOTS.push({ x: Math.cos(a) * r * 1.7, y: Math.sin(a) * r });
+  }
+}
+
 /**
  * Draws the notes as dots in the 2D projection from scripts/embed_notes.py, on a faint truntum
  * ground, like a map drawn on cloth. The question is a glowing turmeric dot, and dotted canting
@@ -81,10 +93,11 @@ export class EmbeddingMap {
   private cloth: KawungLayout | null = null;
   /** How near each note sits to the question on the map, 0 to 1. The map's own distance, not the cosine. */
   private close: number[] = [];
-  private donors: { flower: number; launch: number; bow: number }[] = [];
-  /** Group labels: the width of each name, and the offset it was last put at. */
-  private labelW = new Map<string, number>();
-  private labelAt = new Map<string, Point>();
+  /** The flower each note takes, and a few more that fly to the same dot from across the stage. */
+  private donors: Donor[] = [];
+  private extras: Donor[] = [];
+  /** Group labels, placed once per resize: the offset from the group's centre, in map units. */
+  private labels: { name: string; at: Point; off: Point }[] = [];
   private groups: { name: string; x: number; y: number }[];
   private bounds: { minX: number; maxX: number; minY: number; maxY: number };
   private hitIndex: number[];
@@ -177,9 +190,8 @@ export class EmbeddingMap {
     const at = anchor ?? this.toScreen(q, this.near);
     const s = this.near.s * this.zoom;
     this.far = { cx: at.x - q.x * s, cy: at.y + q.y * s, s };
-    this.labelW.clear();
-    this.labelAt.clear();
     this.layCloth();
+    this.layLabels();
   }
 
   /**
@@ -197,11 +209,14 @@ export class EmbeddingMap {
     const taken = new Set<number>();
     const r = rng(77);
     this.donors = [];
-    const order = data.points.map((_, i) => i).sort((i, j) => this.reachOf(i, q) - this.reachOf(j, q));
-    for (const i of order) {
-      const t = this.toScreen(data.points[i], this.far);
-      const tx = Math.min(w, Math.max(0, t.x));
-      const ty = Math.min(h, Math.max(0, t.y));
+    this.extras = [];
+    // The iris closes as 1 - g squared, so it passes a flower at this distance when g is
+    // sqrt(1 - distance / reach): that is when the flower leaves.
+    const launchOf = (f: number) => {
+      const dn = clamp01(Math.hypot(cloth.seeds[f].x - a.x, cloth.seeds[f].y - a.y) / reach);
+      return IRIS_SHARE * Math.sqrt(1 - dn);
+    };
+    const nearest = (tx: number, ty: number) => {
       let best = -1;
       let bestD = Infinity;
       for (let f = 0; f < cloth.flowers; f++) {
@@ -212,12 +227,28 @@ export class EmbeddingMap {
           bestD = d;
         }
       }
+      return best;
+    };
+    const order = data.points.map((_, i) => i).sort((i, j) => this.reachOf(i, q) - this.reachOf(j, q));
+    for (const i of order) {
+      const t = this.toScreen(data.points[i], this.far);
+      let best = nearest(Math.min(w, Math.max(0, t.x)), Math.min(h, Math.max(0, t.y)));
       if (best < 0) best = 0;
       taken.add(best);
-      // The iris closes as 1 - g squared, so it passes a flower at this distance when g is
-      // sqrt(1 - distance / reach): that is when the flower leaves.
-      const dn = clamp01(Math.hypot(cloth.seeds[best].x - a.x, cloth.seeds[best].y - a.y) / reach);
-      this.donors[i] = { flower: best, launch: IRIS_SHARE * Math.sqrt(1 - dn), bow: (r() - 0.5) * 0.5 };
+      this.donors[i] = { note: i, flower: best, launch: launchOf(best), bow: (r() - 0.5) * 0.5 };
+    }
+    // The cloth is spread over the whole stage but the camera is zoomed in on the question, so
+    // the notes' own flowers all sit on one side. Each note takes a couple more, the ones nearest
+    // where it ends up on the finished map, so the cloth everywhere leaves for the notes.
+    const more = w < 600 ? 1 : 2;
+    for (let n = 0; n < more; n++) {
+      for (const i of order) {
+        const t = this.toScreen(data.points[i], this.near);
+        const f = nearest(Math.min(w, Math.max(0, t.x)), Math.min(h, Math.max(0, t.y)));
+        if (f < 0) continue;
+        taken.add(f);
+        this.extras.push({ note: i, flower: f, launch: launchOf(f), bow: (r() - 0.5) * 0.5 });
+      }
     }
   }
 
@@ -295,7 +326,7 @@ export class EmbeddingMap {
     ctx.fill();
 
     const hitScreens = this.hitIndex.map((i) => this.toScreen(data.points[i], cam));
-    this.drawLabels(cam, qs, hitScreens, seen);
+    this.drawLabels(cam, seen);
 
     // Every note, a wax dot each, none quite the same size. A note's dot is there once the
     // flower of cloth it took has flown in and shrunk to it.
@@ -423,11 +454,14 @@ export class EmbeddingMap {
     }
   }
 
-  /** 0 to 1: how far the flight of the cloth flower that becomes this note has got. */
-  private flight(i: number) {
-    const d = this.donors[i];
+  /** 0 to 1: how far a cloth flower's flight has got. */
+  private flightOf(d: Donor | undefined) {
     if (!d) return this.state.gather >= 1 ? 1 : 0;
     return clamp01((this.state.gather - d.launch) / FLIGHT);
+  }
+
+  private flight(i: number) {
+    return this.flightOf(this.donors[i]);
   }
 
   /** How much of a note's dot has appeared: it comes in as the flower lands. */
@@ -438,76 +472,99 @@ export class EmbeddingMap {
   /**
    * The cloth's flowers in the air: each one leaves where the iris passes it, flies to the spot
    * its note is at right now, and shrinks into the wax dot. The dye is shaded by how near the note
-   * is to the question. The five closest don't shrink all the way: they stay open, in turmeric,
-   * until the canting line reaches them.
+   * is to the question. The five closest don't shrink all the way: they stay open as a small
+   * turmeric flower until the canting line reaches them.
    */
   private drawFlowers(cam: Camera) {
-    const { ctx, state, cloth, colors, donors, data } = this;
+    const { state, cloth } = this;
     if (!cloth || state.gather <= 0) return;
-    const open = clamp01((state.bloom - 0.35) / 0.4);
-    const lineWidth = Math.max(0.6, (cloth.petals[0]?.a ?? 10) * 0.06);
-    ctx.lineWidth = lineWidth;
-    data.points.forEach((p, i) => {
-      const d = donors[i];
-      const rank = this.hitIndex.indexOf(i);
-      const top = rank >= 0;
-      const u = this.flight(i);
-      if (!d || u <= 0 || (u >= 1 && !top)) return;
-      const left = top ? 1 - clamp01(state.hits[rank].v) : 1;
-      if (left <= 0) return;
-      const e = ease(u);
-      const from = cloth.seeds[d.flower];
-      const to = this.toScreen(p, cam);
-      const len = Math.hypot(to.x - from.x, to.y - from.y) || 1;
-      const arc = Math.sin(Math.PI * e) * d.bow * len;
-      const cx = from.x + (to.x - from.x) * e - ((to.y - from.y) / len) * arc;
-      const cy = from.y + (to.y - from.y) * e + ((to.x - from.x) / len) * arc;
-      // Shrinks to a small flower, and a note that is near the question keeps more of it.
-      const rest = top ? 0.18 + 0.1 * open : 0.16;
-      const k = 1 + (rest - 1) * e ** 0.7;
-      const fade = top ? left : 1 - clamp01((u - 0.72) / 0.28);
-      const dye = (0.3 + 0.7 * clamp01(this.close[i] * 1.6)) * fade;
-      for (let q = 0; q < 4; q++) {
-        const pt = cloth.petals[d.flower * 4 + q];
-        const px = cx + (pt.x - from.x) * k;
-        const py = cy + (pt.y - from.y) * k;
-        if (pt.size >= 0) {
-          ctx.globalAlpha = 0.92 * dye;
-          ctx.fillStyle = top ? rgba(colors.kunyit, 1) : rgba(pt.positive ? colors.kunyit : colors.soga, 1);
-          const dk = top ? dyeScale(pt.size) + (1 - dyeScale(pt.size)) * open : dyeScale(pt.size);
-          ctx.beginPath();
-          ctx.ellipse(px, py, pt.a * k * dk, pt.b * k * dk, pt.angle + pt.tilt, 0, TAU);
-          ctx.fill();
-        }
-        ctx.globalAlpha = 0.45 * fade;
-        ctx.strokeStyle = rgba(colors.mori, 1);
+    this.ctx.lineWidth = Math.max(0.6, (cloth.petals[0]?.a ?? 10) * 0.06);
+    for (const d of this.extras) this.drawFlower(d, cam, false);
+    for (const d of this.donors) if (d) this.drawFlower(d, cam, true);
+    this.ctx.globalAlpha = 1;
+  }
+
+  private drawFlower(d: Donor, cam: Camera, main: boolean) {
+    const { ctx, state, cloth, colors, data, w, h } = this;
+    if (!cloth) return;
+    const rank = main ? this.hitIndex.indexOf(d.note) : -1;
+    const top = rank >= 0;
+    const u = this.flightOf(d);
+    if (u <= 0 || (u >= 1 && !top)) return;
+    const left = top ? 1 - clamp01(state.hits[rank].v) : 1;
+    if (left <= 0) return;
+    const e = ease(u);
+    const from = cloth.seeds[d.flower];
+    // A note out of frame is aimed at the nearest spot inside it, so flowers don't pile up on the edge.
+    // The spare flowers head for the note's place on the finished map, so the cloth all over the stage has somewhere to go.
+    const at = this.toScreen(data.points[d.note], main ? cam : this.near);
+    const to = { x: Math.min(w - 16, Math.max(16, at.x)), y: Math.min(h - 16, Math.max(16, at.y)) };
+    const len = Math.hypot(to.x - from.x, to.y - from.y) || 1;
+    const arc = Math.sin(Math.PI * e) * d.bow * len;
+    const cx = from.x + (to.x - from.x) * e - ((to.y - from.y) / len) * arc;
+    const cy = from.y + (to.y - from.y) * e + ((to.x - from.x) / len) * arc;
+    // Shrinks to a small flower, a note near the question keeping a bigger one.
+    const rest = top ? 0.4 : 0.16;
+    const k = 1 + (rest - 1) * e ** 0.7;
+    const fade = top ? left : 1 - clamp01((u - 0.72) / 0.28);
+    const dye = (0.3 + 0.7 * clamp01(this.close[d.note] * 1.6)) * fade;
+    for (let q = 0; q < 4; q++) {
+      const pt = cloth.petals[d.flower * 4 + q];
+      const px = cx + (pt.x - from.x) * k;
+      const py = cy + (pt.y - from.y) * k;
+      if (pt.size >= 0) {
+        ctx.globalAlpha = 0.92 * dye;
+        ctx.fillStyle = rgba(pt.positive || top ? colors.kunyit : colors.soga, 1);
+        const dk = dyeScale(pt.size);
         ctx.beginPath();
-        ctx.ellipse(px, py, pt.a * k, pt.b * k, pt.angle, 0, TAU);
-        ctx.stroke();
+        ctx.ellipse(px, py, pt.a * k * dk, pt.b * k * dk, pt.angle + pt.tilt, 0, TAU);
+        ctx.fill();
       }
-    });
-    ctx.globalAlpha = 1;
+      ctx.globalAlpha = 0.5 * fade;
+      ctx.strokeStyle = rgba(colors.mori, 1);
+      ctx.beginPath();
+      ctx.ellipse(px, py, pt.a * k, pt.b * k, pt.angle, 0, TAU);
+      ctx.stroke();
+    }
+    if (top && e > 0.5) {
+      // The seed of the flower: a turmeric dot in a wax ring, so it reads as kawung, not a cross.
+      ctx.globalAlpha = fade * clamp01((e - 0.5) / 0.4);
+      ctx.beginPath();
+      ctx.arc(cx, cy, 3.4, 0, TAU);
+      ctx.fillStyle = rgba(colors.kunyit, 1);
+      ctx.fill();
+      ctx.strokeStyle = rgba(colors.mori, 1);
+      ctx.stroke();
+    }
   }
 
   /**
-   * The group names, in the mono face, each put where nothing is: it tries spots round the
-   * group's centre, nearest first, and takes the first that clears every dot, the query, the
-   * rings and numbers on the retrieved notes, the canting lines out to them (at their full
-   * length, so a label doesn't move when a line is drawn), the other labels and the canvas edge.
-   * A label that kept its place stays put while it is still clear, so they don't jump when the
-   * camera moves. One that can't find a clear spot is left out: the notes matter more.
+   * The group names, in the mono face, each put where nothing is. Placed once per resize against
+   * the finished map: it tries spots round the group's centre, nearest first, and takes the first
+   * that clears every dot, the query, the rings and numbers on the retrieved notes, the canting
+   * lines out to them (at their full length), the other labels, the header and the canvas edge,
+   * and that sits next to its own group's notes. The offset is kept in map units, so the labels
+   * ride the camera as it pulls back and never hop. One that can't find a clear spot is left out:
+   * the notes matter more.
    */
-  private drawLabels(cam: Camera, qs: Point, hitScreens: Point[], seen: (p: Point) => number) {
-    const { ctx, data, colors, w, h } = this;
+  private layLabels() {
+    const { ctx, data, w, h } = this;
+    this.labels = [];
     ctx.font = `400 10.5px ${this.font}`;
     ctx.letterSpacing = "0.04em";
-    ctx.textBaseline = "middle";
-    ctx.textAlign = "center";
+    const cam = this.near;
+    const qs = this.toScreen(data.query, cam);
+    const root = getComputedStyle(document.documentElement);
+    const raw = root.getPropertyValue("--header-h").trim();
+    const header = (parseFloat(raw) || 0) * (raw.endsWith("rem") ? parseFloat(root.fontSize) || 16 : 1);
+    const top = header + 12;
 
     type Disc = Point & { r: number };
-    const discs: Disc[] = data.points.map((p) => ({ ...this.toScreen(p, cam), r: 5 }));
+    const dots = data.points.map((p) => this.toScreen(p, cam));
+    const discs: Disc[] = dots.map((p) => ({ ...p, r: 5 }));
     discs.push({ x: qs.x, y: qs.y, r: 17 });
-    hitScreens.forEach((p, rank) => {
+    this.hitIndex.forEach((idx, rank) => {
+      const p = dots[idx];
       discs.push({ x: p.x, y: p.y, r: 17 });
       // The rank's numeral sits up and to the right of the ring.
       discs.push({ x: p.x + 20, y: p.y - 16, r: 7 });
@@ -527,44 +584,56 @@ export class EmbeddingMap {
     });
 
     const placed: { x: number; y: number; w: number }[] = [];
-    const clear = (x: number, y: number, bw: number) => {
+    const room = (x: number, y: number, bw: number) => {
       const hw = bw / 2;
-      if (x - hw < 8 || x + hw > w - 8 || y < 22 || y > h - 10) return false;
+      if (x - hw < 8 || x + hw > w - 8 || y < top || y > h - 10) return false;
       for (const d of discs) {
         const ex = Math.max(Math.abs(d.x - x) - hw, 0);
         const ey = Math.max(Math.abs(d.y - y) - 7, 0);
         if (ex * ex + ey * ey < d.r * d.r) return false;
       }
-      return !placed.some((p) => Math.abs(p.x - x) < (p.w + bw) / 2 + 4 && Math.abs(p.y - y) < 16);
+      // Labels that share a column need a clear gap, or two read as one two-line name.
+      return !placed.some((p) => Math.abs(p.x - x) < (p.w + bw) / 2 + 4 && Math.abs(p.y - y) < 26);
+    };
+    // The note nearest a spot should be one of the group's own, so the name stays by its cluster.
+    const own = (name: string, x: number, y: number) => {
+      let best = -1;
+      let bestD = Infinity;
+      dots.forEach((p, i) => {
+        const d = Math.hypot(p.x - x, p.y - y);
+        if (d < bestD) {
+          best = i;
+          bestD = d;
+        }
+      });
+      return best >= 0 && data.points[best].group === name;
     };
 
-    const spots: Point[] = [{ x: 0, y: 0 }];
-    for (const r of [14, 24, 36, 50, 66, 86]) {
-      for (let k = 0; k < 12; k++) {
-        const a = (k / 12) * TAU + (r % 5) * 0.2;
-        spots.push({ x: Math.cos(a) * r * 1.7, y: Math.sin(a) * r });
-      }
-    }
-
     for (const g of [...this.groups].sort((a, b) => b.y - a.y)) {
-      const a = seen(g);
-      let bw = this.labelW.get(g.name);
-      if (bw === undefined) {
-        bw = ctx.measureText(g.name).width + 10;
-        this.labelW.set(g.name, bw);
-      }
+      const bw = ctx.measureText(g.name).width + 10;
       const s = this.toScreen(g, cam);
-      const last = this.labelAt.get(g.name);
-      const at: Point | undefined = last && clear(s.x + last.x, s.y + last.y, bw) ? last : spots.find((o) => clear(s.x + o.x, s.y + o.y, bw));
-      if (!at) {
-        this.labelAt.delete(g.name);
-        continue;
-      }
-      this.labelAt.set(g.name, at);
+      const fits = (strict: boolean) => (o: Point) =>
+        room(s.x + o.x, s.y + o.y, bw) && (!strict || own(g.name, s.x + o.x, s.y + o.y));
+      const at = SPOTS.find(fits(true)) ?? SPOTS.find(fits(false));
+      if (!at) continue;
       placed.push({ x: s.x + at.x, y: s.y + at.y, w: bw });
+      this.labels.push({ name: g.name, at: g, off: { x: at.x / cam.s, y: at.y / cam.s } });
+    }
+    ctx.letterSpacing = "0px";
+  }
+
+  private drawLabels(cam: Camera, seen: (p: Point) => number) {
+    const { ctx, colors } = this;
+    ctx.font = `400 10.5px ${this.font}`;
+    ctx.letterSpacing = "0.04em";
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "center";
+    for (const l of this.labels) {
+      const a = seen(l.at);
       if (a <= 0) continue;
+      const s = this.toScreen(l.at, cam);
       ctx.fillStyle = rgba(colors.pudar, 0.85 * a);
-      ctx.fillText(g.name, s.x + at.x, s.y + at.y);
+      ctx.fillText(l.name, s.x + l.off.x * cam.s, s.y + l.off.y * cam.s);
     }
     ctx.letterSpacing = "0px";
   }

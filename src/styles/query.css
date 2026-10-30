@@ -472,11 +472,11 @@
        drawn top to bottom by the scene through --cut. */
     & .tok-cut {
       position: absolute;
-      top: -0.06em;
+      top: 0.06em;
       left: -0.105em;
       display: block;
       width: 0.14em;
-      height: 1.4em;
+      height: calc(100% - 0.12em);
       color: var(--mori);
       pointer-events: none;
       --cut: 0;
@@ -719,6 +719,20 @@
       & .qs-cards {
         display: grid;
         overflow: hidden;
+      }
+
+      /* More room between the lines of tokens, for the numbers under them. */
+      & .qs-wrap {
+        height: calc(var(--chip) * 0.34em);
+      }
+
+      & .qs-line + .qs-line {
+        margin-top: calc(var(--chip) * 0.34em);
+      }
+
+      & .tok-id {
+        font-size: 0.68rem;
+        top: calc(100% + 0.02em);
       }
 
       & .qs-card {
