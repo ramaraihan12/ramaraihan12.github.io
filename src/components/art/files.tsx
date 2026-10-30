@@ -43,6 +43,12 @@ export const BATIK_TILES = {
   "run-cloth": { kind: "kawung", ink: "#c4915a", ground: "#0f1a47", tint: "#16235c", scale: 0.42 },
   // The kepala between the AI and the web apps: soga ground, mori blades, malam (wax) lines.
   "web-kepala": { kind: "parang", ink: "#080e2b", ground: "#9c6633", tint: "#efe9dc", scale: 0.5 },
+  // The tools cloth: a band of motif over each kind of tool, nila and soga in turn (with web-kepala).
+  // Their size on the page is set in tools.css (two cells), not by scale.
+  "tools-kawung": { kind: "kawung", ink: "#efe9dc", ground: "#0f1a47", tint: "#16235c", scale: 0.6 },
+  "tools-truntum": { kind: "truntum", ink: "#efe9dc", ground: "#0f1a47", scale: 0.6 },
+  "tools-kawung-soga": { kind: "kawung", ink: "#efe9dc", ground: "#9c6633", tint: "#0f1a47", scale: 0.6 },
+  "tools-parang": { kind: "parang", ink: "#efe9dc", ground: "#0f1a47", tint: "#9c6633", scale: 0.6 },
   // Around the photo: parang in nila and soga, with a turmeric wax line.
   "photo-frame": { kind: "parang", ink: "#f4b223", ground: "#0f1a47", tint: "#9c6633", scale: 0.4 },
   // The turmeric flood: kawung lines a little deeper than kunyit, on nothing.

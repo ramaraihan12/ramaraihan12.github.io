@@ -1,12 +1,5 @@
-/* The width the stamped names spread to as the cap lands. Registered so it can animate. */
-@property --tw {
-  syntax: "<number>";
-  inherits: true;
-  initial-value: 100;
-}
-
 @layer components {
-  /* ---------- tools: the stack, stamped on like a batik cap ---------- */
+  /* ---------- tools: the stack as a test cloth, each tool pressed on like a batik cap ---------- */
 
   /* Clipped sideways: a lifted stamp (scaled up, waiting to be pressed) mustn't widen a phone's page. */
   .tools {
@@ -14,103 +7,202 @@
     overflow-x: clip;
   }
 
-  .tools-list {
+  .tools-cloth {
     margin-top: clamp(2.5rem, 6vh, 4rem);
-    border-top: 1px solid var(--line);
   }
 
-  .tool-row {
-    display: grid;
-    gap: 0.75rem;
-    padding-block: 1.6rem 1.75rem;
-    border-bottom: 1px solid var(--line);
+  /* The cloth: unbleached mori, printed in nila. --pencil is the pola's graphite. */
+  .tool-bands {
+    --pencil: color-mix(in oklab, var(--nila) 42%, var(--mori));
+    padding: clamp(1rem, 3vw, 2.25rem) clamp(1rem, 3vw, 2.25rem) clamp(0.25rem, 1vw, 0.75rem);
+    color: var(--nila);
+  }
+
+  /* The cloth's cut edge sits behind the bands; a running stitch hems the top and bottom. */
+  .tools-sheet {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .tools-edge {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    fill: var(--mori);
+  }
+
+  .tools-sheet::before,
+  .tools-sheet::after {
+    content: "";
+    position: absolute;
+    inset-inline: 10px;
+    border-top: 1px dashed color-mix(in oklab, var(--nila) 38%, var(--mori));
+    pointer-events: none;
+  }
+
+  .tools-sheet::before {
+    top: 9px;
+  }
+
+  .tools-sheet::after {
+    bottom: 9px;
+  }
+
+  /* ---------- a band: its motif across the cloth, the names under it ---------- */
+
+  /*
+    The motif is printed in a strip one cell tall, between two wax lines. A tile of the batik is
+    two cells square, so the strip shows one row of it, and --cells (set by the motion) clips it
+    to whole cells, so it goes on a cap at a time. Without the motion --cells is unset and
+    nothing is clipped.
+  */
+  .tool-strip {
+    --cell: 2.25rem;
+    --gap: 4px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: calc(var(--cell) + var(--gap) * 2);
 
     @media (width >= 48rem) {
-      grid-template-columns: 10rem 1fr;
-      gap: 2rem;
+      --cell: 2.75rem;
+      --gap: 5px;
     }
   }
 
-  .tool-key {
-    padding-top: 0.55em;
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    color: var(--kunyit);
+  .tool-print {
+    position: absolute;
+    inset: 0;
+    padding-block: var(--gap);
+    background-image: linear-gradient(currentColor, currentColor), linear-gradient(currentColor, currentColor), var(--motif);
+    background-size:
+      100% 1px,
+      100% 1px,
+      calc(var(--cell) * 2) calc(var(--cell) * 2);
+    background-position:
+      0 0,
+      0 100%,
+      0 0;
+    background-repeat: no-repeat, no-repeat, repeat-x;
+    background-origin: border-box, border-box, content-box;
+    background-clip: border-box, border-box, content-box;
+    clip-path: inset(0 max(0px, calc(100% - var(--cells, 999) * var(--cell))) 0 0);
   }
 
-  .tool-items {
+  /* The band's name, in a patch the wax kept clear of the dye. */
+  .tool-key {
+    position: relative;
+    margin-left: calc(var(--cell) * 0.5);
+    padding: 0.2rem 0.65rem 0.25rem;
+    background: var(--mori);
+    color: var(--nila);
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
+
+  .tool-body {
+    display: grid;
+    gap: 1.1rem;
+    padding-block: 1.35rem 2rem;
+
+    @media (width >= 64rem) {
+      grid-template-columns: 1fr 17rem;
+      gap: 3rem;
+      padding-block: 1.6rem 2.4rem;
+    }
+  }
+
+  .tool-caps {
     display: flex;
     flex-wrap: wrap;
     gap: 0.55rem 0.5rem;
 
     @media (width >= 48rem) {
-      gap: 0.7rem 0.65rem;
+      gap: 0.75rem 0.7rem;
     }
   }
 
-  /* The cap, scaled up for display type. The frame stretches to whatever the label measures. */
+  /*
+    One cap. --press runs from 0 (lifted, only the pencil pola showing) to 1 (printed), set here
+    by the motion and read by the stamp (art.css's scrub state) and the pola alike. At rest it's
+    printed.
+  */
+  .tool-cap {
+    --press: 1;
+    position: relative;
+    display: inline-flex;
+  }
+
+  .tool-cap > .cap-stamp {
+    --press: inherit;
+  }
+
+  /* The pola sits exactly where the stamp will, in the same type, so the print lands on it. */
+  .tool-pola,
   .tool-stamp {
     padding: 0.3em 0.62em 0.26em;
     font-family: var(--font-display);
-    font-variation-settings: normal;
+    font-variation-settings: "wdth" 100;
     font-weight: 700;
-    font-size: clamp(1.2rem, 2.5vw, 2.05rem);
+    font-size: clamp(1.2rem, 2.1vw, 1.75rem);
     line-height: 1.1;
     letter-spacing: -0.01em;
-
-    & .cap-stamp-label {
-      display: inline-grid;
-    }
-
-    & .cap-stamp-label > * {
-      grid-area: 1 / 1;
-    }
+    white-space: nowrap;
   }
 
-  .tool-name-size {
-    visibility: hidden;
-    font-variation-settings: "wdth" 100;
+  .tool-pola {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    opacity: clamp(0, calc((1 - var(--press)) * 3), 1);
+    pointer-events: none;
+    user-select: none;
   }
 
-  .tool-name {
-    justify-self: center;
-    font-variation-settings: "wdth" var(--tw);
+  .tool-pola-frame {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    fill: none;
+    stroke: var(--pencil);
+    opacity: 0.55;
   }
 
-  /* Each stamp in a row waits its turn (--d, set by the motion), then the letters spread. */
-  .tool-stamp[data-state="pressed"] {
-    animation-delay: var(--d, 0s);
-
-    &::after {
-      animation-delay: var(--d, 0s);
-    }
-
-    & .tool-name {
-      animation: tool-spread 0.85s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-      animation-delay: calc(var(--d, 0s) + 0.2s);
-    }
+  /* The name is generated content, so the page holds each name once: not selected, not found, not read twice. */
+  .tool-pola-name::before {
+    content: attr(data-name);
   }
 
+  .tool-pola-name {
+    color: transparent;
+    -webkit-text-stroke: 0.75px var(--pencil);
+  }
+
+  /* What the caps in the band are for, written in the margin. */
   .tool-note {
-    max-width: 42rem;
-    margin-top: 0.9rem;
-    color: var(--pudar);
+    max-width: 40rem;
+    padding-left: 0.9rem;
+    border-left: 1px solid var(--pencil);
+    color: color-mix(in oklab, var(--nila) 82%, var(--mori));
+    font-size: 0.95rem;
+    line-height: 1.55;
     text-wrap: pretty;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .tool-stamp .tool-name {
-      animation: none;
-    }
-  }
-}
-
-@keyframes tool-spread {
-  from {
-    --tw: 62;
-  }
-
-  to {
-    --tw: 100;
+  .tools-caption {
+    max-width: 34rem;
+    margin-top: 0.9rem;
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.72rem;
+    line-height: 1.6;
+    color: var(--pudar);
   }
 }
