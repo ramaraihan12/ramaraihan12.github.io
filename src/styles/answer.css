@@ -2,6 +2,10 @@
   /* ---------- answer. Turmeric from here down, through contact.css. ---------- */
 
   .answer {
+    /* Turmeric wax, for the line under whatever a citation lights up. Deeper than the page and
+       its kawung, so it reads as a stroke; nila text on it is still 6:1. */
+    --wax: color-mix(in oklab, var(--kunyit) 58%, var(--soga));
+    --hem-h: clamp(1.7rem, 3vw, 2.4rem);
     position: relative;
     isolation: isolate;
     color: var(--nila);
@@ -15,21 +19,34 @@
     background: var(--kunyit);
 
     /* The kawung ground, from answer-scene.tsx. Its own layer, so the flood's clip-path
-       doesn't paint the pattern again on every frame. */
+       doesn't paint the pattern again on every frame. It stops where the hem starts. */
     &::before {
       content: "";
       position: absolute;
-      inset: 0;
+      inset: 0 0 var(--hem-h);
       background-image: var(--answer-ground);
       background-size: var(--answer-ground-size) var(--answer-ground-size);
       background-position: center;
+      will-change: transform;
+    }
+
+    /* The hem: two lines and a row of tumpal along the bottom edge of the cloth. "round" fits
+       a whole number of them across any width, so none is cut off at the sides. */
+    &::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0;
+      height: var(--hem-h);
+      background-image: var(--answer-hem);
+      background-size: calc(var(--hem-h) * var(--answer-hem-ratio)) 100%;
+      background-repeat: round no-repeat;
       will-change: transform;
     }
   }
 
   .answer-inner {
     position: relative;
-    padding-block: calc(var(--header-h) + 3rem) 3rem;
+    padding-block: calc(var(--header-h) + 3rem) calc(var(--hem-h) + 3rem);
   }
 
   .answer,
@@ -91,6 +108,16 @@
     text-wrap: pretty;
   }
 
+  /*
+    A note's line weight is its score (--s, set per note in answer-scene.tsx): the same on its
+    citation's box, its number in the source list and its wax ring on the way in. about.md, at
+    0.520, draws the heaviest line, work.md at 0.367 the lightest.
+  */
+  .cite,
+  .answer-sources li {
+    --w: max(1px, calc(var(--s, 0.4) * 4.4px));
+  }
+
   .cite {
     position: relative;
     top: -0.85em;
@@ -98,24 +125,73 @@
     line-height: 0;
 
     & a {
+      position: relative;
       display: inline-grid;
       place-items: center;
       min-width: 1.7em;
       height: 1.7em;
       margin-left: 0.2em;
       padding-inline: 0.2em;
-      border: 1.5px solid currentColor;
       border-radius: 0.3em;
       font-family: var(--font-mono);
       font-weight: 500;
+      background-color: color-mix(in oklab, var(--nila) calc(var(--lit, 0) * 100%), transparent);
+      color: color-mix(in oklab, var(--kunyit) calc(var(--lit, 0) * 100%), var(--nila));
       transition:
         background-color 0.2s,
         color 0.2s;
 
-      &:hover {
-        background: var(--nila);
-        color: var(--kunyit);
+      /* The box is ink pressed by the note landing on it. --ink runs 0 to 1 on the scroll
+         timeline (answer-stage.tsx); everywhere else it's printed already. */
+      &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border: var(--w) solid currentColor;
+        border-radius: inherit;
+        opacity: var(--ink, 1);
+        scale: calc(1 + (1 - var(--ink, 1)) * 0.6);
       }
+    }
+  }
+
+  /*
+    A citation, the words it backs and its source light up together. --lit is 0 or 1, and
+    each part uses it in its own way: the citation inverts, the words get a wax line drawn
+    under them, the source's number fills in. One rule per note, since CSS can't match a
+    citation to its source by number. Mouse hover only where there's a mouse, so a tap doesn't
+    leave one stuck; a tap sets data-lit on the section instead (answer-stage.tsx).
+  */
+  @media (hover: hover) {
+    .answer:has(:is(.cite, li)[data-note="1"]:hover) [data-note="1"],
+    .answer:has(:is(.cite, li)[data-note="2"]:hover) [data-note="2"],
+    .answer:has(:is(.cite, li)[data-note="3"]:hover) [data-note="3"],
+    .answer:has(:is(.cite, li)[data-note="4"]:hover) [data-note="4"],
+    .answer:has(:is(.cite, li)[data-note="5"]:hover) [data-note="5"] {
+      --lit: 1;
+      --draw: 0.7s;
+    }
+  }
+
+  .answer:is([data-lit="1"], :has([data-note="1"] :focus-visible)) [data-note="1"],
+  .answer:is([data-lit="2"], :has([data-note="2"] :focus-visible)) [data-note="2"],
+  .answer:is([data-lit="3"], :has([data-note="3"] :focus-visible)) [data-note="3"],
+  .answer:is([data-lit="4"], :has([data-note="4"] :focus-visible)) [data-note="4"],
+  .answer:is([data-lit="5"], :has([data-note="5"] :focus-visible)) [data-note="5"] {
+    --lit: 1;
+    --draw: 0.7s;
+  }
+
+  /* The wax line. One background across every line the words wrap onto, so growing it
+     draws the line from the first word to the last, like a canting. It goes on slower than
+     it comes off: --draw is only set while lit. */
+  .answer-s,
+  .answer-source-name {
+    background: linear-gradient(var(--wax), var(--wax)) no-repeat 0 calc(100% - 0.04em) / calc(var(--lit, 0) * 100%) 0.16em;
+    transition: background-size var(--draw, 0.2s) cubic-bezier(0.3, 0.6, 0.3, 1);
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
     }
   }
 
@@ -150,9 +226,14 @@
     place-items: center;
     width: 1.45rem;
     height: 1.45rem;
-    border: 1.5px solid currentColor;
+    border: var(--w) solid currentColor;
     border-radius: 0.25rem;
     font-size: 0.62rem;
+    background-color: color-mix(in oklab, var(--nila) calc(var(--lit, 0) * 100%), transparent);
+    color: color-mix(in oklab, var(--kunyit) calc(var(--lit, 0) * 100%), var(--nila));
+    transition:
+      background-color 0.2s,
+      color 0.2s;
   }
 
   .answer-source-score {
@@ -172,6 +253,11 @@
       text-decoration: underline;
       text-underline-offset: 0.2em;
     }
+  }
+
+  /* The five notes only come in on the pinned scene, below. */
+  .answer-notes {
+    display: none;
   }
 }
 
@@ -196,7 +282,7 @@
       flex-direction: column;
       justify-content: center;
       height: 100%;
-      padding-block: calc(var(--header-h) + 1rem) 1.5rem;
+      padding-block: calc(var(--header-h) + 1rem) calc(var(--hem-h) + 0.5rem);
     }
 
     & .answer-eyebrow,
@@ -212,10 +298,120 @@
     & .answer-text .w {
       opacity: 0.14;
     }
+
+    /* Not inked until its note lands on it. */
+    & .answer .cite {
+      --ink: 0;
+    }
+
+    /*
+      The five notes, over everything in the scene and touching nothing. Each .an-note is a
+      point --gx, --gy from the query dot (in px at desktop size, a little closer on phones),
+      where it waits. .an-drift brings it in from further out before the pin, and .an-fly
+      takes the ring from there to its citation.
+    */
+    & .answer-notes {
+      --u: clamp(0.75px, 100vmin / 900, 1px);
+      display: block;
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    & .an-note {
+      position: absolute;
+      left: calc(50% + var(--gx) * var(--u));
+      top: calc(50% + var(--gy) * var(--u));
+    }
+
+    & .an-drift {
+      position: absolute;
+      top: -17px;
+      left: -17px;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      opacity: 0;
+    }
+
+    & .an-note[data-side="left"] .an-drift {
+      left: auto;
+      right: -17px;
+      flex-direction: row-reverse;
+    }
+
+    & .an-fly {
+      position: relative;
+      flex: none;
+      width: 34px;
+      height: 34px;
+
+      & svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+      }
+    }
+
+    /* Undyed wax on nila, like the rings on the map. The flood dyes them (--dye, set on the
+       timeline as it passes) and then they're nila on turmeric like the rest of the answer. */
+    & .an-note {
+      --dye: 0;
+      --on: color-mix(in oklab, var(--nila) calc(var(--dye) * 100%), var(--mori));
+      --in: color-mix(in oklab, var(--nila) calc(var(--dye) * 100%), var(--kunyit));
+    }
+
+    & .an-ring-line {
+      fill: none;
+      stroke: var(--on);
+      stroke-linejoin: round;
+    }
+
+    & .an-ring-core {
+      fill: var(--in);
+    }
+
+    & .an-ring-cecek {
+      fill: color-mix(in oklab, var(--soga) calc(var(--dye) * 100%), var(--kunyit));
+    }
+
+    & .an-rank {
+      position: absolute;
+      top: -3px;
+      left: 29px;
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      line-height: 1;
+      color: var(--in);
+    }
+
+    & .an-note[data-side="left"] .an-rank {
+      left: auto;
+      right: 29px;
+    }
+
+    & .an-label {
+      font-family: var(--font-mono);
+      font-variation-settings: "wdth" 87.5;
+      font-size: 0.68rem;
+      line-height: 1;
+      white-space: nowrap;
+      color: var(--on);
+    }
+
+    & .an-score {
+      opacity: 0.6;
+    }
   }
 
   @media (max-width: 767px) {
     .scrolly {
+      /* No room for the names beside the rings on a phone. */
+      & .an-label {
+        display: none;
+      }
+
       & .answer-text {
         font-size: clamp(1.1rem, 5.2vw, 1.3rem);
       }

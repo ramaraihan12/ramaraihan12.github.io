@@ -34,6 +34,17 @@ export function AnswerStage({ children }: { children: ReactNode }) {
         if (header) header.dataset.tone = kunyit ? "kunyit" : "nila";
       };
 
+      // A tap on a citation or a source lights it with its sentence and source. Mouse and
+      // keyboard do it in CSS (answer.css); a finger has no hover, so it sets data-lit here.
+      // Tapping the same one again, or anywhere else, puts it out.
+      const onTap = (e: Event) => {
+        const hit = (e.target as Element).closest<HTMLElement>(".cite[data-note], .answer-sources li[data-note]");
+        const n = hit?.dataset.note;
+        if (n && section.dataset.lit !== n) section.dataset.lit = n;
+        else delete section.dataset.lit;
+      };
+      section.addEventListener("click", onTap);
+
       const mm = gsap.matchMedia();
       // gsap only runs this while at least one condition matches. "motion" and "reduce" make
       // sure one always does, so a short screen with motion allowed (a phone held sideways)
@@ -63,6 +74,7 @@ export function AnswerStage({ children }: { children: ReactNode }) {
         const words = gsap.utils.toArray<HTMLElement>(".answer-text .w", section);
         const photo = section.querySelector<HTMLElement>(".answer-photo")!;
         const late = gsap.utils.toArray<HTMLElement>(".answer-sources, .answer-note", section);
+        const notes = gsap.utils.toArray<HTMLElement>(".an-note", section);
         const fullCircle = () => `circle(${Math.hypot(window.innerWidth, window.innerHeight) / 2 + 20}px at 50% 50%)`;
 
         // The query dot arrives and floods the screen, then the answer writes itself in.
@@ -95,6 +107,63 @@ export function AnswerStage({ children }: { children: ReactNode }) {
           .addLabel("done", 3.8)
           .to({}, { duration: 0.4 });
 
+        /*
+          The five notes. Before the pin they drift in from the edges of the screen to wait
+          round the query dot (their rings and names, as on the map). Once the flood is over
+          them they are dyed like everything else, and each flies to its citation, to land as
+          the answer's words reach it: the citation is inked, heavier for a higher score. All of
+          it sits inside the timeline's length, so its labels stay where they were.
+        */
+        const rect = (el: Element) => el.getBoundingClientRect();
+        const wordIndex = (cite: Element) => words.indexOf(cite as HTMLElement);
+        const total = words.length;
+        notes.forEach((note, i) => {
+          const n = i + 1;
+          const cite = section.querySelector<HTMLElement>(`.cite[data-note="${n}"]`);
+          const fly = note.querySelector<HTMLElement>(".an-fly")!;
+          if (!cite) return;
+          // When the word writes in: the same formula as the words' own stagger above.
+          const lands = 1.1 + (wordIndex(cite) / total) * 2;
+          const leaves = Math.min(0.5 + i * 0.08, lands - 0.5);
+          // The offsets are read when ScrollTrigger refreshes, not while scrolling. The note's
+          // own box never moves (only its children do), so it's a fixed point to measure from.
+          const to = (axis: "x" | "y") => () => {
+            const a = rect(cite);
+            const b = rect(note);
+            return axis === "x" ? a.left + a.width / 2 - b.left : a.top + a.height / 2 - b.top;
+          };
+          tl.to(fly, { x: to("x"), y: to("y"), scale: 0.62, duration: lands - leaves - 0.05, ease: "power2.inOut" }, leaves)
+            .to(fly, { opacity: 0, duration: 0.08 }, lands - 0.1)
+            .fromTo(cite, { "--ink": 0 }, { "--ink": 1, duration: 0.14, ease: "power2.out" }, lands - 0.1);
+        });
+        tl.set(notes, { "--dye": 1 }, 0.4).to(".an-label", { opacity: 0, duration: 0.25 }, 0.55);
+
+        // Before the pin: the notes arrive from the edges. This scrubs on its own trigger, the
+        // stretch of scroll leading up to the pin, where there used to be only the seed dot.
+        gsap.fromTo(
+          notes.map((n) => n.querySelector(".an-drift")),
+          {
+            x: (i: number) => (Number(notes[i].dataset.far!.split(" ")[0]) * window.innerWidth),
+            y: (i: number) => (Number(notes[i].dataset.far!.split(" ")[1]) * window.innerHeight),
+            opacity: 0,
+          },
+          {
+            x: 0,
+            y: 0,
+            opacity: 1,
+            ease: "power2.out",
+            stagger: 0.12,
+            scrollTrigger: {
+              trigger: section,
+              refreshPriority: PRIORITY.answer - 0.25,
+              start: "top 90%",
+              end: "top top",
+              scrub: 0.6,
+              invalidateOnRefresh: true,
+            },
+          },
+        );
+
         const st = tl.scrollTrigger!;
         const at = (label: string) => st.start + (st.end - st.start) * (tl.labels[label] / tl.duration());
         const removeMarker = setMarker("answer", { at: () => st.start - window.innerHeight * 0.3, to: () => at("done") });
@@ -126,6 +195,7 @@ export function AnswerStage({ children }: { children: ReactNode }) {
           section.removeEventListener("focusin", onFocus);
         };
       });
+      return () => section.removeEventListener("click", onTap);
     },
     { scope: root },
   );
