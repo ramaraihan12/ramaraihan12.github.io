@@ -38,7 +38,7 @@ export type KawungFieldProps = {
   ref?: Ref<KawungFieldHandle>;
 };
 
-type Petal = {
+export type KawungPetal = {
   x: number;
   y: number;
   /** Full-size semi-axes, along and across. */
@@ -53,23 +53,41 @@ type Petal = {
   at: number;
 };
 
-type Layout = {
-  petals: Petal[];
+export type KawungLayout = {
+  /** Four per flower, flower by flower: petals[f * 4 + q] belongs to flower f. */
+  petals: KawungPetal[];
+  /** The flower centres first (one per flower, in the same order), then the grid's corners. */
   seeds: { x: number; y: number }[];
   dot: number;
+  /** One flower's square, in pixels. */
+  cell: number;
+  flowers: number;
 };
 
 /** How much of the timeline one petal takes to draw. */
 const SPAN = 0.16;
 
 const ease = (t: number) => 1 - (1 - t) ** 3;
+
+/** How much of its petal the dye fills, for a value's size from 0 to 1. */
+export const dyeScale = (size: number) => 0.2 + 0.72 * Math.sqrt(size);
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
 function readColor(el: Element, name: string, fallback: string) {
   return getComputedStyle(el).getPropertyValue(name).trim() || fallback;
 }
 
-function layout(values: readonly number[], w: number, h: number, columns: number | undefined, origin: { x: number; y: number }): Layout {
+/**
+ * Where every petal of the cloth goes in a w by h box. Pure, so another canvas can find a
+ * flower of the cloth, like the map that gathers pieces of it into its notes.
+ */
+export function kawungLayout(
+  values: readonly number[],
+  w: number,
+  h: number,
+  columns?: number,
+  origin: { x: number; y: number } = { x: 0.5, y: 0.5 },
+): KawungLayout {
   const needed = Math.max(1, Math.ceil(values.length / 4));
   const ideal = columns ?? Math.max(1, Math.round(Math.sqrt((needed * w) / Math.max(1, h))));
   const cell = Math.min(w / ideal, h / Math.ceil(needed / ideal));
@@ -92,7 +110,7 @@ function layout(values: readonly number[], w: number, h: number, columns: number
   const reach = Math.max(Math.hypot(ox, oy), Math.hypot(w - ox, oy), Math.hypot(ox, h - oy), Math.hypot(w - ox, h - oy)) || 1;
   const r = rng(hash(`${values.length}:${cols}`));
 
-  const petals: Petal[] = [];
+  const petals: KawungPetal[] = [];
   const seeds: { x: number; y: number }[] = [];
   for (let f = 0; f < flowers; f++) {
     const cx = x0 + (f % cols) * cell + cell / 2;
@@ -118,7 +136,7 @@ function layout(values: readonly number[], w: number, h: number, columns: number
   }
   // The corners of the grid are flower centres too.
   for (let j = 0; j <= rows; j++) for (let i = 0; i <= cols; i++) seeds.push({ x: x0 + i * cell, y: y0 + j * cell });
-  return { petals, seeds, dot: Math.max(0.8, cell * 0.035) };
+  return { petals, seeds, dot: Math.max(0.8, cell * 0.035), cell, flowers };
 }
 
 /**
@@ -137,7 +155,7 @@ export function KawungField({
 }: KawungFieldProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const state = useRef({
-    layout: null as Layout | null,
+    layout: null as KawungLayout | null,
     dpr: 1,
     w: 0,
     h: 0,
@@ -175,7 +193,7 @@ export function KawungField({
       if (dye > 0 && pt.size >= 0) {
         ctx.globalAlpha = dye * 0.92;
         ctx.fillStyle = pt.positive ? positive : negative;
-        const k = 0.2 + 0.72 * Math.sqrt(pt.size);
+        const k = dyeScale(pt.size);
         ctx.beginPath();
         ctx.ellipse(pt.x, pt.y, pt.a * k, pt.b * k, pt.angle + pt.tilt, 0, Math.PI * 2);
         ctx.fill();
@@ -259,7 +277,7 @@ export function KawungField({
         negative: inkNegative ?? readColor(canvas, "--soga-2", readColor(canvas, "--soga", "#b5824a")),
         line: inkLine ?? readColor(canvas, "--mori", "#efe9dc"),
       };
-      s.layout = layout(values, s.w, s.h, columns, { x: ox, y: oy });
+      s.layout = kawungLayout(values, s.w, s.h, columns, { x: ox, y: oy });
       paintRef.current(s.progress);
     };
     measure();
