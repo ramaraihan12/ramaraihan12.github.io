@@ -374,6 +374,28 @@
       aspect-ratio: 3 / 2;
     }
 
+    /* Landscape phones: text beside the art, as on the desktop panel, so a card fits the screen. */
+    @media (width >= 34rem) {
+      .project {
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+        grid-template-areas: "text art" "pipe pipe" "foot foot";
+        grid-template-rows: minmax(0, 1fr) auto auto;
+        column-gap: 1.5rem;
+      }
+
+      .project-art {
+        align-self: center;
+        aspect-ratio: 5 / 4;
+      }
+    }
+
+    /* Short portrait phones: a flatter picture so the card and its count fit one screen. */
+    @media (width < 34rem) and (height < 46rem) {
+      .project-art {
+        aspect-ratio: 16 / 9;
+      }
+    }
+
     .project-kind {
       font-size: 0.66rem;
     }
@@ -389,7 +411,7 @@
       line-height: 1.5;
     }
 
-    /* Cards are as tall as the longest one, and what's left over goes above the links. */
+    /* Cards are as tall as the longest one, and the spare height goes under the summary, so the pipeline and links line up along the bottom from card to card. */
     .project-foot {
       gap: 0.85rem 1rem;
       padding-top: 0.4rem;
@@ -633,4 +655,13 @@
   50% {
     translate: 0.3em 0;
   }
+}
+
+/*
+  lenis.css puts overscroll-behavior: contain (both axes) on [data-lenis-prevent-horizontal], which
+  the deck carries so sideways trackpad swipes reach it. The deck only holds sideways swipes, so
+  up and down must still scroll the page. Unlayered, to beat lenis.css.
+*/
+html.lenis .run-deck {
+  overscroll-behavior: contain auto;
 }
