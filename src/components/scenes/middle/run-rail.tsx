@@ -344,6 +344,14 @@ function runDeck(section: HTMLElement, moving: boolean, start: number, onCard: (
   };
   buttons.forEach((b) => b.addEventListener("click", onClick));
 
+  // Tabbing into a card that only peeks in at the edge brings that card into view.
+  const onFocusIn = (e: FocusEvent) => {
+    const c = (e.target as Element).closest<HTMLElement>(".run-card");
+    const i = c ? cards.indexOf(c) : -1;
+    if (i >= 0 && i !== current) deck.scrollTo({ left: leftOf(i), behavior: reduce.matches ? "auto" : "smooth" });
+  };
+  deck.addEventListener("focusin", onFocusIn);
+
   // Screenshots start loading once the deck is a screen away; the packet only runs where it's seen.
   ScrollTrigger.create({
     trigger: deck,
@@ -355,9 +363,12 @@ function runDeck(section: HTMLElement, moving: boolean, start: number, onCard: (
       loadAhead();
     },
   });
+  // Keyed to the pipeline row, so the first hop starts once the wire is on screen.
+  const firstPipe = deck.querySelector<HTMLElement>(".pipe");
   ScrollTrigger.create({
-    trigger: deck,
-    start: "top 75%",
+    trigger: firstPipe ?? deck,
+    start: "bottom bottom-=16",
+    endTrigger: deck,
     end: "bottom 25%",
     refreshPriority: PRIORITY.work,
     onToggle: (self) => {
@@ -396,6 +407,7 @@ function runDeck(section: HTMLElement, moving: boolean, start: number, onCard: (
     window.clearTimeout(settled);
     ScrollTrigger.removeEventListener("refresh", settle);
     buttons.forEach((b) => b.removeEventListener("click", onClick));
+    deck.removeEventListener("focusin", onFocusIn);
     deck.removeAttribute("data-lenis-prevent-horizontal");
     runs.forEach((run) => run.kill());
     runs.clear();
