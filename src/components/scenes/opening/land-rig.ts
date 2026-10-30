@@ -40,7 +40,10 @@ export function landRig(box: HTMLElement) {
   const watch =
     typeof IntersectionObserver === "undefined"
       ? null
-      : new IntersectionObserver(([e]) => box.classList.toggle("is-off", !!e && !e.isIntersecting));
+      : new IntersectionObserver((entries) => {
+          const e = entries[entries.length - 1];
+          if (e) box.classList.toggle("is-off", !e.isIntersecting);
+        });
   watch?.observe(box);
 
   const toX = gsap.quickTo(at, "px", { duration: 1.1, ease: "power3", onUpdate: apply });

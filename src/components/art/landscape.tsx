@@ -342,16 +342,18 @@ const STARS = (() => {
 /**
  * A truntum star-flower at the origin, 12 or so across, in the same proportions as the one on
  * the game poster and in the batik tile: eight blunt petals, long and short taking turns, set
- * off the middle so the centre stays open, with a small ring and a seed in it.
+ * off the middle so the centre stays open, with a small ring and a seed in it. Each call draws
+ * a slightly different hand: petals a touch off their angle and uneven in length, as the dyer's
+ * canting leaves them.
  */
-function truntumFlower() {
+function truntumFlower(r: () => number) {
   const r0 = 3.2;
   let d = "";
   for (let i = 0; i < 8; i++) {
-    const a = (i * Math.PI) / 4 - Math.PI / 2;
+    const a = (i * Math.PI) / 4 - Math.PI / 2 + wobble(r, 0.07);
     const long = i % 2 === 0;
-    const r1 = long ? 12.5 : 8;
-    const hw = long ? 2.1 : 1.6;
+    const r1 = (long ? 12.5 : 8) + wobble(r, 0.7);
+    const hw = (long ? 2.1 : 1.6) * (1 + wobble(r, 0.12));
     const len = r1 - r0;
     const c = Math.cos(a);
     const sn = Math.sin(a);
@@ -368,28 +370,30 @@ function truntumFlower() {
 }
 
 /**
- * The nine stars: where, how big. In the order they come on. They sit in the open sky east of
- * the words and below the page's top fade (vy past 200), around Merbabu's summit and over the
- * long ridge falling away to the right, clear of the smoke's path. A phone shows roughly
- * vx 477-1124, so the first stars are the ones over the summit.
+ * The nine stars: where, how big, how far turned (degrees), which of the three hand-drawn
+ * flowers. In the order they come on. They sit in open sky east of the words and below the
+ * page's top fade (vy past 180), around Merbabu's summit and over the long ridge falling away
+ * to the right. A phone shows roughly vx 477-1124, so the first four are the ones over the
+ * summit. The smoke's tip and its two wisps live around vx 930-1180, vy 200-245: no star
+ * centre comes within about 20 units of them.
  */
-const TRUNTUM_STARS: readonly (readonly [number, number, number])[] = [
-  [1090, 262, 1.4],
-  [1010, 222, 1.3],
-  [800, 262, 1.15],
-  [1190, 312, 1.1],
-  [1400, 252, 1.5],
-  [1120, 212, 1.0],
-  [1340, 362, 1.05],
-  [1500, 332, 1.1],
-  [1470, 202, 0.9],
+const TRUNTUM_STARS: readonly (readonly [number, number, number, number, number])[] = [
+  [1082, 288, 1.2, -14, 0],
+  [1045, 186, 1.0, 18, 1],
+  [1060, 266, 1.0, 9, 2],
+  [972, 190, 0.9, -21, 0],
+  [1200, 312, 1.05, 16, 1],
+  [1400, 252, 1.25, -8, 2],
+  [1340, 362, 1.0, 22, 0],
+  [1500, 332, 1.05, -17, 1],
+  [1470, 202, 0.9, 12, 2],
 ];
 
 /** Wax dots (cecek) scattered between the stars, as zero-length strokes. */
 const TRUNTUM_DOTS = [
   [1050, 244],
   [960, 244],
-  [1130, 292],
+  [1140, 258],
   [1290, 214],
   [1250, 346],
   [1460, 292],
@@ -440,13 +444,14 @@ const GEOMETRY = (() => {
     plumeBlown: taper(
       [
         [604, 300],
-        [607, 284],
-        [625, 264],
-        [664, 246],
-        [724, 232],
-        [796, 224],
-        [872, 224],
-        [946, 232],
+        [606, 288],
+        [624, 279],
+        [660, 276],
+        [708, 262],
+        [756, 246],
+        [802, 236],
+        [872, 230],
+        [946, 230],
       ],
       (t) => (4 + t * 34) * (1 - t ** 3) + 1.5,
       12,
@@ -475,7 +480,10 @@ const GEOMETRY = (() => {
       10,
       0,
     ),
-    truntum: truntumFlower(),
+    ...(() => {
+      const fr = rng(31);
+      return { truntum0: truntumFlower(fr), truntum1: truntumFlower(fr), truntum2: truntumFlower(fr) };
+    })(),
     truntumDots: TRUNTUM_DOTS,
     kawungSun: kawungDisc(),
   };
@@ -580,10 +588,10 @@ export function Landscape({
           <stop offset="0" stopColor="var(--mori, #efe9dc)" stopOpacity="0.55" />
           <stop offset="1" stopColor="var(--mori, #efe9dc)" stopOpacity="0" />
         </linearGradient>
-        <linearGradient id={`${uid}-smoke2`} gradientUnits="userSpaceOnUse" x1="604" y1="300" x2="950" y2="226">
+        <linearGradient id={`${uid}-smoke2`} gradientUnits="userSpaceOnUse" x1="604" y1="300" x2="950" y2="230">
           <stop offset="0" stopColor="var(--mori, #efe9dc)" stopOpacity="0.03" />
           <stop offset="0.12" stopColor="var(--mori, #efe9dc)" stopOpacity="0.12" />
-          <stop offset="0.3" stopColor="var(--mori, #efe9dc)" stopOpacity="0.45" />
+          <stop offset="0.3" stopColor="var(--mori, #efe9dc)" stopOpacity="0.3" />
           <stop offset="0.6" stopColor="var(--mori, #efe9dc)" stopOpacity="0.3" />
           <stop offset="0.85" stopColor="var(--mori, #efe9dc)" stopOpacity="0.06" />
           <stop offset="1" stopColor="var(--mori, #efe9dc)" stopOpacity="0" />
@@ -613,9 +621,9 @@ export function Landscape({
         ) : null}
         {truntum ? (
           <g fill="var(--mori, #efe9dc)" className="art-stars">
-            {TRUNTUM_STARS.map(([x, y, k], i) => (
-              <g key={i} transform={`translate(${x} ${y}) scale(${k})`}>
-                <Shape shapes={shapes} name="truntum" className="art-star" style={{ "--i": i } as CSSProperties} />
+            {TRUNTUM_STARS.map(([x, y, k, rot, v], i) => (
+              <g key={i} transform={`translate(${x} ${y}) rotate(${rot}) scale(${k})`}>
+                <Shape shapes={shapes} name={`truntum${v}` as "truntum0"} className="art-star" style={{ "--i": i } as CSSProperties} />
               </g>
             ))}
             <Shape
@@ -642,7 +650,7 @@ export function Landscape({
                   shapes={shapes}
                   name="kawungSun"
                   fill="var(--soga, #9c6633)"
-                  opacity="0.28"
+                  opacity="0.17"
                 />
               </g>
             ) : null}
