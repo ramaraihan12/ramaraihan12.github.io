@@ -32,7 +32,7 @@
     }
 
     /* The address itself is the label, so the copy shows up as a tag after it. */
-    &[data-copied]::after {
+    &[data-copied]:not([data-stamp])::after {
       content: "copied";
       display: inline-block;
       margin-left: 0.6rem;
@@ -152,6 +152,284 @@
     }
   }
 
+
+  /* ---------- ask-again: the picker under the email ---------- */
+
+  .email-stamped {
+    position: relative;
+    display: inline-block;
+  }
+
+  /* The cap lands on the top corner of the address, in the gap under the lead, so nothing
+     moves and it never covers the letters' baseline. */
+  .email-stamp {
+    position: absolute;
+    right: 0.4rem;
+    bottom: 100%;
+    margin-bottom: -0.2rem;
+    font-size: clamp(0.95rem, 1.2vw + 0.55rem, 1.4rem);
+    font-weight: 700;
+    pointer-events: none;
+  }
+
+  .ask {
+    /* Room for the chips before they load, so the page below doesn't jump. */
+    min-height: 9rem;
+    margin-top: 3.5rem;
+    padding-top: 1.5rem;
+    border-top: 1.5px dashed color-mix(in oklab, var(--nila) 35%, transparent);
+  }
+
+  .ask-label {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--on-kunyit-muted);
+  }
+
+  .ask-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.9rem;
+  }
+
+  .ask-chip {
+    padding: 0.4rem 0.8rem;
+    border: 1.5px solid var(--nila);
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: left;
+    color: var(--nila);
+    transition:
+      background-color 0.2s,
+      color 0.2s;
+
+    &:hover {
+      background: rgb(15 26 71 / 0.08);
+    }
+
+    &[aria-pressed="true"] {
+      background: var(--nila);
+      color: var(--kunyit);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--nila);
+      outline-offset: 3px;
+    }
+  }
+
+  .ask-out {
+    margin-top: 1.5rem;
+  }
+
+  .ask-note,
+  .ask-head {
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.72rem;
+    color: var(--on-kunyit-muted);
+  }
+
+  .ask-hits {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 0.7rem;
+    max-width: 44rem;
+    list-style: none;
+    padding: 0;
+  }
+
+  /* Same card as the retrieval step, on cloth: score and file on a line, the note under it,
+     and a bar as long as the score. */
+  .ask-hit {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.15rem 0.8rem;
+    padding: 0.8rem 1rem 1.25rem;
+    border: 1.5px solid var(--nila);
+    border-radius: 0.5rem;
+    animation: ask-in 0.4s ease-out both;
+    animation-delay: calc(var(--i) * 90ms);
+  }
+
+  .ask-score {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-variation-settings: "wdth" 110;
+    font-size: 1.3rem;
+    line-height: 1.1;
+  }
+
+  .ask-src {
+    align-self: center;
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.72rem;
+    color: var(--on-kunyit-muted);
+  }
+
+  .ask-text {
+    grid-column: 1 / -1;
+    margin-top: 0.2rem;
+    font-size: 0.92rem;
+    line-height: 1.45;
+  }
+
+  .ask-bar {
+    position: absolute;
+    left: 1rem;
+    right: 1rem;
+    bottom: 0.4rem;
+    height: 3px;
+    background: var(--nila);
+    transform-origin: left;
+    scale: var(--score) 1;
+    border-radius: 2px;
+    animation: ask-bar 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: calc(var(--i) * 90ms + 150ms);
+  }
+
+  @keyframes ask-in {
+    from {
+      opacity: 0;
+      translate: 0 0.5rem;
+    }
+  }
+
+  @keyframes ask-bar {
+    from {
+      scale: 0 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ask-hit,
+    .ask-bar {
+      animation: none;
+    }
+  }
+
+  /* ---------- layangan: a kite over Merbabu ---------- */
+
+  .layangan {
+    position: absolute;
+    left: 66%;
+    bottom: 3%;
+    height: 80%;
+    aspect-ratio: 2 / 5;
+    overflow: visible;
+    --lg-paper: var(--mori);
+    --lg-line: var(--nila);
+    --lg-skin: var(--soga);
+    --lg-string: var(--nila);
+    transform-origin: 50% 100%;
+    animation: lg-sway 9s ease-in-out infinite alternate;
+    animation-play-state: paused;
+    pointer-events: none;
+
+    & .lg-paper {
+      fill: var(--lg-paper);
+    }
+    & .lg-band {
+      fill: none;
+      stroke: var(--lg-skin);
+      stroke-width: 5;
+      stroke-linecap: round;
+    }
+    & .lg-dot {
+      fill: var(--lg-line);
+    }
+    & .lg-edge,
+    & .lg-spar,
+    & .lg-tail,
+    & .lg-string {
+      fill: none;
+      stroke: var(--lg-line);
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    & .lg-edge {
+      stroke-width: 2;
+    }
+    & .lg-spar {
+      stroke-width: 1;
+      opacity: 0.55;
+    }
+    & .lg-tail {
+      stroke-width: 1.6;
+    }
+    & .lg-string {
+      stroke: var(--lg-string);
+      stroke-width: 0.9;
+    }
+
+    & .lg-kite {
+      transform-box: fill-box;
+      transform-origin: 50% 60%;
+      animation: lg-tilt 5.3s ease-in-out infinite alternate;
+      animation-play-state: inherit;
+    }
+
+    & .layangan-up,
+    & .layangan-down {
+      transition: opacity 1.2s ease;
+    }
+    & .layangan-down {
+      opacity: 0;
+    }
+  }
+
+  /* Only sways while the band is on screen. */
+  .contact-sky[data-live] .layangan {
+    animation-play-state: running;
+  }
+
+  /* Night: the kite is brought in. */
+  .contact-sky[data-phase="night"] .layangan {
+    --lg-line: var(--mori);
+    --lg-string: var(--pudar);
+    --lg-paper: var(--nila-2);
+    --lg-skin: var(--soga-2);
+    animation: none;
+
+    & .lg-kite {
+      animation: none;
+    }
+    & .layangan-up {
+      opacity: 0;
+    }
+    & .layangan-down {
+      opacity: 1;
+    }
+  }
+
+  @keyframes lg-sway {
+    from {
+      rotate: -2.5deg;
+    }
+    to {
+      rotate: 2.5deg;
+    }
+  }
+
+  @keyframes lg-tilt {
+    from {
+      rotate: -6deg;
+    }
+    to {
+      rotate: 5deg;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .layangan,
+    .layangan .lg-kite {
+      animation: none;
+    }
+  }
   /* Malam, the night blue the landscape's near hills are drawn in, so the ground runs on into
      it. The hem along the bottom comes from site-footer.tsx. */
   .site-footer {
@@ -226,3 +504,4 @@
   inherits: true;
   initial-value: 0;
 }
+

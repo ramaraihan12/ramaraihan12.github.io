@@ -1,6 +1,7 @@
 "use client";
 
-import type { CSSProperties, ReactNode } from "react";
+import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from "react";
+import { Layangan } from "@/components/art/layangan";
 import { type Sky, skyAt } from "@/components/art/sky";
 import { contactCopy } from "@/content/copy";
 import { useMinute } from "./salatiga-time";
@@ -38,18 +39,41 @@ function skyVars(sky: Sky) {
   } as CSSProperties;
 }
 
+/** True while the element is on screen, so the kite only sways when it can be seen. */
+function useOnScreen<T extends Element>() {
+  const ref = useRef<T>(null);
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver(([e]) => setOn(e.isIntersecting));
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return [ref, on] as const;
+}
+
 export function SkyBand({ children }: { children: ReactNode }) {
   const now = useMinute();
   const sky = now ? skyAt(now) : null;
+  const [ref, on] = useOnScreen<HTMLDivElement>();
   return (
-    <div className="contact-sky" aria-hidden="true" data-phase={sky?.phase} style={sky ? skyVars(sky) : undefined}>
+    <div
+      ref={ref}
+      className="contact-sky"
+      aria-hidden="true"
+      data-phase={sky?.phase}
+      data-live={on || undefined}
+      style={sky ? skyVars(sky) : undefined}
+    >
       {children}
+      <Layangan />
     </div>
   );
 }
-
 /** One line on what I'm likely doing, by the same clock. Empty until the time is known. */
 export function SkyCaption() {
   const now = useMinute();
   return <span className="contact-sky-caption">{now ? contactCopy.sky[skyAt(now).phase] : null}</span>;
 }
+
