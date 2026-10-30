@@ -1,0 +1,121 @@
+@layer components {
+  /* ---------- the hero's sky, alive: truntum stars, Merapi's smoke, the sun's kawung ---------- */
+
+  /* Truntum means "blooming". Each star is a flower, drawn once in the landscape; here it only
+     gets its resting look. Without motion (reduced, or no scripts) they just sit there lit. */
+  .qs-land .art-star {
+    opacity: 0.88;
+  }
+
+  .qs-land .art-wisp {
+    opacity: 0;
+  }
+
+  .qs-land .art-plume {
+    transform-origin: 606px 300px;
+  }
+
+  /* The kawung on the pinned scene's sun, the same drawing the landscape's own sun carries
+     (kawungDisc in landscape.tsx). It rides the sun's scale, so as the sun shrinks into the
+     query dot the pattern closes up inside it. */
+  .scrolly .qs-sun::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    opacity: 0.55;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-50 -50 100 100' fill='none' stroke='%239c6633' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M0 0A23 13 0 1 1 46 0A23 13 0 1 1 0 0M0 0A13 23 0 1 1 0 46A13 23 0 1 1 0 0M0 0A23 13 0 1 0 -46 0A23 13 0 1 0 0 0M0 0A13 23 0 1 0 0 -46A13 23 0 1 0 0 0'/%3E%3Cpath d='M-2.6 0a2.6 2.6 0 1 0 5.2 0a2.6 2.6 0 1 0 -5.2 0M28.1 30a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0M-31.9 30a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0M28.1 -30a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0M-31.9 -30a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0'/%3E%3C/svg%3E")
+      center / 100% 100% no-repeat;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /* Each star opens (scale up from nothing, a small overshoot) once the question has typed
+       in, one after another, and then breathes on its own slow clock so no two are in step. */
+    .qs-land .art-star {
+      --open: calc(1.9s + var(--i) * 0.55s);
+      animation:
+        star-open 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) var(--open) backwards,
+        star-breathe calc(5.5s + var(--i) * 0.7s) ease-in-out calc(var(--open) + 1.4s) infinite;
+    }
+
+    /* Smoke sways from the crater like a flag in slow wind. */
+    .qs-land .art-plume {
+      animation: plume-sway 11s ease-in-out infinite alternate;
+    }
+
+    /* Two wisps tear off the end, drift east and thin out, over and over, out of step. */
+    .qs-land .art-wisp {
+      animation: wisp-drift 15s linear calc(var(--i) * 7.5s + 2.5s) infinite backwards;
+    }
+
+    /* The sun's glow breathes, slowly, so the morning isn't a still picture. */
+    .scrolly .qs-sun::before {
+      animation: sun-breathe 7s ease-in-out 1.8s infinite;
+    }
+
+    /* Nothing loops while the scene is off screen. */
+    .is-idle :is(.art-star, .art-plume, .art-wisp, .qs-sun::before) {
+      animation-play-state: paused;
+    }
+  }
+}
+
+@keyframes star-open {
+  from {
+    opacity: 0;
+    transform: scale(0.1) rotate(-45deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.18) rotate(6deg);
+  }
+  to {
+    opacity: 0.88;
+    transform: scale(1) rotate(0);
+  }
+}
+
+@keyframes star-breathe {
+  0%,
+  100% {
+    opacity: 0.88;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
+}
+
+@keyframes plume-sway {
+  from {
+    transform: rotate(-1.6deg) translateX(-6px);
+  }
+  to {
+    transform: rotate(1.4deg) translateX(12px);
+  }
+}
+
+@keyframes wisp-drift {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.8);
+  }
+  20% {
+    opacity: 0.28;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(150px, -26px) scale(1.5);
+  }
+}
+
+@keyframes sun-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}

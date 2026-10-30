@@ -42,6 +42,20 @@ export type LandscapeProps = {
   stars?: number;
   /** Merapi's smoke. On by default. */
   plume?: boolean;
+  /**
+   * Merapi's smoke blown east instead, low over its shoulder, with two wisps coming off the end.
+   * A stylesheet can set them drifting: .art-plume sways from the crater (606, 300) and each
+   * .art-wisp drifts off and thins out. Off by default.
+   */
+  windblown?: boolean;
+  /**
+   * Truntum stars in the sky, whatever `stars` is: nine small star-flowers, each in a
+   * <g class="art-star"> with a flower inside, and a few wax dots between them. A stylesheet
+   * can bring them on one by one (--i is their order) and make them breathe. Off by default.
+   */
+  truntum?: boolean;
+  /** A kawung stamped faintly on the sun, in soga. Off by default. */
+  kawungSun?: boolean;
   /** "xMidYMax slice" by default: fills the box, keeps the ground, crops the sides. */
   preserveAspectRatio?: string;
   /**
@@ -325,6 +339,47 @@ const STARS = (() => {
   return { small, big, sparkle };
 })();
 
+/** A truntum star-flower at the origin: four long petals along the axes, four short ones between. */
+function truntumFlower() {
+  const petal = (len: number, half: number, deg: number) => {
+    const a = (deg * Math.PI) / 180;
+    const c = Math.cos(a);
+    const sn = Math.sin(a);
+    const at = (x: number, y: number) => nums([x * c - y * sn, x * sn + y * c], 1);
+    return `M0 0Q${at(half, -len * 0.45)} ${at(0, -len)}Q${at(-half, -len * 0.45)} 0 0Z`;
+  };
+  let d = "";
+  for (let k = 0; k < 4; k++) d += petal(12, 2.7, k * 90) + petal(6.5, 1.7, 45 + k * 90);
+  return d + dot(0, 0, 2, 1);
+}
+
+/** The nine stars: where, how big. In the order they come on, from the middle of the sky out. */
+const TRUNTUM_STARS: readonly (readonly [number, number, number])[] = [
+  [870, 126, 1.3],
+  [700, 72, 1.4],
+  [1010, 50, 1.7],
+  [560, 150, 1.05],
+  [1180, 128, 1.15],
+  [790, 190, 0.85],
+  [1390, 72, 1.3],
+  [320, 92, 1.05],
+  [1480, 196, 0.9],
+];
+
+/** Wax dots (cecek) scattered between the stars, as zero-length strokes. */
+const TRUNTUM_DOTS = [
+  [790, 96],
+  [940, 78],
+  [630, 112],
+  [1090, 96],
+  [1290, 98],
+  [840, 190],
+  [480, 60],
+  [1420, 150],
+]
+  .map(([x, y]) => `M${x} ${y}h0`)
+  .join("");
+
 /** A row of cecek (wax dots) following a ridge a little below its edge, where it's high enough. */
 function cecek(ridge: Pt[], drop: number, below: number) {
   const pts = ridge.filter(([, y]) => y < below).map(([x, y]): Pt => [x, y + drop]);
@@ -362,8 +417,67 @@ const GEOMETRY = (() => {
       10,
       0,
     ),
+    // The same smoke blown east by the morning wind, low over the sky and away from the words.
+    plumeBlown: taper(
+      [
+        [604, 300],
+        [594, 272],
+        [596, 246],
+        [620, 226],
+        [668, 214],
+        [740, 208],
+        [830, 212],
+        [930, 226],
+      ],
+      (t) => (4 + t * 36) * (1 - t ** 3) + 2,
+      12,
+      0,
+    ),
+    wisp0: taper(
+      [
+        [930, 228],
+        [980, 236],
+        [1030, 238],
+        [1076, 232],
+      ],
+      (t) => 22 * Math.sin(Math.PI * t) ** 0.7 + 1,
+      10,
+      0,
+    ),
+    wisp1: taper(
+      [
+        [890, 220],
+        [940, 208],
+        [996, 204],
+        [1046, 208],
+      ],
+      (t) => 15 * Math.sin(Math.PI * t) ** 0.7 + 1,
+      10,
+      0,
+    ),
+    truntum: truntumFlower(),
+    truntumDots: TRUNTUM_DOTS,
+    kawungSun: kawungDisc(),
   };
 })();
+
+/** A kawung, centred on 0 0, 46 across: four seed-ellipses meeting in the middle, a ring, dots between. */
+function kawungDisc() {
+  const a = 23;
+  const b = 13;
+  let d = "";
+  for (const [rx, ry, ex, ey, sw] of [
+    [a, b, 46, 0, 1],
+    [b, a, 0, 46, 1],
+    [a, b, -46, 0, 0],
+    [b, a, 0, -46, 0],
+  ]) {
+    d += `M0 0A${rx} ${ry} 0 1 ${sw} ${ex} ${ey}A${rx} ${ry} 0 1 ${sw} 0 0`;
+  }
+  d += dot(0, 0, 2.6, 0);
+  for (const [x, y] of [[30, 30], [-30, 30], [30, -30], [-30, -30]]) d += dot(x, y, 1.9, 0);
+  return d;
+}
 
 /** Every path the drawing uses, by name. The same for every Landscape. */
 const SHAPES = { ...GEOMETRY, stars: STARS.small, bigStars: STARS.big, sparkle: STARS.sparkle };
@@ -399,6 +513,9 @@ export function Landscape({
   sunSlot,
   stars = 0,
   plume = true,
+  windblown = false,
+  truntum = false,
+  kawungSun = false,
   preserveAspectRatio = "xMidYMax slice",
   shapes = "inline",
   className,
@@ -436,6 +553,11 @@ export function Landscape({
           <stop offset="0" stopColor="var(--mori, #efe9dc)" stopOpacity="0.55" />
           <stop offset="1" stopColor="var(--mori, #efe9dc)" stopOpacity="0" />
         </linearGradient>
+        <linearGradient id={`${uid}-smoke2`} gradientUnits="userSpaceOnUse" x1="604" y1="300" x2="1070" y2="226">
+          <stop offset="0" stopColor="var(--mori, #efe9dc)" stopOpacity="0.2" />
+          <stop offset="0.3" stopColor="var(--mori, #efe9dc)" stopOpacity="0.5" />
+          <stop offset="1" stopColor="var(--mori, #efe9dc)" stopOpacity="0" />
+        </linearGradient>
         <radialGradient id={`${uid}-glow`}>
           <stop offset="0.3" stopColor={sunColor} stopOpacity="0.4" />
           <stop offset="1" stopColor={sunColor} stopOpacity="0" />
@@ -454,6 +576,24 @@ export function Landscape({
             <Shape shapes={shapes} name="sparkle" strokeWidth="1.2" opacity="0.8" />
           </g>
         ) : null}
+        {truntum ? (
+          <g fill="var(--mori, #efe9dc)" className="art-stars">
+            {TRUNTUM_STARS.map(([x, y, k], i) => (
+              <g key={i} transform={`translate(${x} ${y}) scale(${k})`}>
+                <Shape shapes={shapes} name="truntum" className="art-star" style={{ "--i": i } as CSSProperties} />
+              </g>
+            ))}
+            <Shape
+              shapes={shapes}
+              name="truntumDots"
+              fill="none"
+              stroke="var(--mori, #efe9dc)"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              opacity="0.45"
+            />
+          </g>
+        ) : null}
       </g>
 
       <g data-depth="0.05" data-layer="sun">
@@ -461,13 +601,36 @@ export function Landscape({
           <g className="art-sun">
             <circle cx={sun.x * W} cy={sun.y * H} r={sunR * 3.2} fill={`url(#${uid}-glow)`} />
             <circle cx={sun.x * W} cy={sun.y * H} r={sunR} fill={sunColor} />
+            {kawungSun ? (
+              <g transform={`translate(${sun.x * W} ${sun.y * H}) scale(${sunR / 50})`}>
+                <Shape
+                  shapes={shapes}
+                  name="kawungSun"
+                  fill="none"
+                  stroke="var(--soga, #9c6633)"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  opacity="0.55"
+                />
+              </g>
+            ) : null}
           </g>
         ) : null}
         {sunSlot}
       </g>
 
       <g data-depth="0.15" data-layer="merapi">
-        {plume ? <Shape shapes={shapes} name="plume" fill={`url(#${uid}-smoke)`} opacity="0.7" /> : null}
+        {plume && windblown ? (
+          <>
+            <g className="art-plume">
+              <Shape shapes={shapes} name="plumeBlown" fill={`url(#${uid}-smoke2)`} opacity="0.7" />
+            </g>
+            <Shape shapes={shapes} name="wisp0" className="art-wisp" fill="var(--mori, #efe9dc)" style={{ "--i": 0 } as CSSProperties} />
+            <Shape shapes={shapes} name="wisp1" className="art-wisp" fill="var(--mori, #efe9dc)" style={{ "--i": 1 } as CSSProperties} />
+          </>
+        ) : plume ? (
+          <Shape shapes={shapes} name="plume" fill={`url(#${uid}-smoke)`} opacity="0.7" />
+        ) : null}
         <Shape shapes={shapes} name="merapi" fill={mix(ink, fade, 38)} stroke={wax} strokeWidth="1.5" strokeOpacity="0.55" />
         <Shape
           shapes={shapes}
