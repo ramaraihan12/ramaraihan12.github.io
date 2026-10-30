@@ -95,13 +95,13 @@ const notes = top.map(({ n, score, note }) => {
   const d = Math.hypot(dx, dy) || 1;
   const [ux, uy] = [dx / d, dy / d];
   // The fourth note would sit against the second, so it waits a little further out.
-  const near = 64 + 150 * d + (n === 4 ? 16 : 0);
+  const near = 64 + 150 * d + (note.source === "stack/midtrans" ? 16 : 0);
   return {
     n,
     score,
     source: note.source,
     // The fourth note reads leftwards, away from the second one it would pass on the way in.
-    side: ux < -0.2 || n === 4 ? "left" : "right",
+    side: ux < -0.2 || note.source === "stack/midtrans" ? "left" : "right",
     near: [ux * near, uy * near],
     far: [ux, uy, 0.4 + 0.5 * d],
     paths: ringPaths(note.source, n - 1),

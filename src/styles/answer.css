@@ -438,16 +438,22 @@
     }
   }
 
-  /* Too short for a hem: the text already fills the screen, so the cloth just runs to the
-     edge, as it did before the hem, rather than drawing lines through the last line. */
+  /* Too short for a hem: the text already fills the screen, so the cloth fades out
+     rather than drawing lines through the last line. */
   @media (max-height: 700px) {
     .scrolly {
       & .answer {
         --hem-h: 0rem;
       }
 
+      /* No height to spare, so the cloth melts into plain kunyit instead of ending on a line. */
       & .answer-bg::after {
         display: none;
+      }
+
+      & .answer-bg::before {
+        -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 4rem), transparent);
+        mask-image: linear-gradient(to bottom, #000 calc(100% - 4rem), transparent);
       }
     }
   }

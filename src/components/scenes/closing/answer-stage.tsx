@@ -46,7 +46,10 @@ export function AnswerStage({ children }: { children: ReactNode }) {
         if (!(e.target as Element).closest(hitSelector)) delete section.dataset.lit;
       };
       const onTap = (e: Event) => {
-        if (pointer === "mouse") return;
+        const touched = pointer === "touch" || pointer === "pen";
+        pointer = "";
+        // A keyboard click (detail 0) or a mouse click is not a tap; CSS handles those.
+        if (!touched || (e as MouseEvent).detail === 0) return;
         const n = (e.target as Element).closest<HTMLElement>(hitSelector)?.dataset.note;
         if (n && section.dataset.lit !== n) section.dataset.lit = n;
         else delete section.dataset.lit;
@@ -145,7 +148,11 @@ export function AnswerStage({ children }: { children: ReactNode }) {
             const b = rect(note);
             return axis === "x" ? a.left + a.width / 2 - b.left : a.top + a.height / 2 - b.top;
           };
-          tl.to(fly, { x: to("x"), y: to("y"), scale: 0.62, duration: lands - leaves - 0.05, ease: "power2.inOut" }, leaves)
+          // Shrink to the landing size and drop the numeral before the text appears, so the
+          // rings cross the paragraph as small marks.
+          tl.to(fly, { scale: 0.62, duration: 0.3, ease: "power2.out" }, 0.65)
+            .to(fly.querySelectorAll(".an-rank"), { opacity: 0, duration: 0.2 }, 0.75);
+          tl.to(fly, { x: to("x"), y: to("y"), duration: lands - leaves - 0.05, ease: "power2.inOut" }, leaves)
             .to(fly, { opacity: 0, duration: 0.08 }, lands - 0.1)
             .fromTo(cite, { "--ink": 0 }, { "--ink": 1, duration: 0.14, ease: "power2.out" }, lands - 0.1);
         });
