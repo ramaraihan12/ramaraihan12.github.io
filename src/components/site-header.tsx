@@ -1,10 +1,10 @@
 "use client";
 
-import { type MouseEvent, useEffect, useRef, useSyncExternalStore } from "react";
+import { type CSSProperties, type MouseEvent, useEffect, useRef, useSyncExternalStore } from "react";
 import { headerCopy } from "@/content/copy";
 import { site } from "@/content/site";
 import { stages, type StageId } from "@/content/story";
-import { getStage, goToStage, subscribeStage } from "@/lib/stage";
+import { getStage, goToStage, stageFractions, subscribeMeasure, subscribeProgress, subscribeStage } from "@/lib/stage";
 import { EmailLink } from "./email-link";
 import { CheckIcon, MailIcon } from "./icons";
 
@@ -16,6 +16,44 @@ export function SiteHeader() {
   const navRef = useRef<HTMLOListElement>(null);
   const dotRef = useRef<HTMLSpanElement>(null);
   const barRef = useRef<HTMLSpanElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
+  const ticksRef = useRef<HTMLSpanElement>(null);
+
+  // The wire: the header carries the stage and how far toward the next one, as plain numbers,
+  // and the CSS works out which arrows are inked. Written here, not through React.
+  useEffect(
+    () =>
+      subscribeProgress((i, p) => {
+        headerRef.current?.style.setProperty("--stage-i", String(i));
+        headerRef.current?.style.setProperty("--stage-p", String(p));
+      }),
+    [],
+  );
+
+  // Ticks on the phone's bar sit where each stage starts, once the scenes have measured the page.
+  useEffect(() => {
+    const place = () => {
+      const marks = ticksRef.current?.children;
+      if (!marks) return;
+      stageFractions().forEach((f, k) => {
+        const mark = marks[k] as HTMLElement | undefined;
+        mark?.style.setProperty("left", `${f * 100}%`);
+      });
+    };
+    place();
+    window.addEventListener("resize", place);
+    const stop = subscribeMeasure(place);
+    return () => {
+      window.removeEventListener("resize", place);
+      stop();
+    };
+  }, []);
+
+  // The label's stamp press waits for the first real change, so it doesn't fire on load.
+  const nowRef = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    nowRef.current?.setAttribute("data-ready", "");
+  }, []);
 
   // The dot slides under whichever stage is active.
   useEffect(() => {
@@ -55,7 +93,7 @@ export function SiteHeader() {
   };
 
   return (
-    <header className="site-header">
+    <header ref={headerRef} className="site-header">
       <div className="site-header-inner container-page">
         <a href="#top" onClick={jump("query")} className="brand">
           {site.name}
@@ -63,8 +101,8 @@ export function SiteHeader() {
 
         <nav aria-label={headerCopy.navLabel} className="stage-nav">
           <ol ref={navRef}>
-            {stages.map((stage) => (
-              <li key={stage.id}>
+            {stages.map((stage, k) => (
+              <li key={stage.id} style={{ "--k": k } as CSSProperties}>
                 <a
                   href={stage.href}
                   onClick={jump(stage.id)}
@@ -72,14 +110,22 @@ export function SiteHeader() {
                 >
                   {stage.label}
                 </a>
+                {k < stages.length - 1 && (
+                  <svg className="wire" viewBox="0 0 16 8" aria-hidden="true">
+                    <path className="wire-bare" d="M0 4H14M11 1l3 3-3 3" />
+                    <path className="wire-ink" d="M0 4H14M11 1l3 3-3 3" />
+                  </svg>
+                )}
               </li>
             ))}
           </ol>
           <span ref={dotRef} className="stage-dot" aria-hidden="true" />
         </nav>
 
-        <p className="stage-now" aria-hidden="true">
-          <span className="eyebrow-n">{pad(index + 1)}</span> {stages[index].label}
+        <p ref={nowRef} className="stage-now" aria-hidden="true">
+          <span key={active} className="stage-stamp">
+            <span className="eyebrow-n">{pad(index + 1)}</span> {stages[index].label}
+          </span>
         </p>
 
         <EmailLink
@@ -97,6 +143,11 @@ export function SiteHeader() {
       </div>
       <span className="scroll-bar" aria-hidden="true">
         <span ref={barRef} />
+        <span ref={ticksRef} className="scroll-ticks">
+          {stages.map((stage, k) => (
+            <i key={stage.id} data-passed={k <= index ? "" : undefined} />
+          ))}
+        </span>
       </span>
     </header>
   );
