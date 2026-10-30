@@ -59,6 +59,55 @@ function measure() {
     } catch {}
   }
   update();
+  measureListeners.forEach((l) => l());
+}
+
+/**
+ * Index of the current stage and how far (0..1) the reader is toward the next one, for the
+ * header's wire. Listeners write it straight to the DOM, so scrolling never re-renders React.
+ */
+const progressListeners = new Set<(index: number, p: number) => void>();
+const measureListeners = new Set<() => void>();
+let lastIndex = -1;
+let lastP = -1;
+
+function publishProgress(y: number, current: StageId) {
+  const i = stages.findIndex((s) => s.id === current);
+  const here = cache.get(current);
+  const next = stages[i + 1] && cache.get(stages[i + 1].id);
+  const span = here && next ? next.at - here.at : 0;
+  const p = span > 0 ? Math.min(1, Math.max(0, (y - here!.at) / span)) : 0;
+  const q = Math.round(p * 500) / 500;
+  if (i === lastIndex && q === lastP) return;
+  lastIndex = i;
+  lastP = q;
+  progressListeners.forEach((l) => l(i, q));
+}
+
+/** Calls back right away, then on every change. Returns the unsubscribe. */
+export function subscribeProgress(listener: (index: number, p: number) => void) {
+  progressListeners.add(listener);
+  if (lastIndex >= 0) listener(lastIndex, lastP);
+  return () => {
+    progressListeners.delete(listener);
+  };
+}
+
+/** Called after the stages are measured again, which is when their positions can have moved. */
+export function subscribeMeasure(listener: () => void) {
+  measureListeners.add(listener);
+  return () => {
+    measureListeners.delete(listener);
+  };
+}
+
+/** Where each stage starts as a share of the scrollable page, matching the scroll bar. */
+export function stageFractions() {
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  return stages.map(({ id }) => {
+    const m = cache.get(id);
+    return m && max > 0 ? Math.min(1, Math.max(0, m.at / max)) : 0;
+  });
 }
 
 function update() {
@@ -68,6 +117,7 @@ function update() {
     const m = cache.get(id);
     if (m && y >= m.at) current = id;
   }
+  publishProgress(y, current);
   if (current !== active) {
     active = current;
     listeners.forEach((l) => l());

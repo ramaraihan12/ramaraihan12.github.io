@@ -72,12 +72,36 @@
       font-size: 0.7rem;
     }
 
-    & li:not(:last-child)::after {
-      content: "→";
-      content: "→" / "";
-      margin-inline: 0.15rem;
-      color: var(--hdr-muted);
-      opacity: 0.5;
+    & li {
+      display: flex;
+      align-items: center;
+    }
+
+    /*
+      The wire between two stages. --stage-i and --stage-p sit on the header (stage.ts): arrows
+      behind the reader are fully inked, the one leaving the current stage fills as the next
+      gets near, the rest stay bare. The ink is a clipped copy, so no transition is needed.
+    */
+    & .wire {
+      width: 1rem;
+      height: 0.5rem;
+      margin-inline: 0.1rem;
+      fill: none;
+      stroke-width: 1;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      overflow: visible;
+    }
+
+    & .wire-bare {
+      stroke: var(--hdr-muted);
+      opacity: 0.4;
+    }
+
+    & .wire-ink {
+      --fill: clamp(0, var(--stage-i, 0) - var(--k) + var(--stage-p, 0), 1);
+      stroke: var(--hdr-accent);
+      clip-path: inset(-2px calc((1 - var(--fill)) * (100% + 4px) - 2px) -2px -2px);
     }
 
     & a {
@@ -147,12 +171,62 @@
     inset: auto 0 0;
     height: 2px;
 
-    & span {
+    & > span:first-child {
       display: block;
       height: 100%;
       background: var(--hdr-accent);
       transform-origin: left;
       scale: 0 1;
+    }
+  }
+
+  /* Where each stage starts, on the phone's bar. Inked once the reader has reached it. */
+  .scroll-ticks {
+    position: absolute;
+    inset: auto 0 0;
+    height: 0;
+
+    & i {
+      position: absolute;
+      bottom: 0;
+      width: 1px;
+      height: 7px;
+      background: var(--hdr-muted);
+      opacity: 0.55;
+
+      &[data-passed] {
+        background: var(--hdr-accent);
+        opacity: 1;
+      }
+    }
+
+    @media (width >= 64rem) {
+      display: none;
+    }
+  }
+
+  /* The label is pressed down like a cap stamp each time the stage changes. */
+  .stage-now[data-ready] .stage-stamp {
+    display: inline-block;
+    transform-origin: 30% 60%;
+    animation: stamp-press 0.34s cubic-bezier(0.3, 1.4, 0.5, 1);
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  @keyframes stamp-press {
+    0% {
+      transform: scale(1.35) rotate(-2.5deg);
+      opacity: 0;
+    }
+    45% {
+      transform: scale(0.94) rotate(0.6deg);
+      opacity: 1;
+    }
+    100% {
+      transform: none;
     }
   }
 }
