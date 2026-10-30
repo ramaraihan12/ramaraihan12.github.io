@@ -1,8 +1,9 @@
 @layer components {
   /*
-    The pipeline. Steps stacked on phones, a row on wider screens, with the wire running beside
-    them and a tick from each step down to it. --p moves the packet along the wire; each step's
-    --lit goes from 0 to 1 just as the packet reaches it.
+    The pipeline. Three looks: one line of wax dots on a wire on phones (last block), a row of
+    pills with a tick down to the wire on wider screens, and the stacked list underneath both,
+    which no width shows now but is the base they override. --p moves the packet along the wire;
+    each step's --lit goes from 0 to 1 just as the packet reaches it.
   */
   .pipe {
     --p: 0;
@@ -136,6 +137,121 @@
       bottom: var(--wire);
       left: calc(50% / var(--n));
       translate: calc(-50% + var(--p) * (100cqw - 100cqw / var(--n))) 50%;
+    }
+  }
+
+  /*
+    Phones, on a card in the work deck: one line. Each step is a wax dot on the wire with its
+    name small underneath, and the packet hops from dot to dot when the card lands (run-rail.tsx).
+  */
+  @media (width < 48rem) {
+    .pipe {
+      --dot: 0.5rem;
+      --wire: 0.45rem;
+      --lab: 1.9rem;
+      container-type: inline-size;
+      margin-top: 0;
+
+      &::before,
+      &::after {
+        top: calc(var(--lab) + var(--dot) / 2);
+        right: calc(50% / var(--n));
+        bottom: auto;
+        left: calc(50% / var(--n));
+        width: auto;
+        height: 1px;
+        translate: 0 -50%;
+      }
+
+      &::after {
+        transform-origin: left;
+        scale: var(--p) 1;
+      }
+    }
+
+    .pipe-steps {
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(0, 1fr);
+      grid-auto-rows: auto;
+      row-gap: 0;
+      padding-left: 0;
+    }
+
+    /* Labels alternate under and over the wire, like a transit map, so each gets room to breathe. */
+    .pipe-node {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: var(--lab) var(--dot) var(--lab);
+      justify-items: center;
+      min-width: 0;
+      padding-inline: 0;
+      border: 0;
+      border-radius: 0;
+      background: none;
+      color: color-mix(in oklab, var(--mori) calc(var(--lit) * 100%), var(--pudar));
+      font-size: 0.6rem;
+      line-height: 1.3;
+
+      &::before {
+        content: "";
+        grid-row: 2;
+        width: var(--dot);
+        height: var(--dot);
+        border: 1px solid var(--lit-line);
+        border-radius: 50%;
+        background: color-mix(in oklab, var(--kunyit) calc(var(--lit) * 100%), var(--nila));
+      }
+
+      &::after {
+        display: none;
+      }
+    }
+
+    .pipe-label {
+      grid-row: 3;
+      width: calc(200% - 0.75rem);
+      padding-top: 0.3rem;
+      text-align: center;
+      text-wrap: balance;
+      overflow-wrap: anywhere;
+    }
+
+    .pipe-node:nth-child(even) .pipe-label {
+      grid-row: 1;
+      align-self: end;
+      padding: 0 0 0.3rem;
+    }
+
+    /* The ends hang inward so a long label never pokes out past the card. */
+    .pipe-node:first-child .pipe-label,
+    .pipe-node:last-child .pipe-label {
+      width: max-content;
+      max-width: calc(150% - 0.5rem);
+    }
+
+    .pipe-node:first-child .pipe-label {
+      justify-self: start;
+      text-align: left;
+    }
+
+    .pipe-node:last-child .pipe-label {
+      justify-self: end;
+      text-align: right;
+    }
+
+    .pipe-packet {
+      top: calc(var(--lab) + var(--dot) / 2);
+      left: calc(50% / var(--n));
+      width: 0.8rem;
+      height: 0.8rem;
+      border-color: var(--nila-2);
+      box-shadow: 0 0 0 1px var(--kunyit);
+      translate: calc(-50% + var(--p) * (100cqw - 100cqw / var(--n))) -50%;
+    }
+
+    /* Nothing runs it without the motion, so the whole path is shown lit. */
+    :root:not(.scrolly) .pipe {
+      --p: 1;
     }
   }
 }

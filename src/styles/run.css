@@ -20,17 +20,30 @@
   }
 
   .run-track {
+    --gutter: 1rem;
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
     width: 100%;
     max-width: 80rem;
     margin-inline: auto;
-    padding-inline: 1rem;
+    padding-inline: var(--gutter);
 
     @media (width >= 40rem) {
-      padding-inline: 2rem;
+      --gutter: 2rem;
     }
+  }
+
+  /* The panels, one list item each, the web & infra divider among them. */
+  .run-deck {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  /* Only a phone's deck needs it, and only once the scripts can move it. */
+  .run-deck-bar {
+    display: none;
   }
 
   .run-intro {
@@ -310,6 +323,194 @@
       color: var(--pudar);
     }
   }
+
+  /*
+    Phones: a deck you swipe through sideways, one card in view and the edge of the next one
+    showing. Plain scroll snapping, so the page scrolls as usual and the deck works without the
+    scripts. Every card is as tall as the tallest, with the pipeline and links along the bottom,
+    so they line up from card to card. The query matches DECK_MQ in run-rail.tsx.
+  */
+  @media (width < 48rem) {
+    .run-deck {
+      flex-direction: row;
+      gap: 0.75rem;
+      margin-inline: calc(var(--gutter) * -1);
+      padding: 0.25rem var(--gutter);
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: var(--gutter);
+      scrollbar-width: none;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    .run-card {
+      display: flex;
+      flex: 0 0 calc(100% - 2.75rem);
+      min-width: 0;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+
+      & > .panel {
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+    }
+
+    .panel {
+      padding: 1.1rem 1.1rem 1.25rem;
+    }
+
+    .project {
+      grid-template-rows: auto minmax(0, 1fr) auto auto;
+      row-gap: 1.15rem;
+    }
+
+    .project-art {
+      max-width: none;
+      aspect-ratio: 3 / 2;
+    }
+
+    /* Landscape phones: text beside the art, as on the desktop panel, so a card fits the screen. */
+    @media (width >= 34rem) {
+      .project {
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+        grid-template-areas: "text art" "pipe pipe" "foot foot";
+        grid-template-rows: minmax(0, 1fr) auto auto;
+        column-gap: 1.5rem;
+      }
+
+      .project-art {
+        align-self: center;
+        aspect-ratio: 5 / 4;
+      }
+    }
+
+    /* Short portrait phones: a flatter picture so the card and its count fit one screen. */
+    @media (width < 34rem) and (height < 46rem) {
+      .project-art {
+        aspect-ratio: 16 / 9;
+      }
+    }
+
+    .project-kind {
+      font-size: 0.66rem;
+    }
+
+    .project-name {
+      margin-top: 0.7rem;
+      font-size: 1.7rem;
+    }
+
+    .project-summary {
+      margin-top: 0.6rem;
+      font-size: 0.94rem;
+      line-height: 1.5;
+    }
+
+    /* Cards are as tall as the longest one, and the spare height goes under the summary, so the pipeline and links line up along the bottom from card to card. */
+    .project-foot {
+      gap: 0.85rem 1rem;
+      padding-top: 0.4rem;
+
+      & .chips {
+        gap: 0.3rem;
+      }
+
+      & .chips li {
+        padding: 0.12rem 0.4rem;
+        font-size: 0.6rem;
+      }
+    }
+
+    /* The kepala gets a card of its own: soga cloth down to the teeth, then the words. */
+    .run-divider {
+      grid-template-rows: minmax(8rem, 1fr) auto;
+      gap: 1.25rem;
+      padding: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: var(--nila-2);
+    }
+
+    .kepala {
+      --tooth: 0.9rem;
+      height: auto;
+      border-radius: 0;
+    }
+
+    .run-divider-text {
+      padding: 0 1.1rem 1.4rem;
+    }
+
+    .run-divider-title {
+      font-size: 2rem;
+    }
+
+    .run-divider-lead {
+      margin-top: 0.9rem;
+      font-size: 0.98rem;
+    }
+
+    .js .run-deck-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: -0.5rem;
+    }
+
+    .run-outro {
+      padding-block: 0.75rem 1rem;
+    }
+  }
+
+  /* Where you are in the deck: "03 / 12", or the divider's own name while it's in view. */
+  .run-deck-count {
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.78rem;
+    color: var(--pudar);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .run-deck-at {
+    color: var(--kunyit);
+  }
+
+  .run-deck-nav {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .run-deck-btn {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid rgb(239 233 220 / 0.28);
+    border-radius: 0.45rem;
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    color: var(--mori);
+    transition:
+      border-color 0.2s,
+      opacity 0.2s;
+
+    @media (hover: hover) {
+      &:hover:not([aria-disabled="true"]) {
+        border-color: var(--kunyit);
+      }
+    }
+
+    &[aria-disabled="true"] {
+      opacity: 0.3;
+      cursor: default;
+    }
+  }
 }
 
 /*
@@ -337,6 +538,31 @@
       margin: 0;
       padding-inline: max(2rem, calc((100vw - 80rem) / 2 + 2rem)) 8vw;
       will-change: transform;
+    }
+
+    /*
+      The list is one more item on the track, its cards side by side at the same spacing. The
+      widths sit on the list items, so the track's own width adds up the same as it did when
+      the panels were straight on it.
+    */
+    & .run-deck {
+      flex: none;
+      flex-direction: row;
+      align-items: center;
+      gap: clamp(1.25rem, 2.5vw, 2.5rem);
+      height: 100%;
+    }
+
+    & .run-card {
+      display: flex;
+      flex: none;
+      align-items: center;
+      width: min(64rem, 84vw);
+      height: 100%;
+
+      &[data-divider] {
+        width: min(46rem, 64vw);
+      }
     }
 
     & .run-intro {
@@ -429,4 +655,13 @@
   50% {
     translate: 0.3em 0;
   }
+}
+
+/*
+  lenis.css puts overscroll-behavior: contain (both axes) on [data-lenis-prevent-horizontal], which
+  the deck carries so sideways trackpad swipes reach it. The deck only holds sideways swipes, so
+  up and down must still scroll the page. Unlayered, to beat lenis.css.
+*/
+html.lenis .run-deck {
+  overscroll-behavior: contain auto;
 }
