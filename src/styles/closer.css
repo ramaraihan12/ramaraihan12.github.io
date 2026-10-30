@@ -653,8 +653,10 @@
       background: var(--nila);
       color: var(--kunyit);
 
-      &:hover {
-        background: color-mix(in oklab, var(--nila) 85%, white);
+      @media (hover: hover) {
+        &:hover {
+          background: color-mix(in oklab, var(--nila) 85%, white);
+        }
       }
     }
 

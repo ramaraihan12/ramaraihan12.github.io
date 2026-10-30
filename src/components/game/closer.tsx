@@ -597,6 +597,7 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
             goal={streak >= STREAK_GOAL}
             line={S.over.line(streak, STREAK_GOAL, data.dims)}
             why={whyLine(pair)}
+            motifs={motifs}
             onAgain={again}
             onAnswer={toAnswer}
           />
@@ -635,11 +636,45 @@ type ResultProps = {
   goal: boolean;
   line: string;
   why: string;
+  motifs: readonly Motif[];
   onAgain: () => void;
   onAnswer: (e: MouseEvent) => void;
 };
 
-function Result({ id, headRef, streak, best, newBest, goal, line, why, onAgain, onAnswer }: ResultProps) {
+function SaveCloth({ motifs, streak, best }: { motifs: readonly Motif[]; streak: number; best: number }) {
+  const [state, setState] = useState<"idle" | "busy" | "done" | "shared" | "failed">("idle");
+  const timer = useRef(0);
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+
+  async function save() {
+    if (state === "busy") return;
+    setState("busy");
+    let next: typeof state = "idle";
+    try {
+      // The drawing code is its own chunk, fetched on the first click.
+      const { saveCloth } = await import("./cloth-export");
+      const r = await saveCloth({ motifs, streak, best });
+      next = r === "saved" ? "done" : r === "shared" ? "shared" : "idle";
+    } catch {
+      next = "failed";
+    }
+    setState(next);
+    window.clearTimeout(timer.current);
+    if (next !== "idle") timer.current = window.setTimeout(() => setState("idle"), 2600);
+  }
+
+  const label = { idle: S.save.button, busy: S.save.busy, done: S.save.done, shared: S.save.shared, failed: S.save.failed }[state];
+  return (
+    <button type="button" className="nn-btn nn-btn-line cl-save" aria-disabled={state === "busy" || undefined} onClick={save}>
+      {label}
+      <span className="sr-only" role="status">
+        {state === "idle" ? "" : label}
+      </span>
+    </button>
+  );
+}
+
+function Result({ id, headRef, streak, best, newBest, goal, line, why, motifs, onAgain, onAnswer }: ResultProps) {
   return (
     <div className="cl-result" role="group" aria-labelledby={id} data-goal={goal || undefined}>
       <div className="cl-result-score">
@@ -667,6 +702,7 @@ function Result({ id, headRef, streak, best, newBest, goal, line, why, onAgain, 
           <button type="button" className="nn-btn nn-btn-solid" onClick={onAgain}>
             {S.over.again}
           </button>
+          {streak > 0 && motifs.length > 0 ? <SaveCloth motifs={motifs} streak={streak} best={best} /> : null}
           <a href="#answer" className="nn-btn nn-btn-line" onClick={onAnswer}>
             {S.over.answer} <span aria-hidden="true">↓</span>
           </a>
