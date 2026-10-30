@@ -89,21 +89,14 @@ const GAP = 350;
 /*
   The answer's sun blooms over the whole screen, the best moment on the page, and a card in the
   corner would sit right on it. While the answer is on its way in, in view or just leaving, the
-  toasts wait in the queue and show once it has gone by. Measured from the section's box, so this
+  toasts wait in the queue and show once it has gone by. Watched with an observer on the section, so this
   needs nothing from the scene: it's only held while the pinned layout is on (html.scrolly). The
   lead is a little over a screen, since the toast that "whole pipeline" earns arrives just before
   the pin starts and lives five seconds.
 */
-const BLOOM_LEAD = 1.2;
-const BLOOM_TAIL = 0.6;
-
-function bloomOnScreen() {
-  if (!document.documentElement.classList.contains("scrolly")) return false;
-  const box = document.getElementById("answer")?.getBoundingClientRect();
-  if (!box) return false;
-  const h = window.innerHeight;
-  return box.top < h * BLOOM_LEAD && box.bottom > h * BLOOM_TAIL;
-}
+// IntersectionObserver margins: the section counts from a little over a screen below the fold
+// (top < 1.2h) until its bottom has risen past 0.6h.
+const BLOOM_MARGIN = "-60% 0px 20% 0px";
 
 const typing = (t: EventTarget | null) =>
   t instanceof HTMLElement && (t.isContentEditable || t.matches("input, textarea, select"));
@@ -241,9 +234,10 @@ export function Extras() {
     let resting = "";
     const onVisibility = () => {
       if (document.hidden) {
+        // Only the home page has stages. Anywhere else (the 404) the title already says enough.
+        if (!document.getElementById("tokens")) return;
         resting = document.title;
-        // Only the home page has stages. Anywhere else (the 404) there's nothing to point at.
-        const here = document.getElementById("tokens") ? stages.find((s) => s.id === getStage())?.label : undefined;
+        const here = stages.find((s) => s.id === getStage())?.label;
         document.title = X.pausedTitle(here, site.name);
       } else if (resting) {
         document.title = resting;
@@ -281,22 +275,15 @@ export function Extras() {
   const waiting = queue.length > 0;
   useEffect(() => {
     if (!waiting) return;
-    let frame = 0;
-    const check = () => {
-      frame = 0;
-      setHeld(bloomOnScreen());
-    };
-    const onScroll = () => {
-      if (!frame) frame = requestAnimationFrame(check);
-    };
-    check();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
+    const el = document.getElementById("answer");
+    // No answer section (the 404): nothing to hold for.
+    if (!el) return;
+    const watch = new IntersectionObserver(
+      ([entry]) => setHeld(entry.isIntersecting && document.documentElement.classList.contains("scrolly")),
+      { rootMargin: BLOOM_MARGIN },
+    );
+    watch.observe(el);
+    return () => watch.disconnect();
   }, [waiting]);
 
   // One toast at a time, none while the page is dyed, none over the answer's bloom.
