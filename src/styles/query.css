@@ -492,9 +492,22 @@
       & path {
         fill: none;
         stroke: currentColor;
-        stroke-width: 3.6;
+        stroke-width: 5.6;
         stroke-linecap: round;
-        stroke-dasharray: 0.1 9.2;
+        stroke-dasharray: 0.1 12;
+      }
+
+      /* The pen tip: a turmeric dot riding the bottom of the line while it's being drawn. */
+      &::after {
+        content: "";
+        position: absolute;
+        left: 0.02em;
+        top: calc(var(--cut) * 100% - 0.09em);
+        width: 0.1em;
+        height: 0.1em;
+        border-radius: 50%;
+        background: var(--kunyit);
+        opacity: min(var(--cut) * 20, (1 - var(--cut)) * 20);
       }
     }
 

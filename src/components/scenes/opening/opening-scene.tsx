@@ -374,7 +374,7 @@ export function OpeningScene({ land }: { land: ReactNode }) {
           .to(stepTokens, captionOut, 2.0)
           // The canting cuts each name where the tokenizer did, one pen stroke after the other,
           // and every token's number counts up to its place in the vocabulary.
-          .fromTo(cuts, { "--cut": 0 }, { "--cut": 1, duration: 0.45, ease: "power1.inOut", stagger: 0.3 }, 1.0)
+          .fromTo(cuts, { "--cut": 0 }, { "--cut": 1, duration: 0.45, ease: "power1.inOut", stagger: 0.3 }, 0.55)
           .fromTo(count, { v: 0 }, { v: 1, duration: 0.6, ease: "power2.out", stagger: 0.05, onUpdate: writeIds }, 0.85)
 
           // Embed. The tokens go into the dot one after another, and the dot draws the answer
@@ -411,7 +411,7 @@ export function OpeningScene({ land }: { land: ReactNode }) {
           // As it closes, the flowers of the cloth leave it for the notes (see embedding-map.ts).
           .to(map.state, { gather: 1, duration: 0.6 / IRIS_SHARE, ease: "none" }, T.fold)
           .to(halo, { opacity: 0, scale: 0.4, duration: 0.3, ease: "power2.in" }, T.fold + 0.3)
-          .to(embedBody, captionOut, T.fold + 0.1)
+          .to(embedBody, captionOut, T.fold - 0.3)
           .to(sun, { opacity: 0, duration: 0.12 }, T.swap)
           .to(map.state, { query: 1, duration: 0.12 }, T.swap)
           .to(map.state, { alpha: 1, bloom: 1, duration: 1.4, ease: "power1.out" }, T.bloom)
@@ -431,11 +431,9 @@ export function OpeningScene({ land }: { land: ReactNode }) {
             // reads whole and the other is only a head peeking out, never two sliced lines.
             const slot = () => cards[rank].parentElement!.offsetHeight + 12;
             gsap.set(cards[rank], { zIndex: rank + 1 });
-            tl.set(cards[rank], { opacity: 1 }, at + 0.1).fromTo(cards[rank], { y: slot }, { y: 0, duration: 0.3, ease: "power2.inOut" }, at + 0.1).set(
-              cards[rank - 1],
-              { opacity: 0 },
-              at + 0.4,
-            );
+            tl.set(cards[rank], { opacity: 1 }, at + 0.1)
+              .fromTo(cards[rank], { y: slot }, { y: 0, duration: 0.3, ease: "power2.inOut" }, at + 0.1)
+              .to(cards[rank - 1], { opacity: 0, duration: 0.1 }, at + 0.32);
           } else {
             tl.fromTo(cards[rank], { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, at + 0.25);
           }
