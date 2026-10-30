@@ -21,21 +21,32 @@ export function SiteHeader() {
 
   // The wire: the header carries the stage and how far toward the next one, as plain numbers,
   // and the CSS works out which arrows are inked. Written here, not through React.
-  useEffect(
-    () =>
-      subscribeProgress((i, p) => {
-        headerRef.current?.style.setProperty("--stage-i", String(i));
-        headerRef.current?.style.setProperty("--stage-p", String(p));
-      }),
-    [],
-  );
+  // Phones hide the wire, so --stage-p is only written while the wide nav shows.
+  useEffect(() => {
+    const el = headerRef.current;
+    const wide = window.matchMedia("(width >= 64rem)");
+    let last = { i: -1, p: 0 };
+    const writeP = () => {
+      if (wide.matches) el?.style.setProperty("--stage-p", String(last.p));
+    };
+    wide.addEventListener("change", writeP);
+    const stop = subscribeProgress((i, p) => {
+      if (i !== last.i) el?.style.setProperty("--stage-i", String(i));
+      last = { i, p };
+      writeP();
+    });
+    return () => {
+      wide.removeEventListener("change", writeP);
+      stop();
+    };
+  }, []);
 
   // Ticks on the phone's bar sit where each stage starts, once the scenes have measured the page.
   useEffect(() => {
     const place = () => {
       const marks = ticksRef.current?.children;
       if (!marks) return;
-      stageFractions().forEach((f, k) => {
+      stageFractions().slice(1).forEach((f, k) => {
         const mark = marks[k] as HTMLElement | undefined;
         mark?.style.setProperty("left", `${f * 100}%`);
       });
@@ -113,8 +124,8 @@ export function SiteHeader() {
                 </a>
                 {k < stages.length - 1 && (
                   <svg className="wire" viewBox="0 0 16 8" aria-hidden="true">
-                    <path className="wire-bare" d="M0 4H14M11 1l3 3-3 3" />
-                    <path className="wire-ink" d="M0 4H14M11 1l3 3-3 3" />
+                    <path className="wire-bare" d="M0 4.5H14M11 1.5l3 3-3 3" />
+                    <path className="wire-ink" d="M0 4.5H14M11 1.5l3 3-3 3" />
                   </svg>
                 )}
               </li>
@@ -145,8 +156,8 @@ export function SiteHeader() {
       <span className="scroll-bar" aria-hidden="true">
         <span ref={barRef} />
         <span ref={ticksRef} className="scroll-ticks">
-          {stages.map((stage, k) => (
-            <i key={stage.id} data-passed={k <= index ? "" : undefined} />
+          {stages.slice(1).map((stage, k) => (
+            <i key={stage.id} data-passed={k + 1 <= index ? "" : undefined} />
           ))}
         </span>
       </span>

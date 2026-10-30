@@ -87,7 +87,7 @@
       height: 0.5rem;
       margin-inline: 0.1rem;
       fill: none;
-      stroke-width: 1.2;
+      stroke-width: 1;
       stroke-linecap: round;
       stroke-linejoin: round;
       overflow: visible;
@@ -101,7 +101,7 @@
     & .wire-ink {
       --fill: clamp(0, var(--stage-i, 0) - var(--k) + var(--stage-p, 0), 1);
       stroke: var(--hdr-accent);
-      clip-path: inset(-2px calc((1 - var(--fill)) * 100% + 2px) -2px -2px);
+      clip-path: inset(-2px calc((1 - var(--fill)) * (100% + 4px) - 2px) -2px -2px);
     }
 
     & a {
