@@ -15,7 +15,7 @@
   { "source": "invoice-flow", "group": "ai apps", "text": "invoice-flow: a Laravel app that reads Indonesian supplier invoices with an LLM, checks the math, PPN and NPWP, and holds them for review before export." },
   { "source": "text-to-sql-chat", "group": "ai apps", "text": "text-to-sql-chat: ask a sales database questions in English or Bahasa Indonesia and get the SQL, the rows and a chart, with guardrails on the generated SQL. It also ships an MCP server." },
   { "source": "issue-triage-action", "group": "ai apps", "text": "issue-triage-action: a GitHub Action that labels new issues, flags likely duplicates and asks for missing details in one comment." },
-  { "source": "local-ai-coding-setup", "group": "ai apps", "text": "local-ai-coding-setup: my fully local AI coding setup on a laptop with a 6 GB RTX 3060. A coding agent in the terminal and autocomplete in VS Code." },
+  { "source": "local-ai-coding-setup", "group": "ai apps", "text": "local-ai-coding-setup: my fully local AI coding setup on a PC with a 6 GB RTX 3060. A coding agent in the terminal and autocomplete in VS Code." },
 
   { "source": "antre", "group": "web & infra", "text": "antre: queue and booking for small clinics and barbershops. Book a slot with a Midtrans deposit or take a walk-in ticket. Staff call the next number, and a TV in the waiting room reads it out in Indonesian. Two counters never get the same ticket." },
   { "source": "warung-pos", "group": "web & infra", "text": "warung-pos: a point of sale for a small shop that keeps selling when the internet drops. Sales wait in an outbox on the device and sync later, and a retry never counts a sale twice." },
@@ -45,7 +45,7 @@
   { "source": "stack/mongodb", "group": "data", "text": "MongoDB on an LMS, where the shape of the content kept changing." },
   { "source": "stack/pgvector", "group": "data", "text": "pgvector does vector search inside Postgres, so there's no separate vector database to run." },
 
-  { "source": "stack/docker", "group": "shipping", "text": "Docker, so the app behaves the same on my laptop as it does on the server." },
+  { "source": "stack/docker", "group": "shipping", "text": "Docker, so the app behaves the same on my PC as it does on the server." },
   { "source": "stack/actions", "group": "shipping", "text": "GitHub Actions runs lint and tests on every push, and deploys this site to GitHub Pages." },
   { "source": "stack/coolify", "group": "shipping", "text": "Coolify deploys my Laravel and Next.js apps to my own VPS instead of renting a platform." },
   { "source": "stack/git", "group": "shipping", "text": "Git for version control, one branch per feature." },
@@ -55,7 +55,7 @@
   { "source": "stack/llamaindex", "group": "ai tools", "text": "LlamaIndex does document ingestion and pgvector search in my docs question-answering app." },
   { "source": "stack/ai-sdk", "group": "ai tools", "text": "The Vercel AI SDK streams chat and tool calls in a Next.js support bot." },
   { "source": "stack/prism", "group": "ai tools", "text": "Prism PHP reads supplier invoices into typed data inside a Laravel app." },
-  { "source": "stack/ollama", "group": "ai tools", "text": "Ollama and llama.cpp for local models. I code with llama.cpp on my laptop." },
+  { "source": "stack/ollama", "group": "ai tools", "text": "Ollama and llama.cpp for local models. I code with llama.cpp on my PC." },
   { "source": "stack/providers", "group": "ai tools", "text": "One setting switches between the OpenAI, Gemini and Claude APIs in each of my AI apps." },
   { "source": "stack/mcp", "group": "ai tools", "text": "MCP exposes the guarded SQL tools of text-to-sql-chat to Claude Desktop and Cursor." }
 ]

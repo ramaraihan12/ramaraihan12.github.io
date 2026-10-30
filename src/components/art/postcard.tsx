@@ -271,28 +271,31 @@ const CARDS: Record<string, () => ReactNode> = {
     );
   },
 
-  // A laptop with a terminal, wired to a small GPU chip.
+  // A desktop PC: a monitor running the terminal, and a tower with its GPU card showing in the side window.
   "local-ai-coding-setup": () => {
-    let pins = "";
-    for (let i = 0; i < 4; i++) {
-      const k = 74 + i * 7;
-      const j = 188 + i * 7;
-      pins += `M${j} 66v-6M${j} 102v6M180 ${k}h-6M216 ${k}h6`;
-    }
     return (
       <>
-        <path d="M174 84C164 84 166 100 156 100" stroke={M} strokeWidth="1.6" strokeDasharray="0 4" />
-        <path d="M40 34H148Q152 34 152 38V112H36V38Q36 34 40 34Z" fill={D} />
-        <rect x="44" y="42" width="100" height="62" rx="2" stroke={M} strokeWidth="1" />
-        <path d="M52 54L58 59 52 64" strokeWidth="2.4" />
-        <path d="M64 59H106" strokeWidth="2" />
-        <path d="M52 74H92M52 86H120" stroke={M} strokeWidth="2" />
-        <rect x="52" y="94" width="7" height="8" fill={A} stroke="none" />
-        <path d="M28 112H160L168 124Q168 128 164 128H24Q20 128 20 124Z" fill={S} />
-        <path d="M80 119H108" strokeWidth="1.4" />
-        <path d={pins} strokeWidth="1.8" />
-        <rect x="180" y="66" width="36" height="36" rx="3" fill={D} />
-        <rect x="189" y="75" width="18" height="18" rx="1.5" fill={S} strokeWidth="1.4" />
+        <g transform="translate(-8 0)">
+        <path d="M152 100C164 100 160 116 172 116" stroke={M} strokeWidth="1.6" strokeDasharray="0 4" />
+        <path d="M40 30H148Q152 30 152 34V102Q152 106 148 106H40Q36 106 36 102V34Q36 30 40 30Z" fill={D} />
+        <rect x="44" y="38" width="100" height="60" rx="2" stroke={M} strokeWidth="1" />
+        <path d="M52 50L58 55 52 60" strokeWidth="2.4" />
+        <path d="M64 55H106" strokeWidth="2" />
+        <path d="M52 70H92M52 82H120" stroke={M} strokeWidth="2" />
+        <rect x="52" y="90" width="7" height="8" fill={A} stroke="none" />
+        <path d="M86 106H102L106 124H82Z" fill={S} />
+        <path d="M66 126H122Q126 126 126 130V132H62V130Q62 126 66 126Z" fill={S} />
+        <path d="M176 22H220Q224 22 224 26V132H172V26Q172 22 176 22Z" fill={D} />
+        <path d="M180 32H212M180 39H212" stroke={M} strokeWidth="1.4" />
+        <circle cx="214" cy="50" r="2" fill={I} stroke="none" />
+        <rect x="179" y="60" width="38" height="46" rx="2" stroke={M} strokeWidth="1" />
+        <rect x="183" y="68" width="30" height="14" rx="1.5" fill={S} strokeWidth="1.4" />
+        <circle cx="191" cy="75" r="4.4" fill={D} strokeWidth="1.2" />
+        <circle cx="205" cy="75" r="4.4" fill={D} strokeWidth="1.2" />
+        <path d="M186 82v5M190 82v5M194 82v5" stroke={M} strokeWidth="1.2" />
+        <path d="M183 96H213M183 101H205" stroke={M} strokeWidth="1.4" />
+        <path d="M54 132H230" />
+        </g>
       </>
     );
   },

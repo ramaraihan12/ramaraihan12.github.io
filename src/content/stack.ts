@@ -46,6 +46,6 @@ export const stack: StackGroup[] = [
     name: "Shipping",
     key: "shipping",
     items: ["Docker", "GitHub Actions", "Coolify", "Git", "PHPUnit"],
-    note: "Docker so the app behaves the same on my laptop as on the server. Coolify deploys it to my own VPS.",
+    note: "Docker so the app behaves the same on my PC as on the server. Coolify deploys it to my own VPS.",
   },
 ];

@@ -126,7 +126,7 @@ export const aiProjects: Project[] = [
     name: "local-ai-coding-setup",
     kind: "Local models",
     summary:
-      "My fully local AI coding setup on a laptop with a 6 GB RTX 3060: a coding agent in the terminal and autocomplete in VS Code. It asks before risky commands like git push. No subscription and no API bill.",
+      "My fully local AI coding setup on a PC with a 6 GB RTX 3060: a coding agent in the terminal and autocomplete in VS Code. It asks before risky commands like git push. No subscription and no API bill.",
     flow: ["pi in terminal", "permission gate", "llama-server", "gpu + ram split"],
     stack: ["llama.cpp", "Ollama", "Pi", "PowerShell"],
     href: repo("local-ai-coding-setup"),
@@ -154,7 +154,7 @@ export const webProjects: Project[] = [
     name: "warung-pos",
     kind: "Offline POS",
     summary:
-      "A point of sale for a small shop that keeps selling when the internet drops. Each sale is saved on the device first and synced later, and a retry can never count it twice. 1,000 queued sales sync in about 3 seconds on my laptop. Tested in Chromium only.",
+      "A point of sale for a small shop that keeps selling when the internet drops. Each sale is saved on the device first and synced later, and a retry can never count it twice. 1,000 queued sales sync in about 3 seconds on my PC. Tested in Chromium only.",
     flow: ["ring up sale", "local outbox", "batch sync", "insert once", "owner reports"],
     stack: ["Next.js 16", "Dexie", "Drizzle", "PostgreSQL", "Service worker", "Playwright"],
     href: repo("warung-pos"),

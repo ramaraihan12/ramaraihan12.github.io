@@ -1074,363 +1074,363 @@
     -0.0904
   ],
   "query": {
-    "x": -0.5034,
-    "y": -0.1002
+    "x": -0.5044,
+    "y": -0.0954
   },
   "points": [
     {
-      "x": -0.6709,
-      "y": -0.1404,
+      "x": -0.6658,
+      "y": -0.128,
       "group": "about",
       "source": "about.md",
       "text": "I'm Rama Raihan, a full-stack developer from Salatiga, a small city in the hills of Central Java, Indonesia. I build and run web apps in Laravel and Next.js."
     },
     {
-      "x": -0.0259,
-      "y": -0.52,
+      "x": -0.022,
+      "y": -0.5173,
       "group": "about",
       "source": "now.md",
       "text": "Lately I've been building AI apps: RAG, agents, chatbots and workflow automation."
     },
     {
-      "x": 0.2644,
-      "y": -0.7486,
+      "x": 0.275,
+      "y": -0.7379,
       "group": "about",
       "source": "now.md",
       "text": "My AI apps default to a local model through Ollama, so anyone can run them without an API key."
     },
     {
-      "x": -0.3853,
-      "y": -0.5052,
+      "x": -0.3771,
+      "y": -0.504,
       "group": "about",
       "source": "ops.md",
       "text": "I deploy my own apps with Docker and Coolify on a VPS. GitHub Actions runs the checks on every push."
     },
     {
-      "x": -0.3712,
-      "y": 0.1052,
+      "x": -0.3753,
+      "y": 0.0992,
       "group": "about",
       "source": "ops.md",
       "text": "I care most about the parts that fail quietly, like a payment callback that lands while the app is down, or a backup nobody has ever restored."
     },
     {
-      "x": -0.2536,
-      "y": -0.2691,
+      "x": -0.2546,
+      "y": -0.2789,
       "group": "about",
       "source": "work.md",
       "text": "Most of my client work lives in private repos, so it doesn't show up on GitHub."
     },
     {
-      "x": -0.3089,
-      "y": -0.0843,
+      "x": -0.3084,
+      "y": -0.0688,
       "group": "about",
       "source": "work.md",
       "text": "I work from Salatiga on UTC+7, and I'm happy to work remotely with a team anywhere."
     },
     {
-      "x": 0.9423,
-      "y": 0.3323,
+      "x": 0.9301,
+      "y": 0.3432,
       "group": "ai apps",
       "source": "docs-rag-assistant",
       "text": "docs-rag-assistant: ask questions about your own PDFs, Word files and Markdown notes, in English or Indonesian. Every answer cites the file and page it came from."
     },
     {
-      "x": 0.9932,
-      "y": 0.2614,
+      "x": 0.9813,
+      "y": 0.2605,
       "group": "ai apps",
       "source": "docs-rag-assistant",
       "text": "Upload a file, it gets chunked and embedded into pgvector, and the answer streams back with page citations. In a small eval the right page came first for 16 of 16 questions, and all 3 off-topic ones were refused."
     },
     {
-      "x": 0.9443,
-      "y": 0.0068,
+      "x": 0.9389,
+      "y": 0.0253,
       "group": "ai apps",
       "source": "research-agent",
       "text": "research-agent: a LangGraph agent that plans the research, waits for you to approve the plan, then searches the web, runs extra rounds when it finds gaps, and writes a cited report."
     },
     {
-      "x": 0.7567,
-      "y": 0.118,
+      "x": 0.7499,
+      "y": 0.1442,
       "group": "ai apps",
       "source": "shop-support-bot",
       "text": "shop-support-bot: a support chatbot for a small coffee bean shop, on the web and in Telegram. It answers from the shop's policies, checks orders and stock, opens tickets, and hands the chat to a person when needed."
     },
     {
       "x": 1.0,
-      "y": -0.4241,
+      "y": -0.4105,
       "group": "ai apps",
       "source": "llm-gateway",
       "text": "llm-gateway: one OpenAI-compatible endpoint in front of OpenAI, Gemini, Anthropic and Ollama, with fallback, retries, rate limits, an exact-match cache, hashed API keys and cost logs."
     },
     {
-      "x": 0.6391,
-      "y": 0.3905,
+      "x": 0.626,
+      "y": 0.4104,
       "group": "ai apps",
       "source": "invoice-flow",
       "text": "invoice-flow: a Laravel app that reads Indonesian supplier invoices with an LLM, checks the math, PPN and NPWP, and holds them for review before export."
     },
     {
-      "x": 0.722,
-      "y": 0.6907,
+      "x": 0.7075,
+      "y": 0.6991,
       "group": "ai apps",
       "source": "text-to-sql-chat",
       "text": "text-to-sql-chat: ask a sales database questions in English or Bahasa Indonesia and get the SQL, the rows and a chart, with guardrails on the generated SQL. It also ships an MCP server."
     },
     {
-      "x": 0.3997,
-      "y": -0.0709,
+      "x": 0.3935,
+      "y": -0.0726,
       "group": "ai apps",
       "source": "issue-triage-action",
       "text": "issue-triage-action: a GitHub Action that labels new issues, flags likely duplicates and asks for missing details in one comment."
     },
     {
-      "x": 0.0531,
-      "y": -0.7312,
+      "x": 0.1029,
+      "y": -0.6927,
       "group": "ai apps",
       "source": "local-ai-coding-setup",
-      "text": "local-ai-coding-setup: my fully local AI coding setup on a laptop with a 6 GB RTX 3060. A coding agent in the terminal and autocomplete in VS Code."
+      "text": "local-ai-coding-setup: my fully local AI coding setup on a PC with a 6 GB RTX 3060. A coding agent in the terminal and autocomplete in VS Code."
     },
     {
-      "x": -0.0894,
-      "y": 0.1448,
+      "x": -0.096,
+      "y": 0.1631,
       "group": "web & infra",
       "source": "antre",
       "text": "antre: queue and booking for small clinics and barbershops. Book a slot with a Midtrans deposit or take a walk-in ticket. Staff call the next number, and a TV in the waiting room reads it out in Indonesian. Two counters never get the same ticket."
     },
     {
-      "x": -0.2174,
-      "y": 0.5522,
+      "x": -0.2287,
+      "y": 0.5619,
       "group": "web & infra",
       "source": "warung-pos",
       "text": "warung-pos: a point of sale for a small shop that keeps selling when the internet drops. Sales wait in an outbox on the device and sync later, and a retry never counts a sale twice."
     },
     {
-      "x": -0.0146,
-      "y": 0.0785,
+      "x": -0.0229,
+      "y": 0.0794,
       "group": "web & infra",
       "source": "webhook-inbox",
       "text": "webhook-inbox: a small Rust service that receives webhooks from Midtrans, Xendit and GitHub, checks the signature, stores every delivery and forwards it with retries, so a payment callback isn't lost while the app is down."
     },
     {
-      "x": -0.0115,
-      "y": 0.7099,
+      "x": -0.0267,
+      "y": 0.6786,
       "group": "web & infra",
       "source": "pg-backup",
       "text": "pg-backup: a Go tool that streams encrypted Postgres backups to S3-compatible storage, then proves each one by restoring it into a scratch database and checking the row counts."
     },
     {
-      "x": 0.4293,
-      "y": -0.3869,
+      "x": 0.4249,
+      "y": -0.3844,
       "group": "side projects",
       "source": "project-clipper",
       "text": "project-clipper turns a long video into vertical clips for my YouTube channel: faster-whisper transcribes, Gemini picks the highlights, OpenCV tracks faces and ffmpeg burns in subtitles. Then it uploads them through the YouTube Data API."
     },
     {
-      "x": -0.1021,
-      "y": 0.139,
+      "x": -0.1079,
+      "y": 0.1514,
       "group": "side projects",
       "source": "ralaex",
       "text": "ralaex is the household finance app my wife and I log our spending in. Budgets with alerts, receipt photos, charts and exports."
     },
     {
-      "x": 0.3096,
-      "y": -0.2834,
+      "x": 0.3056,
+      "y": -0.2745,
       "group": "side projects",
       "source": "chaBubbleTwitch",
       "text": "chaBubbleTwitch is a free Twitch chat overlay for OBS that shows chat as wooden speech bubbles, with Twitch emotes."
     },
     {
-      "x": -0.7259,
-      "y": -0.2146,
+      "x": -0.7241,
+      "y": -0.2427,
       "group": "frontend",
       "source": "stack/next.js",
       "text": "Next.js: most of my apps run on it. App Router, server components, the usual setup."
     },
     {
-      "x": -0.3883,
-      "y": -0.0896,
+      "x": -0.3924,
+      "y": -0.1108,
       "group": "frontend",
       "source": "stack/react",
       "text": "React for building the interface. Components, hooks, client state."
     },
     {
-      "x": -0.5889,
-      "y": -0.0341,
+      "x": -0.592,
+      "y": -0.0683,
       "group": "frontend",
       "source": "stack/typescript",
       "text": "All my frontend and Node code is TypeScript now. It catches my mistakes before they reach the browser."
     },
     {
-      "x": -0.2416,
-      "y": -0.0727,
+      "x": -0.2461,
+      "y": -0.0932,
       "group": "frontend",
       "source": "stack/tailwind",
       "text": "Tailwind CSS for styling. Quicker for me than keeping a separate stylesheet in sync."
     },
     {
-      "x": -0.5305,
-      "y": -0.1751,
+      "x": -0.5278,
+      "y": -0.1805,
       "group": "frontend",
       "source": "stack/vite",
       "text": "Vite bundles the frontend assets on my Laravel projects."
     },
     {
-      "x": -0.4233,
-      "y": 0.019,
+      "x": -0.4216,
+      "y": 0.0175,
       "group": "backend",
       "source": "stack/laravel",
       "text": "Laravel for APIs, Eloquent, queues and auth. Blade when a page is better rendered on the server."
     },
     {
-      "x": -0.6488,
+      "x": -0.6482,
       "y": 0.2996,
       "group": "backend",
       "source": "stack/php",
       "text": "PHP is the language behind all the Laravel work."
     },
     {
-      "x": -0.6769,
-      "y": -0.1372,
+      "x": -0.6766,
+      "y": -0.1611,
       "group": "backend",
       "source": "stack/node",
       "text": "Node.js runs the server side of Next.js, route handlers and server actions."
     },
     {
-      "x": -0.2409,
-      "y": -0.2789,
+      "x": -0.2391,
+      "y": -0.2897,
       "group": "backend",
       "source": "stack/python",
       "text": "Python is the backend for my AI projects, managed with uv."
     },
     {
-      "x": -0.2437,
-      "y": 0.2156,
+      "x": -0.2506,
+      "y": 0.1916,
       "group": "backend",
       "source": "stack/go-rust",
       "text": "Go and Rust for small tools that ship as one binary. pg-backup is Go, webhook-inbox is Rust."
     },
     {
-      "x": -0.503,
-      "y": 0.0845,
+      "x": -0.5048,
+      "y": 0.0645,
       "group": "backend",
       "source": "stack/tests",
       "text": "PHPUnit and Pest on the Laravel side, feature tests more than unit tests. Vitest and pytest in the TypeScript and Python projects."
     },
     {
-      "x": -0.3234,
-      "y": 0.2121,
+      "x": -0.332,
+      "y": 0.2212,
       "group": "backend",
       "source": "stack/midtrans",
       "text": "Midtrans handles checkout and payments on the Indonesian projects."
     },
     {
-      "x": -0.4552,
-      "y": 0.9177,
+      "x": -0.4664,
+      "y": 0.8891,
       "group": "data",
       "source": "stack/postgres",
       "text": "PostgreSQL is my default. Relational data, migrations, a bit of PL/pgSQL when a query gets hairy."
     },
     {
       "x": -0.6158,
-      "y": 0.5975,
+      "y": 0.599,
       "group": "data",
       "source": "stack/mysql",
       "text": "MySQL is what most of my Laravel projects sit on, especially the ones on shared hosting."
     },
     {
-      "x": -0.1288,
-      "y": 0.402,
+      "x": -0.1293,
+      "y": 0.409,
       "group": "data",
       "source": "stack/mongodb",
       "text": "MongoDB on an LMS, where the shape of the content kept changing."
     },
     {
-      "x": 0.1124,
-      "y": 0.6703,
+      "x": 0.102,
+      "y": 0.6487,
       "group": "data",
       "source": "stack/pgvector",
       "text": "pgvector does vector search inside Postgres, so there's no separate vector database to run."
     },
     {
-      "x": -0.6779,
-      "y": -0.2419,
+      "x": -0.6113,
+      "y": -0.2048,
       "group": "shipping",
       "source": "stack/docker",
-      "text": "Docker, so the app behaves the same on my laptop as it does on the server."
+      "text": "Docker, so the app behaves the same on my PC as it does on the server."
     },
     {
-      "x": -0.2792,
-      "y": -0.3581,
+      "x": -0.2744,
+      "y": -0.3647,
       "group": "shipping",
       "source": "stack/actions",
       "text": "GitHub Actions runs lint and tests on every push, and deploys this site to GitHub Pages."
     },
     {
-      "x": -0.499,
-      "y": -0.2503,
+      "x": -0.4926,
+      "y": -0.245,
       "group": "shipping",
       "source": "stack/coolify",
       "text": "Coolify deploys my Laravel and Next.js apps to my own VPS instead of renting a platform."
     },
     {
-      "x": -0.3887,
-      "y": -0.1638,
+      "x": -0.3889,
+      "y": -0.1752,
       "group": "shipping",
       "source": "stack/git",
       "text": "Git for version control, one branch per feature."
     },
     {
-      "x": 0.9159,
-      "y": -0.1225,
+      "x": 0.9116,
+      "y": -0.1137,
       "group": "ai tools",
       "source": "stack/fastapi",
       "text": "FastAPI serves my docs assistant and research agent, with answers streamed over server-sent events."
     },
     {
-      "x": 0.4134,
-      "y": -0.0812,
+      "x": 0.4142,
+      "y": -0.0723,
       "group": "ai tools",
       "source": "stack/langgraph",
       "text": "LangGraph runs my research agent: a plan, a human review step, then parallel searches."
     },
     {
-      "x": 0.6252,
-      "y": 0.1584,
+      "x": 0.6224,
+      "y": 0.1594,
       "group": "ai tools",
       "source": "stack/llamaindex",
       "text": "LlamaIndex does document ingestion and pgvector search in my docs question-answering app."
     },
     {
-      "x": 0.4969,
-      "y": -0.453,
+      "x": 0.4955,
+      "y": -0.46,
       "group": "ai tools",
       "source": "stack/ai-sdk",
       "text": "The Vercel AI SDK streams chat and tool calls in a Next.js support bot."
     },
     {
-      "x": -0.1421,
-      "y": 0.5477,
+      "x": -0.1506,
+      "y": 0.5444,
       "group": "ai tools",
       "source": "stack/prism",
       "text": "Prism PHP reads supplier invoices into typed data inside a Laravel app."
     },
     {
-      "x": 0.0616,
-      "y": -0.5945,
+      "x": 0.1016,
+      "y": -0.5838,
       "group": "ai tools",
       "source": "stack/ollama",
-      "text": "Ollama and llama.cpp for local models. I code with llama.cpp on my laptop."
+      "text": "Ollama and llama.cpp for local models. I code with llama.cpp on my PC."
     },
     {
-      "x": 0.5139,
-      "y": -0.5288,
+      "x": 0.5165,
+      "y": -0.5268,
       "group": "ai tools",
       "source": "stack/providers",
       "text": "One setting switches between the OpenAI, Gemini and Claude APIs in each of my AI apps."
     },
     {
-      "x": 0.5796,
-      "y": 0.3067,
+      "x": 0.5706,
+      "y": 0.3019,
       "group": "ai tools",
       "source": "stack/mcp",
       "text": "MCP exposes the guarded SQL tools of text-to-sql-chat to Claude Desktop and Cursor."
