@@ -69,8 +69,10 @@
     background: var(--nn-accent);
     color: var(--nn-on-accent);
 
-    &:hover {
-      background: color-mix(in oklab, var(--nn-accent) 86%, white);
+    @media (hover: hover) {
+      &:hover {
+        background: color-mix(in oklab, var(--nn-accent) 86%, white);
+      }
     }
   }
 
@@ -78,8 +80,10 @@
     box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--nn-ink) 35%, transparent);
     color: var(--nn-ink);
 
-    &:hover {
-      box-shadow: inset 0 0 0 1.5px var(--nn-accent);
+    @media (hover: hover) {
+      &:hover {
+        box-shadow: inset 0 0 0 1.5px var(--nn-accent);
+      }
     }
   }
 
@@ -345,8 +349,10 @@
     transition: transform 0.25s var(--nn-ease-spring);
   }
 
-  .nn-play:hover .nn-play-icon {
-    transform: translateX(2px) scale(1.1);
+  @media (hover: hover) {
+    .nn-play:hover .nn-play-icon {
+      transform: translateX(2px) scale(1.1);
+    }
   }
 
   .nn-play[aria-busy="true"] .nn-play-icon {

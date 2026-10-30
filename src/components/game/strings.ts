@@ -101,6 +101,20 @@ export const strings = {
     again: playCopy.again,
     answer: "Skip to the answer",
   },
+
+  /** Saving the cloth as a picture. */
+  save: {
+    button: "Save the cloth",
+    busy: "Weaving…",
+    done: "Saved",
+    shared: "Shared",
+    failed: "Not saved, sorry",
+    share: "Share it",
+    /** On the picture itself. */
+    head: "Closer, a mini game",
+    title: "My cloth",
+    key: { calm: "easy call", warm: "close call", hot: "coin toss" },
+  },
 };
 
 export type Strings = typeof strings;

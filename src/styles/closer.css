@@ -653,8 +653,10 @@
       background: var(--nila);
       color: var(--kunyit);
 
-      &:hover {
-        background: color-mix(in oklab, var(--nila) 85%, white);
+      @media (hover: hover) {
+        &:hover {
+          background: color-mix(in oklab, var(--nila) 85%, white);
+        }
       }
     }
 
@@ -817,4 +819,13 @@
     translate: none;
     scale: none;
   }
+}
+
+/* Save the cloth: the idle label sets the width, any other label sits over it in the same cell. */
+.cl-save {
+  display: inline-grid;
+  justify-items: center;
+}
+.cl-save > span {
+  grid-area: 1 / 1;
 }
