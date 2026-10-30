@@ -5,6 +5,9 @@ import { CapStamp } from "@/components/art/stamp";
 import { emailLinkCopy } from "@/content/copy";
 import { site } from "@/content/site";
 
+// Soga on kunyit is only 2.6:1; pulled toward nila it is about 5:1, still brown.
+const STAMP_INK = "color-mix(in oklab, var(--soga) 55%, var(--nila))";
+
 type EmailLinkProps = {
   className?: string;
   children: ReactNode;
@@ -59,7 +62,7 @@ export function EmailLink({ className, children, copiedLabel, stamp }: EmailLink
           {copied && (
             <span className="email-stamp" aria-hidden="true">
               {/* New key each copy, so a second click presses again. */}
-              <CapStamp key={presses} ink="soga" state="pressed" seed="copied">
+              <CapStamp key={presses} ink={STAMP_INK} state="pressed" seed="copied">
                 {stamp}
               </CapStamp>
             </span>

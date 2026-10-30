@@ -1,4 +1,5 @@
 import { Landscape } from "@/components/art/landscape";
+import closer from "@/content/closer.json";
 import { contactCopy } from "@/content/copy";
 import { site } from "@/content/site";
 import { EmailLink } from "./email-link";
@@ -50,7 +51,7 @@ export function Contact() {
           </p>
         </div>
 
-        <AskAgain />
+        <AskAgain questions={closer.questions.map(({ id, text }) => ({ id, text }))} />
       </div>
 
       {/* Merbabu from Salatiga, under the sky it has right now. The near hills are malam, the
@@ -62,4 +63,3 @@ export function Contact() {
     </section>
   );
 }
-

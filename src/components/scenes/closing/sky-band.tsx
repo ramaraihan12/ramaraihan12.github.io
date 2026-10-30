@@ -71,9 +71,9 @@ export function SkyBand({ children }: { children: ReactNode }) {
     </div>
   );
 }
+
 /** One line on what I'm likely doing, by the same clock. Empty until the time is known. */
 export function SkyCaption() {
   const now = useMinute();
   return <span className="contact-sky-caption">{now ? contactCopy.sky[skyAt(now).phase] : null}</span>;
 }
-

@@ -27,8 +27,10 @@
     text-underline-offset: 0.14em;
     transition: font-variation-settings 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
 
-    &:hover {
-      --w: 118;
+    @media (hover: hover) {
+      &:hover {
+        --w: 118;
+      }
     }
 
     /* The address itself is the label, so the copy shows up as a tag after it. */
@@ -153,28 +155,33 @@
   }
 
 
-  /* ---------- ask-again: the picker under the email ---------- */
+  /* ---------- copied stamp: pressed beside the address ---------- */
 
   .email-stamped {
     position: relative;
     display: inline-block;
+    margin-top: 2.5rem;
+
+    & > .contact-email {
+      margin-top: 0;
+    }
   }
 
-  /* The cap lands on the top corner of the address, in the gap under the lead, so nothing
-     moves and it never covers the letters' baseline. */
+  /* The cap lands on the top right corner of the address, in the gap under the lead, so
+     nothing moves and it never covers the letters. */
   .email-stamp {
     position: absolute;
     right: 0.4rem;
     bottom: 100%;
-    margin-bottom: -0.2rem;
-    font-size: clamp(0.95rem, 1.2vw + 0.55rem, 1.4rem);
+    margin-bottom: 0.1rem;
+    font-size: clamp(0.95rem, 1.2vw + 0.55rem, 1.15rem);
     font-weight: 700;
     pointer-events: none;
   }
 
+  /* ---------- ask-again: the picker under the email ---------- */
+
   .ask {
-    /* Room for the chips before they load, so the page below doesn't jump. */
-    min-height: 9rem;
     margin-top: 3.5rem;
     padding-top: 1.5rem;
     border-top: 1.5px dashed color-mix(in oklab, var(--nila) 35%, transparent);
@@ -191,6 +198,10 @@
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-top: 0.9rem;
+
+    @media (width < 40rem) {
+      gap: 0.4rem;
+    }
   }
 
   .ask-chip {
@@ -205,8 +216,15 @@
       background-color 0.2s,
       color 0.2s;
 
-    &:hover {
-      background: rgb(15 26 71 / 0.08);
+    @media (width < 40rem) {
+      padding: 0.35rem 0.7rem;
+      font-size: 0.8rem;
+    }
+
+    @media (hover: hover) {
+      &:hover {
+        background: rgb(15 26 71 / 0.08);
+      }
     }
 
     &[aria-pressed="true"] {
@@ -314,33 +332,22 @@
 
   /* ---------- layangan: a kite over Merbabu ---------- */
 
+  /* A square in the bottom right of the band, so the kite hangs in the open sky right of the
+     summit and the string comes down to the near hill. */
   .layangan {
     position: absolute;
-    left: 66%;
-    bottom: 3%;
-    height: 80%;
-    aspect-ratio: 2 / 5;
+    right: 3%;
+    bottom: 0;
+    height: 88%;
+    aspect-ratio: 1;
     overflow: visible;
     --lg-paper: var(--mori);
     --lg-line: var(--nila);
-    --lg-skin: var(--soga);
-    --lg-string: var(--nila);
-    transform-origin: 50% 100%;
-    animation: lg-sway 9s ease-in-out infinite alternate;
-    animation-play-state: paused;
+    --lg-string: color-mix(in oklab, var(--mori) 75%, transparent);
     pointer-events: none;
 
-    & .lg-paper {
-      fill: var(--lg-paper);
-    }
-    & .lg-band {
-      fill: none;
-      stroke: var(--lg-skin);
-      stroke-width: 5;
-      stroke-linecap: round;
-    }
-    & .lg-dot {
-      fill: var(--lg-line);
+    & .lg-skin {
+      fill: url(#lg-parang);
     }
     & .lg-edge,
     & .lg-spar,
@@ -352,25 +359,39 @@
       stroke-linejoin: round;
     }
     & .lg-edge {
-      stroke-width: 2;
+      stroke-width: 0.55;
     }
     & .lg-spar {
-      stroke-width: 1;
-      opacity: 0.55;
+      stroke-width: 0.25;
+      opacity: 0.6;
     }
     & .lg-tail {
-      stroke-width: 1.6;
+      stroke: var(--soga);
+      stroke-width: 0.4;
+    }
+    & .lg-knot {
+      fill: var(--soga);
     }
     & .lg-string {
       stroke: var(--lg-string);
-      stroke-width: 0.9;
+      stroke-width: 0.28;
+    }
+    & .lg-hand {
+      fill: var(--lg-string);
+    }
+
+    & .lg-sway {
+      transform-box: view-box;
+      transform-origin: 22px 92px;
+      animation: lg-sway 9s ease-in-out infinite alternate;
+      animation-play-state: paused;
     }
 
     & .lg-kite {
       transform-box: fill-box;
-      transform-origin: 50% 60%;
+      transform-origin: 50% 40%;
       animation: lg-tilt 5.3s ease-in-out infinite alternate;
-      animation-play-state: inherit;
+      animation-play-state: paused;
     }
 
     & .layangan-up,
@@ -382,8 +403,15 @@
     }
   }
 
-  /* Only sways while the band is on screen. */
-  .contact-sky[data-live] .layangan {
+  /* Dusk and the small hours of morning: the sky is pale, the string reads in nila. */
+  .contact-sky[data-phase="dusk"] .layangan,
+  .contact-sky[data-phase="morning"] .layangan {
+    --lg-string: color-mix(in oklab, var(--pudar) 80%, transparent);
+  }
+
+  /* Only moves while the band is on screen. */
+  .contact-sky[data-live] .layangan .lg-sway,
+  .contact-sky[data-live] .layangan .lg-kite {
     animation-play-state: running;
   }
 
@@ -391,10 +419,17 @@
   .contact-sky[data-phase="night"] .layangan {
     --lg-line: var(--mori);
     --lg-string: var(--pudar);
-    --lg-paper: var(--nila-2);
-    --lg-skin: var(--soga-2);
-    animation: none;
 
+    & .lg-skin {
+      fill: url(#lg-parang-night);
+    }
+    & .lg-tail {
+      stroke: var(--soga-2);
+    }
+    & .lg-knot {
+      fill: var(--soga-2);
+    }
+    & .lg-sway,
     & .lg-kite {
       animation: none;
     }
@@ -408,10 +443,10 @@
 
   @keyframes lg-sway {
     from {
-      rotate: -2.5deg;
+      rotate: -1.4deg;
     }
     to {
-      rotate: 2.5deg;
+      rotate: 1.4deg;
     }
   }
 
@@ -425,11 +460,12 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .layangan,
+    .layangan .lg-sway,
     .layangan .lg-kite {
       animation: none;
     }
   }
+
   /* Malam, the night blue the landscape's near hills are drawn in, so the ground runs on into
      it. The hem along the bottom comes from site-footer.tsx. */
   .site-footer {
@@ -504,4 +540,3 @@
   inherits: true;
   initial-value: 0;
 }
-

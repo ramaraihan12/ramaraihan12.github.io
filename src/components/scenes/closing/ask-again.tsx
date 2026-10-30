@@ -2,22 +2,24 @@
 
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { askAgainCopy } from "@/content/copy";
+import { scrollToY } from "@/lib/scroll";
 
 /*
   The title says "ask me something else", so you can. Ten questions were embedded ahead of time
   (src/content/closer.json, the same file the game draws from) and scored against the 51 notes.
   Picking one lists its three closest notes with those real scores. Nothing is sent anywhere.
 
-  The questions (closer.json, a few KB) load when the section is about to come into view, the
-  notes' text (retrieval.json, the larger file) on the first pick. Both are dynamic imports, so
-  neither is in the main bundle. closer.json's scores run in the same order as retrieval.json's
-  points.
+  The chips are drawn on the server from the questions' text alone (contact.tsx passes it in),
+  so they are there from the first paint and the section never grows after the page has been
+  placed on a reload. The scores and the notes' text are dynamic imports that start on the first
+  hover, focus or pick. closer.json's scores run in the same order as retrieval.json's points.
 */
 
 const TOP = 3;
 
 type Hit = { source: string; text: string; score: number };
 type Q = { id: string; text: string; scores: number[] };
+type Chip = { id: string; text: string };
 type Note = { source: string; text: string };
 
 let qLoad: Promise<Q[]> | null = null;
@@ -39,59 +41,51 @@ function closest(q: Q, notes: Note[]): Hit[] {
     .map(({ score, i }) => ({ source: notes[i].source, text: notes[i].text, score }));
 }
 
-export function AskAgain() {
-  const root = useRef<HTMLDivElement>(null);
+export function AskAgain({ questions: chips }: { questions: Chip[] }) {
   const [questions, setQuestions] = useState<Q[] | null>(null);
   const [notes, setNotes] = useState<Note[] | null>(null);
   const [picked, setPicked] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
-
-  // The questions come in a screen before the section does.
-  useEffect(() => {
-    const el = root.current;
-    if (!el) return;
-    let live = true;
-    const go = () => loadQuestions().then((q) => live && setQuestions(q), () => live && setFailed(true));
-    if (!("IntersectionObserver" in window)) {
-      go();
-      return () => void (live = false);
-    }
-    const io = new IntersectionObserver(
-      (e) => {
-        if (e.some((x) => x.isIntersecting)) {
-          io.disconnect();
-          go();
-        }
-      },
-      { rootMargin: "900px 0px" },
-    );
-    io.observe(el);
-    return () => {
-      live = false;
-      io.disconnect();
-    };
-  }, []);
+  const head = useRef<HTMLParagraphElement>(null);
+  const asked = useRef(false);
 
   function warm() {
+    loadQuestions().then(setQuestions, () => {});
     loadNotes().then(setNotes, () => {});
   }
 
   function pick(id: string) {
+    asked.current = true;
     setPicked(id);
     setFailed(false);
-    loadNotes().then(setNotes, () => setFailed(true));
+    Promise.all([loadQuestions(), loadNotes()]).then(
+      ([q, n]) => {
+        setQuestions(q);
+        setNotes(n);
+      },
+      () => setFailed(true),
+    );
   }
 
   const question = questions?.find((q) => q.id === picked);
   const hits = question && notes ? closest(question, notes) : [];
 
+  // On a phone the chips stack tall and the answer lands below the fold; bring it up. Only after
+  // a pick, never on mount.
+  useEffect(() => {
+    const el = head.current;
+    if (!asked.current || !el || !hits.length) return;
+    const top = el.getBoundingClientRect().top;
+    if (top > window.innerHeight - 140) scrollToY(window.scrollY + top - window.innerHeight * 0.35);
+  }, [picked, hits.length]);
+
   return (
-    <div className="ask" ref={root}>
+    <div className="ask">
       <p className="ask-label" id="ask-label">
         {askAgainCopy.label}
       </p>
       <div className="ask-chips" role="group" aria-labelledby="ask-label">
-        {questions?.map((q) => (
+        {chips.map((q) => (
           <button
             key={q.id}
             type="button"
@@ -106,13 +100,15 @@ export function AskAgain() {
         ))}
       </div>
 
-      <div className="ask-out" aria-live="polite">
+      <p className="sr-only" role="status">
+        {question && hits.length > 0 ? askAgainCopy.announce(question.text, hits.length) : ""}
+      </p>
+      <div className="ask-out">
         {failed && <p className="ask-note">{askAgainCopy.failed}</p>}
-        {!failed && picked && !notes && <p className="ask-note">{askAgainCopy.loading}</p>}
+        {!failed && picked && !hits.length && <p className="ask-note">{askAgainCopy.loading}</p>}
         {question && hits.length > 0 && (
           <>
-            <p className="sr-only">{askAgainCopy.announce(question.text, hits.length)}</p>
-            <p className="ask-head" aria-hidden="true">
+            <p className="ask-head" ref={head} aria-hidden="true">
               {askAgainCopy.head(hits.length, notes?.length ?? 0)}
             </p>
             <ol className="ask-hits" key={question.id}>
