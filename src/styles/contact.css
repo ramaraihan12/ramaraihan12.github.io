@@ -72,16 +72,20 @@
     background: var(--nila);
     color: var(--kunyit);
 
-    &:hover {
-      background: var(--nila-2);
+    @media (hover: hover) {
+      &:hover {
+        background: var(--nila-2);
+      }
     }
   }
 
   .btn-line {
     border: 1.5px solid var(--nila);
 
-    &:hover {
-      background: rgb(15 26 71 / 0.08);
+    @media (hover: hover) {
+      &:hover {
+        background: rgb(15 26 71 / 0.08);
+      }
     }
   }
 

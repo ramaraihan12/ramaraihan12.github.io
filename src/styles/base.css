@@ -102,8 +102,11 @@
     text-underline-offset: 0.25em;
     transition: text-decoration-color 0.2s;
 
-    &:hover {
-      text-decoration-color: currentColor;
+    /* Only where there's a pointer to hover with, or a tap leaves the tint behind. */
+    @media (hover: hover) {
+      &:hover {
+        text-decoration-color: currentColor;
+      }
     }
   }
 
@@ -123,16 +126,6 @@
       translate: 0 0;
     }
   }
-}
-
-/*
-  pauseScroll() in src/lib/scroll.ts stops Lenis, and lenis.css would then clip the page's
-  overflow. With classic scrollbars that hides the scrollbar and shifts everything sideways by up
-  to its width. Lenis already cancels the wheel and touch while it's stopped, so leave the
-  overflow alone. Outside @layer and more specific than lenis.css's rule, so it wins.
-*/
-html.lenis.lenis-stopped:not(.lenis-autoToggle) {
-  overflow: visible;
 }
 
 /* Anything marked data-reveal rises in as it scrolls into view, where the browser can do it alone. */

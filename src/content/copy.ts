@@ -1,7 +1,7 @@
 /**
  * The words on the page that aren't notes or project write-ups, grouped by section. Each group
- * says which file its strings came from. The components don't read this file yet; they still
- * have their own copies of the older strings.
+ * says which file its strings came from. The sections and the easter eggs read it, so change
+ * a line here and the page follows.
  *
  * Counts come from the content files, so a heading like "Eight AI apps I built" stays right
  * when a project is added.
