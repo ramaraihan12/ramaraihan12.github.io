@@ -138,6 +138,87 @@
       translate: calc(-50% + var(--p) * (100cqw - 100cqw / var(--n))) 50%;
     }
   }
+
+  /*
+    Phones, on a card in the work deck: one line. Each step is a wax dot on the wire with its
+    name small underneath, and the packet hops from dot to dot when the card lands (run-rail.tsx).
+  */
+  @media (width < 48rem) {
+    .pipe {
+      --dot: 0.5rem;
+      --wire: 0.45rem;
+      container-type: inline-size;
+      margin-top: 0;
+      padding-top: 0.2rem;
+
+      &::before,
+      &::after {
+        top: calc(0.2rem + var(--dot) / 2);
+        right: calc(50% / var(--n));
+        bottom: auto;
+        left: calc(50% / var(--n));
+        width: auto;
+        height: 1px;
+        translate: 0 -50%;
+      }
+
+      &::after {
+        transform-origin: left;
+        scale: var(--p) 1;
+      }
+    }
+
+    .pipe-steps {
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(0, 1fr);
+      grid-auto-rows: auto;
+      row-gap: 0;
+      padding-left: 0;
+    }
+
+    .pipe-node {
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 0.45rem;
+      padding-inline: 0.15rem;
+      border: 0;
+      border-radius: 0;
+      background: none;
+      color: color-mix(in oklab, var(--mori) calc(var(--lit) * 100%), var(--pudar));
+      font-size: 0.6rem;
+      line-height: 1.3;
+      overflow-wrap: break-word;
+
+      &::before {
+        content: "";
+        flex: none;
+        width: var(--dot);
+        height: var(--dot);
+        border: 1px solid var(--lit-line);
+        border-radius: 50%;
+        background: color-mix(in oklab, var(--kunyit) calc(var(--lit) * 100%), var(--nila));
+      }
+
+      &::after {
+        display: none;
+      }
+    }
+
+    .pipe-packet {
+      top: calc(0.2rem + var(--dot) / 2);
+      left: calc(50% / var(--n));
+      width: 0.8rem;
+      height: 0.8rem;
+      border-color: var(--nila-2);
+      box-shadow: 0 0 0 1px var(--kunyit);
+      translate: calc(-50% + var(--p) * (100cqw - 100cqw / var(--n))) -50%;
+    }
+
+    /* Nothing runs it without the motion, so the whole path is shown lit. */
+    :root:not(.scrolly) .pipe {
+      --p: 1;
+    }
+  }
 }
 
 .scrolly {
