@@ -275,6 +275,7 @@ const CARDS: Record<string, () => ReactNode> = {
   "local-ai-coding-setup": () => {
     return (
       <>
+        <g transform="translate(-8 0)">
         <path d="M152 100C164 100 160 116 172 116" stroke={M} strokeWidth="1.6" strokeDasharray="0 4" />
         <path d="M40 30H148Q152 30 152 34V102Q152 106 148 106H40Q36 106 36 102V34Q36 30 40 30Z" fill={D} />
         <rect x="44" y="38" width="100" height="60" rx="2" stroke={M} strokeWidth="1" />
@@ -286,15 +287,15 @@ const CARDS: Record<string, () => ReactNode> = {
         <path d="M66 126H122Q126 126 126 130V132H62V130Q62 126 66 126Z" fill={S} />
         <path d="M176 22H220Q224 22 224 26V132H172V26Q172 22 176 22Z" fill={D} />
         <path d="M180 32H212M180 39H212" stroke={M} strokeWidth="1.4" />
-        <circle cx="214" cy="50" r="2.4" fill={A} strokeWidth="1.2" />
+        <circle cx="214" cy="50" r="2" fill={I} stroke="none" />
         <rect x="179" y="60" width="38" height="46" rx="2" stroke={M} strokeWidth="1" />
         <rect x="183" y="68" width="30" height="14" rx="1.5" fill={S} strokeWidth="1.4" />
         <circle cx="191" cy="75" r="4.4" fill={D} strokeWidth="1.2" />
         <circle cx="205" cy="75" r="4.4" fill={D} strokeWidth="1.2" />
         <path d="M186 82v5M190 82v5M194 82v5" stroke={M} strokeWidth="1.2" />
         <path d="M183 96H213M183 101H205" stroke={M} strokeWidth="1.4" />
-        <path d="M172 132H178M218 132H224" strokeWidth="2" />
-        <path d="M160 140H232" />
+        <path d="M54 132H230" />
+        </g>
       </>
     );
   },
