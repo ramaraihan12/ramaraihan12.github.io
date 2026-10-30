@@ -52,14 +52,23 @@ const TAU = Math.PI * 2;
 type Flower = Point & { turn: number; size: number; loose: boolean };
 
 /** A cloth flower on its way to a note. */
-type Donor = { note: number; flower: number; launch: number; bow: number };
+type Donor = {
+  note: number;
+  flower: number;
+  launch: number;
+  bow: number;
+  /** Aims at the note's place on the finished map and waits there, for the camera to bring the dot to it. */
+  rest: boolean;
+  /** Where round that place it waits, so a note's flowers don't sit on one another. */
+  nudge: Point;
+};
 
 /** Where a group label may sit, nearest its centre first. */
-const SPOTS: Point[] = [{ x: 0, y: 0 }];
+const SPOTS: (Point & { r: number })[] = [{ x: 0, y: 0, r: 0 }];
 for (const r of [14, 24, 36, 50, 66, 86, 110, 140]) {
   for (let k = 0; k < 16; k++) {
     const a = (k / 16) * TAU + (r % 5) * 0.2;
-    SPOTS.push({ x: Math.cos(a) * r * 1.7, y: Math.sin(a) * r });
+    SPOTS.push({ x: Math.cos(a) * r * 1.7, y: Math.sin(a) * r, r });
   }
 }
 
@@ -97,7 +106,8 @@ export class EmbeddingMap {
   private donors: Donor[] = [];
   private extras: Donor[] = [];
   /** Group labels, placed once per resize: the offset from the group's centre, in map units. */
-  private labels: { name: string; at: Point; off: Point }[] = [];
+  private labels: { name: string; at: Point; off: Point; w: number }[] = [];
+  private region: Region = { x: 0, y: 0, w: 0, h: 0 };
   private groups: { name: string; x: number; y: number }[];
   private bounds: { minX: number; maxX: number; minY: number; maxY: number };
   private hitIndex: number[];
@@ -184,6 +194,7 @@ export class EmbeddingMap {
     this.font = family.trim() || "monospace";
 
     const { region, anchor } = this.frame(this.w, this.h);
+    this.region = region;
     this.near = this.fit(region);
     // Zoomed in around the query, which sits at the anchor until the camera pulls back.
     const q = this.data.query;
@@ -235,7 +246,10 @@ export class EmbeddingMap {
       let best = nearest(Math.min(w, Math.max(0, t.x)), Math.min(h, Math.max(0, t.y)));
       if (best < 0) best = 0;
       taken.add(best);
-      this.donors[i] = { note: i, flower: best, launch: launchOf(best), bow: (r() - 0.5) * 0.5 };
+      // A note that is off the stage while the camera is zoomed in has nowhere to fly to yet:
+      // its flower goes to the note's place on the finished map and waits.
+      const off = t.x < 16 || t.x > w - 16 || t.y < 16 || t.y > h - 16;
+      this.donors[i] = { note: i, flower: best, launch: launchOf(best), bow: (r() - 0.5) * 0.5, rest: off, nudge: { x: 0, y: 0 } };
     }
     // The cloth is spread over the whole stage but the camera is zoomed in on the question, so
     // the notes' own flowers all sit on one side. Each note takes a couple more, the ones nearest
@@ -247,7 +261,15 @@ export class EmbeddingMap {
         const f = nearest(Math.min(w, Math.max(0, t.x)), Math.min(h, Math.max(0, t.y)));
         if (f < 0) continue;
         taken.add(f);
-        this.extras.push({ note: i, flower: f, launch: launchOf(f), bow: (r() - 0.5) * 0.5 });
+        const ang = r() * TAU;
+        this.extras.push({
+          note: i,
+          flower: f,
+          launch: launchOf(f),
+          bow: (r() - 0.5) * 0.5,
+          rest: true,
+          nudge: { x: Math.cos(ang) * 6, y: Math.sin(ang) * 6 },
+        });
       }
     }
   }
@@ -331,7 +353,7 @@ export class EmbeddingMap {
     // Every note, a wax dot each, none quite the same size. A note's dot is there once the
     // flower of cloth it took has flown in and shrunk to it.
     data.points.forEach((p, i) => {
-      const a = this.arrival(i);
+      const a = this.arrival(i, cam);
       if (a <= 0) return;
       const s = this.toScreen(p, cam);
       const hot = i === this.highlight;
@@ -465,8 +487,20 @@ export class EmbeddingMap {
   }
 
   /** How much of a note's dot has appeared: it comes in as the flower lands. */
-  private arrival(i: number) {
-    return clamp01((this.flight(i) - 0.7) / 0.3);
+  private arrival(i: number, cam: Camera) {
+    const landed = clamp01((this.flight(i) - 0.7) / 0.3);
+    return this.donors[i]?.rest ? Math.min(landed, this.handover(i, cam)) : landed;
+  }
+
+  /**
+   * 0 to 1: how near a note's live dot has come to its place on the finished map. A flower
+   * waiting there gives way to the dot as the camera brings it in.
+   */
+  private handover(i: number, cam: Camera) {
+    const p = this.data.points[i];
+    const live = this.toScreen(p, cam);
+    const rest = this.toScreen(p, this.near);
+    return clamp01(1 - Math.hypot(live.x - rest.x, live.y - rest.y) / 24);
   }
 
   /**
@@ -490,15 +524,22 @@ export class EmbeddingMap {
     const rank = main ? this.hitIndex.indexOf(d.note) : -1;
     const top = rank >= 0;
     const u = this.flightOf(d);
-    if (u <= 0 || (u >= 1 && !top)) return;
+    const hand = d.rest ? this.handover(d.note, cam) : 0;
+    if (u <= 0 || (!top && (d.rest ? hand >= 1 : u >= 1))) return;
     const left = top ? 1 - clamp01(state.hits[rank].v) : 1;
     if (left <= 0) return;
     const e = ease(u);
     const from = cloth.seeds[d.flower];
-    // A note out of frame is aimed at the nearest spot inside it, so flowers don't pile up on the edge.
-    // The spare flowers head for the note's place on the finished map, so the cloth all over the stage has somewhere to go.
-    const at = this.toScreen(data.points[d.note], main ? cam : this.near);
-    const to = { x: Math.min(w - 16, Math.max(16, at.x)), y: Math.min(h - 16, Math.max(16, at.y)) };
+    // A flower whose note is on the stage follows the note's live dot. The rest, and every spare
+    // flower, fly to the note's place on the finished map and wait there as a small flower.
+    let to: Point;
+    if (d.rest) {
+      const at = this.toScreen(data.points[d.note], this.near);
+      to = { x: at.x + d.nudge.x, y: at.y + d.nudge.y };
+    } else {
+      const at = this.toScreen(data.points[d.note], cam);
+      to = { x: Math.min(w - 16, Math.max(16, at.x)), y: Math.min(h - 16, Math.max(16, at.y)) };
+    }
     const len = Math.hypot(to.x - from.x, to.y - from.y) || 1;
     const arc = Math.sin(Math.PI * e) * d.bow * len;
     const cx = from.x + (to.x - from.x) * e - ((to.y - from.y) / len) * arc;
@@ -506,8 +547,10 @@ export class EmbeddingMap {
     // Shrinks to a small flower, a note near the question keeping a bigger one.
     const rest = top ? 0.4 : 0.16;
     const k = 1 + (rest - 1) * e ** 0.7;
-    const fade = top ? left : 1 - clamp01((u - 0.72) / 0.28);
-    const dye = (0.3 + 0.7 * clamp01(this.close[d.note] * 1.6)) * fade;
+    const fade = top ? left : d.rest ? 1 - hand : 1 - clamp01((u - 0.72) / 0.28);
+    // The shading comes in over the flight, so a flower leaving the cloth doesn't dim in one frame.
+    const shade = 1 + (0.3 + 0.7 * clamp01(this.close[d.note] * 1.6) - 1) * e;
+    const dye = shade * fade;
     for (let q = 0; q < 4; q++) {
       const pt = cloth.petals[d.flower * 4 + q];
       const px = cx + (pt.x - from.x) * k;
@@ -520,7 +563,7 @@ export class EmbeddingMap {
         ctx.ellipse(px, py, pt.a * k * dk, pt.b * k * dk, pt.angle + pt.tilt, 0, TAU);
         ctx.fill();
       }
-      ctx.globalAlpha = 0.5 * fade;
+      ctx.globalAlpha = 0.4 * fade;
       ctx.strokeStyle = rgba(colors.mori, 1);
       ctx.beginPath();
       ctx.ellipse(px, py, pt.a * k, pt.b * k, pt.angle, 0, TAU);
@@ -548,7 +591,7 @@ export class EmbeddingMap {
    * the notes matter more.
    */
   private layLabels() {
-    const { ctx, data, w, h } = this;
+    const { ctx, data, w, h, region } = this;
     this.labels = [];
     ctx.font = `400 10.5px ${this.font}`;
     ctx.letterSpacing = "0.04em";
@@ -586,14 +629,15 @@ export class EmbeddingMap {
     const placed: { x: number; y: number; w: number }[] = [];
     const room = (x: number, y: number, bw: number) => {
       const hw = bw / 2;
-      if (x - hw < 8 || x + hw > w - 8 || y < top || y > h - 10) return false;
+      if (x - hw < Math.max(8, region.x - 16) || x + hw > Math.min(w - 8, region.x + region.w + 16)) return false;
+      if (y < Math.max(top, region.y - 16) || y > Math.min(h - 10, region.y + region.h + 16)) return false;
       for (const d of discs) {
         const ex = Math.max(Math.abs(d.x - x) - hw, 0);
         const ey = Math.max(Math.abs(d.y - y) - 7, 0);
         if (ex * ex + ey * ey < d.r * d.r) return false;
       }
       // Labels that share a column need a clear gap, or two read as one two-line name.
-      return !placed.some((p) => Math.abs(p.x - x) < (p.w + bw) / 2 + 4 && Math.abs(p.y - y) < 26);
+      return !placed.some((p) => Math.abs(p.x - x) < (p.w + bw) / 2 + 4 && Math.abs(p.y - y) < 34);
     };
     // The note nearest a spot should be one of the group's own, so the name stays by its cluster.
     const own = (name: string, x: number, y: number) => {
@@ -614,10 +658,11 @@ export class EmbeddingMap {
       const s = this.toScreen(g, cam);
       const fits = (strict: boolean) => (o: Point) =>
         room(s.x + o.x, s.y + o.y, bw) && (!strict || own(g.name, s.x + o.x, s.y + o.y));
-      const at = SPOTS.find(fits(true)) ?? SPOTS.find(fits(false));
+      // Failing a spot by its own cluster, a label may sit a little way off, never far enough to read as another group's.
+      const at = SPOTS.find(fits(true)) ?? SPOTS.find((o) => o.r <= 50 && fits(false)(o));
       if (!at) continue;
       placed.push({ x: s.x + at.x, y: s.y + at.y, w: bw });
-      this.labels.push({ name: g.name, at: g, off: { x: at.x / cam.s, y: at.y / cam.s } });
+      this.labels.push({ name: g.name, at: g, off: { x: at.x / cam.s, y: at.y / cam.s }, w: bw });
     }
     ctx.letterSpacing = "0px";
   }
@@ -632,8 +677,11 @@ export class EmbeddingMap {
       const a = seen(l.at);
       if (a <= 0) continue;
       const s = this.toScreen(l.at, cam);
+      const x = s.x + l.off.x * cam.s;
+      // Mid pull-back a name can reach past the canvas: leave it out until it's whole.
+      if (x - l.w / 2 < 0 || x + l.w / 2 > this.w) continue;
       ctx.fillStyle = rgba(colors.pudar, 0.85 * a);
-      ctx.fillText(l.name, s.x + l.off.x * cam.s, s.y + l.off.y * cam.s);
+      ctx.fillText(l.name, x, s.y + l.off.y * cam.s);
     }
     ctx.letterSpacing = "0px";
   }
