@@ -1,67 +1,56 @@
+import { batikPatternMarkup } from "./patterns";
 import { type Pt, smooth, wavy } from "./draw";
 import { rng } from "./rng";
 
 /*
-  A layangan, the paper kite every kid in Java has flown off a roof. Flat colours, a parang skin
-  (the diagonal blade motif, here as slanting bands with a dot in each) and a tail of small
-  knots. Drawn once with fixed seeds, so the server and the browser agree.
+  A layangan, the paper kite every kid in Java has flown off a roof. Flat colours, the site's
+  own parang for the skin, a tail of small knots. Drawn once with fixed seeds, so the server and
+  the browser agree.
 
-  Two poses in one drawing, picked by CSS from the sky's phase (see contact.css):
-    .layangan-up    high on a long string, swaying
-    .layangan-down  laid against the hill with the string slack, for when it's dark and the
-                    kite has been brought in
-  The colours come from CSS variables so the string can read on a night sky.
+  The drawing is a 100 x 100 box that sits in the bottom right of the sky band (see contact.css).
+  Whoever is flying it stands on the near hill at ANCHOR, the string runs up to the kite in a
+  shallow sag, and the kite hangs out in the open sky right of the summit.
+
+  Two poses in one drawing, picked by CSS from the sky's phase:
+    .layangan-up    flying, the string pulled taut, swaying from the hand
+    .layangan-down  laid on the hill with the string slack, for when it's dark
+  The colours come from CSS variables so it can read on a night sky.
 */
 
 const r = rng(41);
 
-// The kite: a diamond a little longer below the crossbar than above, as real ones are.
-const TOP: Pt = [50, 6];
-const RIGHT: Pt = [80, 38];
-const BOTTOM: Pt = [50, 92];
-const LEFT: Pt = [20, 38];
+const ANCHOR: Pt = [22, 92];
+const KITE_AT: Pt = [62, 27];
+
+// A diamond a little longer below the crossbar than above, as real ones are. Local coordinates,
+// centred on the crossbar, 13 wide and 17 tall.
+const TOP: Pt = [0, -8];
+const RIGHT: Pt = [6.5, -2];
+const BOTTOM: Pt = [0, 9];
+const LEFT: Pt = [-6.5, -2];
 const OUTLINE = `M${TOP}L${RIGHT}L${BOTTOM}L${LEFT}Z`;
 
-// The string from the bridle down to the hand: a long slow S.
-const STRING = smooth([[44, 66], [38, 100], [58, 150], [44, 200], [56, 250]], false);
+// The string: from the bridle (a little below the crossbar) down to the hand, taut with a slight
+// sag. Written in the drawing's own coordinates.
+const STRING = `M${ANCHOR}Q40 66 ${KITE_AT[0] - 1.2} ${KITE_AT[1] + 4}`;
 
-// The tail: a ribbon with knots, hanging from the bottom tip.
-const TAIL_SPINE = wavy([50, 92], [56, 150], r, 5, 5);
+// The tail: a ribbon from the bottom tip, drifting off to the side the string isn't on.
+const TAIL_SPINE = wavy([0, 9], [3, 31], r, 1.1, 6);
 const TAIL = smooth(TAIL_SPINE, false);
-const KNOTS = TAIL_SPINE.slice(1).map(([x, y], i) => ({ x, y, w: 6 - i * 0.6 }));
+const KNOTS = TAIL_SPINE.slice(1, -1);
 
-// Parang bands: slanting S-curves across the kite, drawn wider than it and clipped to it.
-const BANDS = [-30, -14, 2, 18, 34, 50, 66].map((dy, i) => {
-  const y0 = 20 + dy;
-  return smooth(
-    [
-      [14, y0 + 14],
-      [32, y0 + 2 + (i % 2) * 2],
-      [50, y0 - 6],
-      [68, y0 - 12 - (i % 2) * 2],
-      [86, y0 - 22],
-    ],
-    false,
-  );
-});
-const DOTS: Pt[] = [[34, 44], [52, 34], [66, 56], [44, 66], [58, 16], [38, 24]];
+// The parang tile at about an eighth of its size, so a few blades fit in a thirteen-wide kite.
+const PARANG_DAY = batikPatternMarkup("parang", "lg-parang", { scale: 0.14, ink: "var(--soga)", ground: "var(--mori)" });
+const PARANG_NIGHT = batikPatternMarkup("parang", "lg-parang-night", { scale: 0.14, ink: "var(--soga-2)", ground: "var(--nila-2)" });
 
 function Kite() {
   return (
     <>
       <path d={TAIL} className="lg-tail" />
-      {KNOTS.map((k, i) => (
-        <path key={i} d={`M${k.x - k.w / 2} ${k.y - 1.6}L${k.x + k.w / 2} ${k.y + 1.6}M${k.x + k.w / 2} ${k.y - 1.6}L${k.x - k.w / 2} ${k.y + 1.6}`} className="lg-tail" />
+      {KNOTS.map(([x, y], i) => (
+        <circle key={i} cx={x} cy={y} r="0.6" className="lg-knot" />
       ))}
-      <path d={OUTLINE} className="lg-paper" />
-      <g clipPath="url(#lg-clip)">
-        {BANDS.map((d, i) => (
-          <path key={i} d={d} className="lg-band" />
-        ))}
-        {DOTS.map(([x, y], i) => (
-          <circle key={i} cx={x} cy={y} r="1.7" className="lg-dot" />
-        ))}
-      </g>
+      <path d={OUTLINE} className="lg-skin" />
       {/* the two sticks, then the outline over the edge of the skin */}
       <path d={`M${TOP}L${BOTTOM}M${LEFT}L${RIGHT}`} className="lg-spar" />
       <path d={OUTLINE} className="lg-edge" />
@@ -71,24 +60,26 @@ function Kite() {
 
 export function Layangan() {
   return (
-    <svg className="layangan" viewBox="0 0 100 250" aria-hidden="true" focusable="false">
-      <defs>
-        <clipPath id="lg-clip">
-          <path d={OUTLINE} />
-        </clipPath>
-      </defs>
+    <svg className="layangan" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+      <defs dangerouslySetInnerHTML={{ __html: PARANG_DAY + PARANG_NIGHT }} />
       <g className="layangan-up">
-        <path d={STRING} className="lg-string" />
-        <g className="lg-kite">
-          <Kite />
+        <g className="lg-sway">
+          <path d={STRING} className="lg-string" />
+          <g transform={`translate(${KITE_AT}) rotate(-12)`}>
+            <g className="lg-kite">
+              <Kite />
+            </g>
+          </g>
         </g>
+        <circle cx={ANCHOR[0]} cy={ANCHOR[1]} r="0.9" className="lg-hand" />
       </g>
       <g className="layangan-down">
-        {/* Slack string pooled on the ground, kite leaning on it. */}
-        <path d="M44 246C30 240 22 248 36 249C54 252 74 244 90 248" className="lg-string" />
-        <g transform="translate(26 168) rotate(-64 50 50) scale(0.8)">
+        {/* Slack string pooled on the ground, kite leaning against the hill beside it. */}
+        <path d="M22 92C28 90 31 94 38 92S48 91 52 93" className="lg-string" />
+        <g transform="translate(40 87) rotate(-68) scale(0.9)">
           <Kite />
         </g>
+        <circle cx={ANCHOR[0]} cy={ANCHOR[1]} r="0.9" className="lg-hand" />
       </g>
     </svg>
   );
