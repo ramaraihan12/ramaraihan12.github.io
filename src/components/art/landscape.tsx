@@ -339,43 +339,62 @@ const STARS = (() => {
   return { small, big, sparkle };
 })();
 
-/** A truntum star-flower at the origin: four long petals along the axes, four short ones between. */
+/**
+ * A truntum star-flower at the origin, 12 or so across, in the same proportions as the one on
+ * the game poster and in the batik tile: eight blunt petals, long and short taking turns, set
+ * off the middle so the centre stays open, with a small ring and a seed in it.
+ */
 function truntumFlower() {
-  const petal = (len: number, half: number, deg: number) => {
-    const a = (deg * Math.PI) / 180;
+  const r0 = 3.2;
+  let d = "";
+  for (let i = 0; i < 8; i++) {
+    const a = (i * Math.PI) / 4 - Math.PI / 2;
+    const long = i % 2 === 0;
+    const r1 = long ? 12.5 : 8;
+    const hw = long ? 2.1 : 1.6;
+    const len = r1 - r0;
     const c = Math.cos(a);
     const sn = Math.sin(a);
-    const at = (x: number, y: number) => nums([x * c - y * sn, x * sn + y * c], 1);
-    return `M0 0Q${at(half, -len * 0.45)} ${at(0, -len)}Q${at(-half, -len * 0.45)} 0 0Z`;
-  };
-  let d = "";
-  for (let k = 0; k < 4; k++) d += petal(12, 2.7, k * 90) + petal(6.5, 1.7, 45 + k * 90);
-  return d + dot(0, 0, 2, 1);
+    const at = (t: number, side: number) => nums([c * t - sn * side, sn * t + c * side], 2);
+    // Rounded at the tip: the curve arrives square on to the axis.
+    d +=
+      `M${at(r0, 0)}C${at(r0 + len * 0.25, hw * 1.4)} ${at(r1, hw * 1.2)} ${at(r1, 0)}` +
+      `C${at(r1, -hw * 1.2)} ${at(r0 + len * 0.25, -hw * 1.4)} ${at(r0, 0)}Z`;
+  }
+  // The ring: outer circle one way, inner the other, so it fills as a band.
+  d += "M2.3 0A2.3 2.3 0 1 0 -2.3 0A2.3 2.3 0 1 0 2.3 0Z";
+  d += "M1.6 0A1.6 1.6 0 1 1 -1.6 0A1.6 1.6 0 1 1 1.6 0Z";
+  return d + dot(0, 0, 0.8, 1);
 }
 
-/** The nine stars: where, how big. In the order they come on, from the middle of the sky out. */
+/**
+ * The nine stars: where, how big. In the order they come on. They sit in the open sky east of
+ * the words and below the page's top fade (vy past 200), around Merbabu's summit and over the
+ * long ridge falling away to the right, clear of the smoke's path. A phone shows roughly
+ * vx 477-1124, so the first stars are the ones over the summit.
+ */
 const TRUNTUM_STARS: readonly (readonly [number, number, number])[] = [
-  [870, 126, 1.3],
-  [700, 72, 1.4],
-  [1010, 50, 1.7],
-  [560, 150, 1.05],
-  [1180, 128, 1.15],
-  [790, 190, 0.85],
-  [1390, 72, 1.3],
-  [320, 92, 1.05],
-  [1480, 196, 0.9],
+  [1090, 262, 1.4],
+  [1010, 222, 1.3],
+  [800, 262, 1.15],
+  [1190, 312, 1.1],
+  [1400, 252, 1.5],
+  [1120, 212, 1.0],
+  [1340, 362, 1.05],
+  [1500, 332, 1.1],
+  [1470, 202, 0.9],
 ];
 
 /** Wax dots (cecek) scattered between the stars, as zero-length strokes. */
 const TRUNTUM_DOTS = [
-  [790, 96],
-  [940, 78],
-  [630, 112],
-  [1090, 96],
-  [1290, 98],
-  [840, 190],
-  [480, 60],
-  [1420, 150],
+  [1050, 244],
+  [960, 244],
+  [1130, 292],
+  [1290, 214],
+  [1250, 346],
+  [1460, 292],
+  [1420, 330],
+  [860, 252],
 ]
   .map(([x, y]) => `M${x} ${y}h0`)
   .join("");
@@ -421,37 +440,38 @@ const GEOMETRY = (() => {
     plumeBlown: taper(
       [
         [604, 300],
-        [594, 272],
-        [596, 246],
-        [620, 226],
-        [668, 214],
-        [740, 208],
-        [830, 212],
-        [930, 226],
+        [607, 284],
+        [625, 264],
+        [664, 246],
+        [724, 232],
+        [796, 224],
+        [872, 224],
+        [946, 232],
       ],
-      (t) => (4 + t * 36) * (1 - t ** 3) + 2,
+      (t) => (4 + t * 34) * (1 - t ** 3) + 1.5,
       12,
       0,
     ),
+    // Two thin tatters that tear off the smoke's tip and drift on east.
     wisp0: taper(
       [
-        [930, 228],
-        [980, 236],
-        [1030, 238],
-        [1076, 232],
+        [940, 234],
+        [984, 240],
+        [1030, 240],
+        [1072, 234],
       ],
-      (t) => 22 * Math.sin(Math.PI * t) ** 0.7 + 1,
+      (t) => 9 * Math.sin(Math.PI * t) ** 0.8 + 0.8,
       10,
       0,
     ),
     wisp1: taper(
       [
-        [890, 220],
-        [940, 208],
-        [996, 204],
-        [1046, 208],
+        [934, 224],
+        [976, 214],
+        [1020, 212],
+        [1060, 216],
       ],
-      (t) => 15 * Math.sin(Math.PI * t) ** 0.7 + 1,
+      (t) => 6.5 * Math.sin(Math.PI * t) ** 0.8 + 0.8,
       10,
       0,
     ),
@@ -461,21 +481,28 @@ const GEOMETRY = (() => {
   };
 })();
 
-/** A kawung, centred on 0 0, 46 across: four seed-ellipses meeting in the middle, a ring, dots between. */
+/**
+ * A kawung, centred on 0 0 and 100 across (the sun is r 50 in this drawing, scaled to fit):
+ * four seed-ellipses on the diagonals with a gap between them, a dot in each gap. The same
+ * geometry KawungField blooms into, so the sun that becomes the query dot and the field that
+ * opens out of it are one drawing. Filled, painted faint. hero.css carries a copy of this
+ * path in `.qs-sun::after`; keep the two the same.
+ */
 function kawungDisc() {
-  const a = 23;
-  const b = 13;
+  const rx = 20;
+  const ry = 12.5;
+  const off = 23;
   let d = "";
-  for (const [rx, ry, ex, ey, sw] of [
-    [a, b, 46, 0, 1],
-    [b, a, 0, 46, 1],
-    [a, b, -46, 0, 0],
-    [b, a, 0, -46, 0],
-  ]) {
-    d += `M0 0A${rx} ${ry} 0 1 ${sw} ${ex} ${ey}A${rx} ${ry} 0 1 ${sw} 0 0`;
+  for (let q = 0; q < 4; q++) {
+    const a = Math.PI / 4 + (q * Math.PI) / 2;
+    const c = Math.cos(a);
+    const sn = Math.sin(a);
+    const [cx, cy] = [c * off, sn * off];
+    const [ax, ay] = [c * rx, sn * rx];
+    const deg = ((a * 180) / Math.PI).toFixed(0);
+    d += `M${nums([cx + ax, cy + ay], 2)}A${rx} ${ry} ${deg} 1 0 ${nums([cx - ax, cy - ay], 2)}A${rx} ${ry} ${deg} 1 0 ${nums([cx + ax, cy + ay], 2)}Z`;
   }
-  d += dot(0, 0, 2.6, 0);
-  for (const [x, y] of [[30, 30], [-30, 30], [30, -30], [-30, -30]]) d += dot(x, y, 1.9, 0);
+  for (const [x, y] of [[0, 33], [0, -33], [33, 0], [-33, 0]]) d += dot(x, y, 1.9, 1);
   return d;
 }
 
@@ -553,9 +580,17 @@ export function Landscape({
           <stop offset="0" stopColor="var(--mori, #efe9dc)" stopOpacity="0.55" />
           <stop offset="1" stopColor="var(--mori, #efe9dc)" stopOpacity="0" />
         </linearGradient>
-        <linearGradient id={`${uid}-smoke2`} gradientUnits="userSpaceOnUse" x1="604" y1="300" x2="1070" y2="226">
-          <stop offset="0" stopColor="var(--mori, #efe9dc)" stopOpacity="0.2" />
-          <stop offset="0.3" stopColor="var(--mori, #efe9dc)" stopOpacity="0.5" />
+        <linearGradient id={`${uid}-smoke2`} gradientUnits="userSpaceOnUse" x1="604" y1="300" x2="950" y2="226">
+          <stop offset="0" stopColor="var(--mori, #efe9dc)" stopOpacity="0.03" />
+          <stop offset="0.12" stopColor="var(--mori, #efe9dc)" stopOpacity="0.12" />
+          <stop offset="0.3" stopColor="var(--mori, #efe9dc)" stopOpacity="0.45" />
+          <stop offset="0.6" stopColor="var(--mori, #efe9dc)" stopOpacity="0.3" />
+          <stop offset="0.85" stopColor="var(--mori, #efe9dc)" stopOpacity="0.06" />
+          <stop offset="1" stopColor="var(--mori, #efe9dc)" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id={`${uid}-wisp`} gradientUnits="userSpaceOnUse" x1="930" y1="0" x2="1075" y2="0">
+          <stop offset="0" stopColor="var(--mori, #efe9dc)" stopOpacity="0" />
+          <stop offset="0.35" stopColor="var(--mori, #efe9dc)" stopOpacity="0.7" />
           <stop offset="1" stopColor="var(--mori, #efe9dc)" stopOpacity="0" />
         </linearGradient>
         <radialGradient id={`${uid}-glow`}>
@@ -606,11 +641,8 @@ export function Landscape({
                 <Shape
                   shapes={shapes}
                   name="kawungSun"
-                  fill="none"
-                  stroke="var(--soga, #9c6633)"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  opacity="0.55"
+                  fill="var(--soga, #9c6633)"
+                  opacity="0.28"
                 />
               </g>
             ) : null}
@@ -625,8 +657,8 @@ export function Landscape({
             <g className="art-plume">
               <Shape shapes={shapes} name="plumeBlown" fill={`url(#${uid}-smoke2)`} opacity="0.7" />
             </g>
-            <Shape shapes={shapes} name="wisp0" className="art-wisp" fill="var(--mori, #efe9dc)" style={{ "--i": 0 } as CSSProperties} />
-            <Shape shapes={shapes} name="wisp1" className="art-wisp" fill="var(--mori, #efe9dc)" style={{ "--i": 1 } as CSSProperties} />
+            <Shape shapes={shapes} name="wisp0" className="art-wisp" fill={`url(#${uid}-wisp)`} style={{ "--i": 0 } as CSSProperties} />
+            <Shape shapes={shapes} name="wisp1" className="art-wisp" fill={`url(#${uid}-wisp)`} style={{ "--i": 1 } as CSSProperties} />
           </>
         ) : plume ? (
           <Shape shapes={shapes} name="plume" fill={`url(#${uid}-smoke)`} opacity="0.7" />

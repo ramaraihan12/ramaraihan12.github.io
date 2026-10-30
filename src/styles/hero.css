@@ -7,8 +7,11 @@
     opacity: 0.88;
   }
 
+  /* A wisp grows from its own left end (where it tore off the smoke), not from the drawing's corner. */
   .qs-land .art-wisp {
     opacity: 0;
+    transform-box: fill-box;
+    transform-origin: 0% 50%;
   }
 
   .qs-land .art-plume {
@@ -16,26 +19,27 @@
   }
 
   /* The kawung on the pinned scene's sun, the same drawing the landscape's own sun carries
-     (kawungDisc in landscape.tsx). It rides the sun's scale, so as the sun shrinks into the
-     query dot the pattern closes up inside it. */
+     (kawungDisc in landscape.tsx; keep the two paths the same), filled and faint. It rides
+     the sun's scale, so as the sun shrinks into the query dot the pattern closes up inside. */
   .scrolly .qs-sun::after {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    opacity: 0.55;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-50 -50 100 100' fill='none' stroke='%239c6633' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M0 0A23 13 0 1 1 46 0A23 13 0 1 1 0 0M0 0A13 23 0 1 1 0 46A13 23 0 1 1 0 0M0 0A23 13 0 1 0 -46 0A23 13 0 1 0 0 0M0 0A13 23 0 1 0 0 -46A13 23 0 1 0 0 0'/%3E%3Cpath d='M-2.6 0a2.6 2.6 0 1 0 5.2 0a2.6 2.6 0 1 0 -5.2 0M28.1 30a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0M-31.9 30a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0M28.1 -30a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0M-31.9 -30a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0'/%3E%3C/svg%3E")
+    opacity: 0.28;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-50 -50 100 100'%3E%3Cpath fill='%239c6633' d='M30.41 30.41A20 12.5 45 1 0 2.12 2.12A20 12.5 45 1 0 30.41 30.41ZM-30.41 30.41A20 12.5 135 1 0 -2.12 2.12A20 12.5 135 1 0 -30.41 30.41ZM-30.41 -30.41A20 12.5 225 1 0 -2.12 -2.12A20 12.5 225 1 0 -30.41 -30.41ZM30.41 -30.41A20 12.5 315 1 0 2.12 -2.12A20 12.5 315 1 0 30.41 -30.41ZM-1.9 33a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0M-1.9 -33a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0M31.1 0a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0M-34.9 0a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0'/%3E%3C/svg%3E")
       center / 100% 100% no-repeat;
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    /* Each star opens (scale up from nothing, a small overshoot) once the question has typed
-       in, one after another, and then breathes on its own slow clock so no two are in step. */
+    /* Each star blooms (no spin, no overshoot) once the question has typed in, one after
+       another, then breathes slowly on its own clock so no two are in step. The breathing
+       settles after three rounds: the sky goes quiet and only the smoke keeps moving. */
     .qs-land .art-star {
       --open: calc(1.9s + var(--i) * 0.55s);
       animation:
-        star-open 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) var(--open) backwards,
-        star-breathe calc(5.5s + var(--i) * 0.7s) ease-in-out calc(var(--open) + 1.4s) infinite;
+        star-open 1.6s cubic-bezier(0.22, 0.7, 0.3, 1) var(--open) backwards,
+        star-breathe calc(7s + var(--i) * 0.45s) ease-in-out calc(var(--open) + 1.6s) 3;
     }
 
     /* Smoke sways from the crater like a flag in slow wind. */
@@ -53,8 +57,16 @@
       animation: sun-breathe 7s ease-in-out 1.8s infinite;
     }
 
-    /* Nothing loops while the scene is off screen. */
-    .is-idle :is(.art-star, .art-plume, .art-wisp, .qs-sun::before) {
+    /* Nothing loops while the scene is off screen or the land has dropped away. land-rig.ts
+       sets is-sunk (scrolled off the top) and is-off (not in view, e.g. a deep link far down);
+       the pin sets is-idle. */
+    .is-idle :is(.art-star, .art-plume, .art-wisp),
+    .qs-land:is(.is-sunk, .is-off) :is(.art-star, .art-plume, .art-wisp) {
+      animation-play-state: paused;
+    }
+
+    .is-idle .qs-sun::before,
+    .qs-stage:has(.qs-land:is(.is-sunk, .is-off)) .qs-sun::before {
       animation-play-state: paused;
     }
   }
@@ -63,15 +75,11 @@
 @keyframes star-open {
   from {
     opacity: 0;
-    transform: scale(0.1) rotate(-45deg);
-  }
-  60% {
-    opacity: 1;
-    transform: scale(1.18) rotate(6deg);
+    transform: scale(0.35);
   }
   to {
     opacity: 0.88;
-    transform: scale(1) rotate(0);
+    transform: scale(1);
   }
 }
 
@@ -82,8 +90,8 @@
     transform: scale(1);
   }
   50% {
-    opacity: 0.45;
-    transform: scale(0.82);
+    opacity: 0.68;
+    transform: scale(0.95);
   }
 }
 
@@ -99,14 +107,14 @@
 @keyframes wisp-drift {
   0% {
     opacity: 0;
-    transform: translate(0, 0) scale(0.8);
+    transform: translate(0, 0) scale(0.9, 0.8);
   }
-  20% {
-    opacity: 0.28;
+  25% {
+    opacity: 0.4;
   }
   100% {
     opacity: 0;
-    transform: translate(150px, -26px) scale(1.5);
+    transform: translate(110px, -14px) scale(1.2, 0.7);
   }
 }
 

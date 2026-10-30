@@ -35,6 +35,14 @@ export function landRig(box: HTMLElement) {
     apply();
   };
 
+  // The land's own loops (stars, smoke) pause when it isn't on screen, which the pin's idle
+  // flag can't say for a deep link or a restored reload far down the page.
+  const watch =
+    typeof IntersectionObserver === "undefined"
+      ? null
+      : new IntersectionObserver(([e]) => box.classList.toggle("is-off", !!e && !e.isIntersecting));
+  watch?.observe(box);
+
   const toX = gsap.quickTo(at, "px", { duration: 1.1, ease: "power3", onUpdate: apply });
   const toY = gsap.quickTo(at, "py", { duration: 1.1, ease: "power3", onUpdate: apply });
 
@@ -49,9 +57,13 @@ export function landRig(box: HTMLElement) {
     sink(y: number) {
       if (y === at.sink) return;
       at.sink = y;
+      // Once the scroll starts pulling the land down it is on its way out: stop its loops.
+      box.classList.toggle("is-sunk", y > 0);
       apply();
     },
     kill() {
+      watch?.disconnect();
+      box.classList.remove("is-off", "is-sunk");
       gsap.killTweensOf(at);
       for (const { el } of layers) el.removeAttribute("transform");
     },
