@@ -1,8 +1,9 @@
 @layer components {
   /*
-    The pipeline. Steps stacked on phones, a row on wider screens, with the wire running beside
-    them and a tick from each step down to it. --p moves the packet along the wire; each step's
-    --lit goes from 0 to 1 just as the packet reaches it.
+    The pipeline. Three looks: one line of wax dots on a wire on phones (last block), a row of
+    pills with a tick down to the wire on wider screens, and the stacked list underneath both,
+    which no width shows now but is the base they override. --p moves the packet along the wire;
+    each step's --lit goes from 0 to 1 just as the packet reaches it.
   */
   .pipe {
     --p: 0;
@@ -147,7 +148,7 @@
     .pipe {
       --dot: 0.5rem;
       --wire: 0.45rem;
-      --lab: 1.7rem;
+      --lab: 1.9rem;
       container-type: inline-size;
       margin-top: 0;
 
@@ -208,9 +209,10 @@
 
     .pipe-label {
       grid-row: 3;
-      width: 190%;
+      width: calc(200% - 0.75rem);
       padding-top: 0.3rem;
       text-align: center;
+      text-wrap: balance;
       overflow-wrap: anywhere;
     }
 
@@ -224,7 +226,7 @@
     .pipe-node:first-child .pipe-label,
     .pipe-node:last-child .pipe-label {
       width: max-content;
-      max-width: 190%;
+      max-width: calc(150% - 0.5rem);
     }
 
     .pipe-node:first-child .pipe-label {
