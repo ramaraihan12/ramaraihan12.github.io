@@ -1,0 +1,196 @@
+/*
+  The 404 cloth (src/components/extras/cloth.tsx). Imported by that file, so this ships with the
+  404 page's own chunk and never with the home page's stylesheet.
+
+  Two layers hold the words: the real one (nila ink on cotton) and, only while the cloth is going
+  in, a pale copy clipped to the dye, so the words turn light exactly where the dye reaches them.
+*/
+
+@layer components {
+  .nf {
+    --nf-ink: var(--nila, #0f1a47);
+    position: fixed;
+    inset: 0;
+    background: var(--mori, #efe9dc);
+    color: var(--nf-ink);
+    overflow: hidden;
+  }
+
+  .nf-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    cursor: crosshair;
+  }
+  .nf[data-phase="dipping"] .nf-canvas,
+  .nf[data-phase="dyed"] .nf-canvas {
+    cursor: default;
+  }
+
+  /* Woven cotton: two faint sets of threads. */
+  .nf-threads {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(0deg, rgb(15 26 71 / 0.035) 0 1px, transparent 1px 4px),
+      repeating-linear-gradient(90deg, rgb(15 26 71 / 0.03) 0 1px, transparent 1px 5px);
+    mix-blend-mode: multiply;
+  }
+
+  .nf-layer {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    padding: clamp(1.25rem, 4vw, 3rem) max(1rem, env(safe-area-inset-right)) max(1.25rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+    pointer-events: none;
+  }
+  .nf[data-phase="dyed"] .nf-layer {
+    --nf-ink: var(--mori, #efe9dc);
+    color: var(--nf-ink);
+  }
+
+  /* The pale copy: only while dipping, and clipped to the dye by the animation. */
+  .nf-pale {
+    --nf-ink: var(--mori, #efe9dc);
+    --nf-fill: var(--nila, #0f1a47);
+    color: var(--nf-ink);
+    display: none;
+    clip-path: inset(100% 0 0 0);
+  }
+  .nf[data-phase="dipping"] .nf-pale {
+    display: grid;
+  }
+
+  .nf-text {
+    position: relative;
+    align-self: start;
+    max-width: 34rem;
+    padding-top: clamp(2rem, 9vh, 6rem);
+    padding-inline: clamp(0rem, 2vw, 2rem);
+  }
+  .nf-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    color: var(--soga, #9c6633);
+  }
+  .nf-pale .nf-eyebrow,
+  .nf[data-phase="dyed"] .nf-eyebrow {
+    color: var(--kunyit, #f4b223);
+  }
+  .nf-title {
+    margin-top: 0.6rem;
+    font-family: var(--font-display);
+    font-size: clamp(1.7rem, 5.2vw, 3rem);
+    line-height: 1.1;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+  .nf-path {
+    font-family: var(--font-mono);
+    font-size: 0.62em;
+    font-weight: 500;
+    background: rgb(15 26 71 / 0.08);
+    padding: 0.05em 0.35em;
+    border-radius: 0.25em;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+  .nf-pale .nf-path,
+  .nf[data-phase="dyed"] .nf-path {
+    background: rgb(239 233 220 / 0.12);
+  }
+  .nf-lede {
+    margin-top: 1rem;
+    max-width: 28rem;
+  }
+  .nf-hint {
+    margin-top: 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    opacity: 0.7;
+  }
+
+  .nf-actions {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    padding: 0 clamp(0rem, 2vw, 2rem) 0.5rem;
+  }
+  .nf-actions > * {
+    pointer-events: auto;
+  }
+  .nf-pale .nf-actions > * {
+    pointer-events: none;
+  }
+  .nf-btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0 1.25rem;
+    border-radius: 999px;
+    border: 1.5px solid var(--nf-ink);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+  }
+  .nf-btn:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+  .nf-btn-solid {
+    background: var(--nila, #0f1a47);
+    color: var(--mori, #efe9dc);
+  }
+  /* Opaque, so wax lines under it don't show through the label. */
+  .nf-btn-line {
+    --nf-fill: var(--mori, #efe9dc);
+    background: var(--nf-fill);
+    color: var(--nf-ink);
+  }
+  .nf-pale .nf-btn-line,
+  .nf[data-phase="dyed"] .nf-btn-line {
+    --nf-fill: var(--nila, #0f1a47);
+  }
+  .nf-pale .nf-btn-solid {
+    background: var(--nila, #0f1a47);
+    border-color: var(--mori, #efe9dc);
+  }
+  .nf-btn-link {
+    border-color: transparent;
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+    color: var(--nf-ink);
+    padding-inline: 0.5rem;
+  }
+  .nf-btn:focus-visible {
+    outline: 2px solid var(--kunyit, #f4b223);
+    outline-offset: 3px;
+  }
+  .nf[data-phase="dyed"] .nf-btn-line {
+    border-color: var(--mori, #efe9dc);
+  }
+  @media (hover: hover) {
+    .nf-btn-solid:enabled:hover {
+      background: var(--nila-2, #16235c);
+    }
+    .nf-btn-line:enabled:hover {
+      background: color-mix(in srgb, var(--nila, #0f1a47) 8%, var(--nf-fill));
+    }
+    .nf[data-phase="dyed"] .nf-btn-line:hover {
+      background: color-mix(in srgb, var(--mori, #efe9dc) 12%, var(--nf-fill));
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-btn {
+      transition: none;
+    }
+  }
+}
