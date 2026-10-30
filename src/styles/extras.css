@@ -154,9 +154,11 @@
       color 0.2s,
       background-color 0.2s;
 
-    &:hover {
-      color: var(--mori, #efe9dc);
-      background-color: rgb(239 233 220 / 0.08);
+    @media (hover: hover) {
+      &:hover {
+        color: var(--mori, #efe9dc);
+        background-color: rgb(239 233 220 / 0.08);
+      }
     }
 
     &:focus-visible {

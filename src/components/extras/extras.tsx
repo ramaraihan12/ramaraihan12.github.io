@@ -86,6 +86,18 @@ const DWELL = 400;
 /** Breathing room between two toasts. */
 const GAP = 350;
 
+/*
+  The answer's sun blooms over the whole screen, the best moment on the page, and a card in the
+  corner would sit right on it. While the answer is on its way in, in view or just leaving, the
+  toasts wait in the queue and show once it has gone by. Watched with an observer on the section, so this
+  needs nothing from the scene: it's only held while the pinned layout is on (html.scrolly). The
+  lead is a little over a screen, since the toast that "whole pipeline" earns arrives just before
+  the pin starts and lives five seconds.
+*/
+// IntersectionObserver margins: the section counts from a little over a screen below the fold
+// (top < 1.2h) until its bottom has risen past 0.6h.
+const BLOOM_MARGIN = "-60% 0px 20% 0px";
+
 const typing = (t: EventTarget | null) =>
   t instanceof HTMLElement && (t.isContentEditable || t.matches("input, textarea, select"));
 
@@ -127,6 +139,7 @@ export function Extras() {
   const [Toast, setToast] = useState<ComponentType<ToastProps> | null>(null);
   const [Dip, setDip] = useState<ComponentType<DipProps> | null>(null);
   const [live, setLive] = useState("");
+  const [held, setHeld] = useState(false);
   const liveTimer = useRef(0);
   const dippingNow = useRef(false);
 
@@ -217,6 +230,22 @@ export function Extras() {
     };
     document.addEventListener("click", onClick);
 
+    // A hidden tab says where the visitor left off, and goes back when they return.
+    let resting = "";
+    const onVisibility = () => {
+      if (document.hidden) {
+        // Only the home page has stages. Anywhere else (the 404) the title already says enough.
+        if (!document.getElementById("tokens")) return;
+        resting = document.title;
+        const here = stages.find((s) => s.id === getStage())?.label;
+        document.title = X.pausedTitle(here, site.name);
+      } else if (resting) {
+        document.title = resting;
+        resting = "";
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
     if (!greeted) {
       greeted = true;
       greet();
@@ -236,14 +265,31 @@ export function Extras() {
       window.clearTimeout(dwell);
       window.removeEventListener("keydown", onKey);
       document.removeEventListener("click", onClick);
+      document.removeEventListener("visibilitychange", onVisibility);
+      if (resting) document.title = resting;
       if (window.rama === rama) delete window.rama;
     };
   }, [startDip]);
 
-  // One toast at a time, and none while the page is dyed.
+  // While toasts are waiting, watch for the answer to go by. Nothing listens otherwise.
+  const waiting = queue.length > 0;
+  useEffect(() => {
+    if (!waiting) return;
+    const el = document.getElementById("answer");
+    // No answer section (the 404): nothing to hold for.
+    if (!el) return;
+    const watch = new IntersectionObserver(
+      ([entry]) => setHeld(entry.isIntersecting && document.documentElement.classList.contains("scrolly")),
+      { rootMargin: BLOOM_MARGIN },
+    );
+    watch.observe(el);
+    return () => watch.disconnect();
+  }, [waiting]);
+
+  // One toast at a time, none while the page is dyed, none over the answer's bloom.
   const next = queue[0];
   useEffect(() => {
-    if (!next || showing || dipping) return;
+    if (!next || showing || dipping || held) return;
     let current = true;
     const { title, body } = achievements[IDS[next.id]];
     const timer = window.setTimeout(() => {
@@ -266,7 +312,7 @@ export function Extras() {
       current = false;
       window.clearTimeout(timer);
     };
-  }, [next, showing, dipping, say]);
+  }, [next, showing, dipping, held, say]);
 
   useEffect(() => () => window.clearTimeout(liveTimer.current), []);
 

@@ -55,11 +55,6 @@ export function smooth(points: readonly Pt[], closed = false, digits = 1): strin
   return closed ? `${d}Z` : d;
 }
 
-/** Straight segments through the points. */
-export function poly(points: readonly Pt[], closed = false, digits = 1): string {
-  return points.map((p, i) => `${i ? "L" : "M"}${nums(p, digits)}`).join("") + (closed ? "Z" : "");
-}
-
 /** Moves every point a little, like a hand that doesn't quite hold the line. */
 export function jitter(points: readonly Pt[], r: Rand, amount: number): Pt[] {
   return points.map(([x, y]) => [x + wobble(r, amount), y + wobble(r, amount)] as const);

@@ -10,6 +10,9 @@ export const extrasCopy = {
   /** What rama.hello() prints. */
   hello: "Hi back! Two developers in one console. That counts as a meetup.",
 
+  /** The tab title while the tab is hidden: "paused at embed · Rama Raihan". */
+  pausedTitle: (stage: string | undefined, name: string) => (stage ? `paused at ${stage} · ${name}` : `paused · ${name}`),
+
   /** Above each toast's title: "achievement · 2 of 5". */
   toastLabel: "achievement",
   toastCount: (n: number, total: number) => `${n} of ${total}`,
