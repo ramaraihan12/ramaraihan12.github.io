@@ -44,6 +44,7 @@ export const BATIK_TILES = {
   // The kepala between the AI and the web apps: soga ground, mori blades, malam (wax) lines.
   "web-kepala": { kind: "parang", ink: "#080e2b", ground: "#9c6633", tint: "#efe9dc", scale: 0.5 },
   // The tools cloth: a band of motif over each kind of tool, nila and soga in turn (with web-kepala).
+  // Their size on the page is set in tools.css (two cells), not by scale.
   "tools-kawung": { kind: "kawung", ink: "#efe9dc", ground: "#0f1a47", tint: "#16235c", scale: 0.6 },
   "tools-truntum": { kind: "truntum", ink: "#efe9dc", ground: "#0f1a47", scale: 0.6 },
   "tools-kawung-soga": { kind: "kawung", ink: "#efe9dc", ground: "#9c6633", tint: "#0f1a47", scale: 0.6 },

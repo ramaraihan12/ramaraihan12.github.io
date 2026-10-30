@@ -15,8 +15,39 @@
   .tool-bands {
     --pencil: color-mix(in oklab, var(--nila) 42%, var(--mori));
     padding: clamp(1rem, 3vw, 2.25rem) clamp(1rem, 3vw, 2.25rem) clamp(0.25rem, 1vw, 0.75rem);
-    background: var(--mori);
     color: var(--nila);
+  }
+
+  /* The cloth's cut edge sits behind the bands; a running stitch hems the top and bottom. */
+  .tools-sheet {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .tools-edge {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    fill: var(--mori);
+  }
+
+  .tools-sheet::before,
+  .tools-sheet::after {
+    content: "";
+    position: absolute;
+    inset-inline: 10px;
+    border-top: 1px dashed color-mix(in oklab, var(--nila) 38%, var(--mori));
+    pointer-events: none;
+  }
+
+  .tools-sheet::before {
+    top: 9px;
+  }
+
+  .tools-sheet::after {
+    bottom: 9px;
   }
 
   /* ---------- a band: its motif across the cloth, the names under it ---------- */
@@ -130,6 +161,7 @@
     align-items: center;
     opacity: clamp(0, calc((1 - var(--press)) * 3), 1);
     pointer-events: none;
+    user-select: none;
   }
 
   .tool-pola-frame {
@@ -141,6 +173,11 @@
     fill: none;
     stroke: var(--pencil);
     opacity: 0.55;
+  }
+
+  /* The name is generated content, so the page holds each name once: not selected, not found, not read twice. */
+  .tool-pola-name::before {
+    content: attr(data-name);
   }
 
   .tool-pola-name {
