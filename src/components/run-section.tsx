@@ -44,7 +44,8 @@ export function RunSection() {
           </p>
         </div>
 
-        <ul className="run-deck" aria-label={deckCopy.label}>
+        {/* role: Safari drops list semantics once the markers are removed */}
+        <ul role="list" className="run-deck" aria-label={deckCopy.label}>
           {aiProjects.map((project, i) => (
             <li key={project.name} className="run-card">
               <ProjectPanel project={project} index={i} />
