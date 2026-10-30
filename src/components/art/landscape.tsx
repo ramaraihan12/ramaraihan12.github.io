@@ -42,6 +42,20 @@ export type LandscapeProps = {
   stars?: number;
   /** Merapi's smoke. On by default. */
   plume?: boolean;
+  /**
+   * Merapi's smoke blown east instead, low over its shoulder, with two wisps coming off the end.
+   * A stylesheet can set them drifting: .art-plume sways from the crater (606, 300) and each
+   * .art-wisp drifts off and thins out. Off by default.
+   */
+  windblown?: boolean;
+  /**
+   * Truntum stars in the sky, whatever `stars` is: nine small star-flowers, each in a
+   * <g class="art-star"> with a flower inside, and a few wax dots between them. A stylesheet
+   * can bring them on one by one (--i is their order) and make them breathe. Off by default.
+   */
+  truntum?: boolean;
+  /** A kawung stamped faintly on the sun, in soga. Off by default. */
+  kawungSun?: boolean;
   /** "xMidYMax slice" by default: fills the box, keeps the ground, crops the sides. */
   preserveAspectRatio?: string;
   /**
@@ -325,6 +339,70 @@ const STARS = (() => {
   return { small, big, sparkle };
 })();
 
+/**
+ * A truntum star-flower at the origin, 12 or so across, in the same proportions as the one on
+ * the game poster and in the batik tile: eight blunt petals, long and short taking turns, set
+ * off the middle so the centre stays open, with a small ring and a seed in it. Each call draws
+ * a slightly different hand: petals a touch off their angle and uneven in length, as the dyer's
+ * canting leaves them.
+ */
+function truntumFlower(r: () => number) {
+  const r0 = 3.2;
+  let d = "";
+  for (let i = 0; i < 8; i++) {
+    const a = (i * Math.PI) / 4 - Math.PI / 2 + wobble(r, 0.07);
+    const long = i % 2 === 0;
+    const r1 = (long ? 12.5 : 8) + wobble(r, 0.7);
+    const hw = (long ? 2.1 : 1.6) * (1 + wobble(r, 0.12));
+    const len = r1 - r0;
+    const c = Math.cos(a);
+    const sn = Math.sin(a);
+    const at = (t: number, side: number) => nums([c * t - sn * side, sn * t + c * side], 2);
+    // Rounded at the tip: the curve arrives square on to the axis.
+    d +=
+      `M${at(r0, 0)}C${at(r0 + len * 0.25, hw * 1.4)} ${at(r1, hw * 1.2)} ${at(r1, 0)}` +
+      `C${at(r1, -hw * 1.2)} ${at(r0 + len * 0.25, -hw * 1.4)} ${at(r0, 0)}Z`;
+  }
+  // The ring: outer circle one way, inner the other, so it fills as a band.
+  d += "M2.3 0A2.3 2.3 0 1 0 -2.3 0A2.3 2.3 0 1 0 2.3 0Z";
+  d += "M1.6 0A1.6 1.6 0 1 1 -1.6 0A1.6 1.6 0 1 1 1.6 0Z";
+  return d + dot(0, 0, 0.8, 1);
+}
+
+/**
+ * The nine stars: where, how big, how far turned (degrees), which of the three hand-drawn
+ * flowers. In the order they come on. They sit in open sky east of the words and below the
+ * page's top fade (vy past 180), around Merbabu's summit and over the long ridge falling away
+ * to the right. A phone shows roughly vx 477-1124, so the first four are the ones over the
+ * summit. The smoke's tip and its two wisps live around vx 930-1180, vy 200-245: no star
+ * centre comes within about 20 units of them.
+ */
+const TRUNTUM_STARS: readonly (readonly [number, number, number, number, number])[] = [
+  [1082, 288, 1.2, -14, 0],
+  [1045, 186, 1.0, 18, 1],
+  [1060, 266, 1.0, 9, 2],
+  [972, 190, 0.9, -21, 0],
+  [1200, 312, 1.05, 16, 1],
+  [1400, 252, 1.25, -8, 2],
+  [1340, 362, 1.0, 22, 0],
+  [1500, 332, 1.05, -17, 1],
+  [1470, 202, 0.9, 12, 2],
+];
+
+/** Wax dots (cecek) scattered between the stars, as zero-length strokes. */
+const TRUNTUM_DOTS = [
+  [1050, 244],
+  [960, 244],
+  [1140, 258],
+  [1290, 214],
+  [1250, 346],
+  [1460, 292],
+  [1420, 330],
+  [860, 252],
+]
+  .map(([x, y]) => `M${x} ${y}h0`)
+  .join("");
+
 /** A row of cecek (wax dots) following a ridge a little below its edge, where it's high enough. */
 function cecek(ridge: Pt[], drop: number, below: number) {
   const pts = ridge.filter(([, y]) => y < below).map(([x, y]): Pt => [x, y + drop]);
@@ -362,8 +440,79 @@ const GEOMETRY = (() => {
       10,
       0,
     ),
+    // The same smoke blown east by the morning wind, low over the sky and away from the words.
+    plumeBlown: taper(
+      [
+        [604, 300],
+        [606, 288],
+        [624, 279],
+        [660, 276],
+        [708, 262],
+        [756, 246],
+        [802, 236],
+        [872, 230],
+        [946, 230],
+      ],
+      (t) => (4 + t * 34) * (1 - t ** 3) + 1.5,
+      12,
+      0,
+    ),
+    // Two thin tatters that tear off the smoke's tip and drift on east.
+    wisp0: taper(
+      [
+        [940, 234],
+        [984, 240],
+        [1030, 240],
+        [1072, 234],
+      ],
+      (t) => 9 * Math.sin(Math.PI * t) ** 0.8 + 0.8,
+      10,
+      0,
+    ),
+    wisp1: taper(
+      [
+        [934, 224],
+        [976, 214],
+        [1020, 212],
+        [1060, 216],
+      ],
+      (t) => 6.5 * Math.sin(Math.PI * t) ** 0.8 + 0.8,
+      10,
+      0,
+    ),
+    ...(() => {
+      const fr = rng(31);
+      return { truntum0: truntumFlower(fr), truntum1: truntumFlower(fr), truntum2: truntumFlower(fr) };
+    })(),
+    truntumDots: TRUNTUM_DOTS,
+    kawungSun: kawungDisc(),
   };
 })();
+
+/**
+ * A kawung, centred on 0 0 and 100 across (the sun is r 50 in this drawing, scaled to fit):
+ * four seed-ellipses on the diagonals with a gap between them, a dot in each gap. The same
+ * geometry KawungField blooms into, so the sun that becomes the query dot and the field that
+ * opens out of it are one drawing. Filled, painted faint. hero.css carries a copy of this
+ * path in `.qs-sun::after`; keep the two the same.
+ */
+function kawungDisc() {
+  const rx = 20;
+  const ry = 12.5;
+  const off = 23;
+  let d = "";
+  for (let q = 0; q < 4; q++) {
+    const a = Math.PI / 4 + (q * Math.PI) / 2;
+    const c = Math.cos(a);
+    const sn = Math.sin(a);
+    const [cx, cy] = [c * off, sn * off];
+    const [ax, ay] = [c * rx, sn * rx];
+    const deg = ((a * 180) / Math.PI).toFixed(0);
+    d += `M${nums([cx + ax, cy + ay], 2)}A${rx} ${ry} ${deg} 1 0 ${nums([cx - ax, cy - ay], 2)}A${rx} ${ry} ${deg} 1 0 ${nums([cx + ax, cy + ay], 2)}Z`;
+  }
+  for (const [x, y] of [[0, 33], [0, -33], [33, 0], [-33, 0]]) d += dot(x, y, 1.9, 1);
+  return d;
+}
 
 /** Every path the drawing uses, by name. The same for every Landscape. */
 const SHAPES = { ...GEOMETRY, stars: STARS.small, bigStars: STARS.big, sparkle: STARS.sparkle };
@@ -399,6 +548,9 @@ export function Landscape({
   sunSlot,
   stars = 0,
   plume = true,
+  windblown = false,
+  truntum = false,
+  kawungSun = false,
   preserveAspectRatio = "xMidYMax slice",
   shapes = "inline",
   className,
@@ -436,6 +588,19 @@ export function Landscape({
           <stop offset="0" stopColor="var(--mori, #efe9dc)" stopOpacity="0.55" />
           <stop offset="1" stopColor="var(--mori, #efe9dc)" stopOpacity="0" />
         </linearGradient>
+        <linearGradient id={`${uid}-smoke2`} gradientUnits="userSpaceOnUse" x1="604" y1="300" x2="950" y2="230">
+          <stop offset="0" stopColor="var(--mori, #efe9dc)" stopOpacity="0.03" />
+          <stop offset="0.12" stopColor="var(--mori, #efe9dc)" stopOpacity="0.12" />
+          <stop offset="0.3" stopColor="var(--mori, #efe9dc)" stopOpacity="0.3" />
+          <stop offset="0.6" stopColor="var(--mori, #efe9dc)" stopOpacity="0.3" />
+          <stop offset="0.85" stopColor="var(--mori, #efe9dc)" stopOpacity="0.06" />
+          <stop offset="1" stopColor="var(--mori, #efe9dc)" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id={`${uid}-wisp`} gradientUnits="userSpaceOnUse" x1="930" y1="0" x2="1075" y2="0">
+          <stop offset="0" stopColor="var(--mori, #efe9dc)" stopOpacity="0" />
+          <stop offset="0.35" stopColor="var(--mori, #efe9dc)" stopOpacity="0.7" />
+          <stop offset="1" stopColor="var(--mori, #efe9dc)" stopOpacity="0" />
+        </linearGradient>
         <radialGradient id={`${uid}-glow`}>
           <stop offset="0.3" stopColor={sunColor} stopOpacity="0.4" />
           <stop offset="1" stopColor={sunColor} stopOpacity="0" />
@@ -454,6 +619,24 @@ export function Landscape({
             <Shape shapes={shapes} name="sparkle" strokeWidth="1.2" opacity="0.8" />
           </g>
         ) : null}
+        {truntum ? (
+          <g fill="var(--mori, #efe9dc)" className="art-stars">
+            {TRUNTUM_STARS.map(([x, y, k, rot, v], i) => (
+              <g key={i} transform={`translate(${x} ${y}) rotate(${rot}) scale(${k})`}>
+                <Shape shapes={shapes} name={`truntum${v}` as "truntum0"} className="art-star" style={{ "--i": i } as CSSProperties} />
+              </g>
+            ))}
+            <Shape
+              shapes={shapes}
+              name="truntumDots"
+              fill="none"
+              stroke="var(--mori, #efe9dc)"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              opacity="0.45"
+            />
+          </g>
+        ) : null}
       </g>
 
       <g data-depth="0.05" data-layer="sun">
@@ -461,13 +644,33 @@ export function Landscape({
           <g className="art-sun">
             <circle cx={sun.x * W} cy={sun.y * H} r={sunR * 3.2} fill={`url(#${uid}-glow)`} />
             <circle cx={sun.x * W} cy={sun.y * H} r={sunR} fill={sunColor} />
+            {kawungSun ? (
+              <g transform={`translate(${sun.x * W} ${sun.y * H}) scale(${sunR / 50})`}>
+                <Shape
+                  shapes={shapes}
+                  name="kawungSun"
+                  fill="var(--soga, #9c6633)"
+                  opacity="0.17"
+                />
+              </g>
+            ) : null}
           </g>
         ) : null}
         {sunSlot}
       </g>
 
       <g data-depth="0.15" data-layer="merapi">
-        {plume ? <Shape shapes={shapes} name="plume" fill={`url(#${uid}-smoke)`} opacity="0.7" /> : null}
+        {plume && windblown ? (
+          <>
+            <g className="art-plume">
+              <Shape shapes={shapes} name="plumeBlown" fill={`url(#${uid}-smoke2)`} opacity="0.7" />
+            </g>
+            <Shape shapes={shapes} name="wisp0" className="art-wisp" fill={`url(#${uid}-wisp)`} style={{ "--i": 0 } as CSSProperties} />
+            <Shape shapes={shapes} name="wisp1" className="art-wisp" fill={`url(#${uid}-wisp)`} style={{ "--i": 1 } as CSSProperties} />
+          </>
+        ) : plume ? (
+          <Shape shapes={shapes} name="plume" fill={`url(#${uid}-smoke)`} opacity="0.7" />
+        ) : null}
         <Shape shapes={shapes} name="merapi" fill={mix(ink, fade, 38)} stroke={wax} strokeWidth="1.5" strokeOpacity="0.55" />
         <Shape
           shapes={shapes}

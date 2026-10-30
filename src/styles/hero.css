@@ -1,0 +1,137 @@
+@layer components {
+  /* ---------- the hero's sky, alive: truntum stars, Merapi's smoke, the sun's kawung ---------- */
+
+  /* Truntum means "blooming". Each star is a flower, drawn once in the landscape; here it only
+     gets its resting look. Without motion (reduced, or no scripts) they just sit there lit. */
+  .qs-land .art-star {
+    opacity: 0.72;
+  }
+
+  /* A wisp grows from its own left end (where it tore off the smoke), not from the drawing's corner. */
+  .qs-land .art-wisp {
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: 0% 50%;
+  }
+
+  .qs-land .art-plume {
+    transform-origin: 606px 300px;
+  }
+
+  /* The kawung on the pinned scene's sun, the same drawing the landscape's own sun carries
+     (kawungDisc in landscape.tsx; keep the two paths the same), filled and faint. It rides
+     the sun's scale, so as the sun shrinks into the query dot the pattern closes up inside. */
+  .scrolly .qs-sun::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    opacity: 0.17;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-50 -50 100 100'%3E%3Cpath fill='%239c6633' d='M30.41 30.41A20 12.5 45 1 0 2.12 2.12A20 12.5 45 1 0 30.41 30.41ZM-30.41 30.41A20 12.5 135 1 0 -2.12 2.12A20 12.5 135 1 0 -30.41 30.41ZM-30.41 -30.41A20 12.5 225 1 0 -2.12 -2.12A20 12.5 225 1 0 -30.41 -30.41ZM30.41 -30.41A20 12.5 315 1 0 2.12 -2.12A20 12.5 315 1 0 30.41 -30.41ZM-1.9 33a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0M-1.9 -33a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0M31.1 0a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0M-34.9 0a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0'/%3E%3C/svg%3E")
+      center / 100% 100% no-repeat;
+  }
+
+  @media (prefers-reduced-motion: no-preference) and (min-height: 520px) {
+    /* Each star blooms (no spin, no overshoot) once the question has typed in, one after
+       another, then breathes slowly on its own clock so no two are in step. The breathing
+       settles after three rounds, and the smoke after two long ones: then only the sun's glow moves. */
+    .scrolly .qs-land .art-star {
+      --open: calc(1.9s + var(--i) * 0.55s);
+      animation:
+        star-open 1.6s cubic-bezier(0.22, 0.7, 0.3, 1) var(--open) backwards,
+        star-breathe calc(7s + var(--i) * 0.45s) ease-in-out calc(var(--open) + 1.6s) 3;
+    }
+
+    /* Smoke sways from the crater like a flag in slow wind. */
+    .scrolly .qs-land .art-plume {
+      animation: plume-sway 22s ease-in-out 2;
+    }
+
+    /* Two wisps tear off the end, drift east and thin out, over and over, out of step. */
+    .scrolly .qs-land .art-wisp {
+      animation: wisp-drift 15s linear calc(var(--i) * 7.5s + 2.5s) 2 backwards;
+    }
+
+    /* The sun's glow breathes, slowly, so the morning isn't a still picture. */
+    .scrolly .qs-sun::before {
+      animation: sun-breathe 7s ease-in-out 1.8s infinite;
+    }
+
+    /* Nothing loops while the scene is off screen or the land has dropped away. land-rig.ts
+       sets is-sunk (scrolled off the top) and is-off (not in view, e.g. a deep link far down);
+       the pin sets is-idle. */
+    .is-idle :is(.art-star, .art-plume, .art-wisp),
+    .qs-land:is(.is-sunk, .is-off) :is(.art-star, .art-plume, .art-wisp) {
+      animation-play-state: paused;
+    }
+
+    .is-idle .qs-sun::before {
+      animation-play-state: paused;
+    }
+
+    .qs-stage:has(.qs-land:is(.is-sunk, .is-off)) .qs-sun::before {
+      animation-play-state: paused;
+    }
+  }
+}
+
+@keyframes star-open {
+  from {
+    opacity: 0;
+    transform: scale(0.35);
+  }
+  to {
+    opacity: 0.72;
+    transform: scale(1);
+  }
+}
+
+@keyframes star-breathe {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(0.95);
+  }
+}
+
+/* Starts and ends at rest, so after two rounds the smoke settles and the main thread goes quiet. */
+@keyframes plume-sway {
+  0%,
+  100% {
+    transform: none;
+  }
+  30% {
+    transform: rotate(-1.6deg) translateX(-6px);
+  }
+  70% {
+    transform: rotate(1.4deg) translateX(12px);
+  }
+}
+
+@keyframes wisp-drift {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.9, 0.8);
+  }
+  25% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(110px, -14px) scale(1.2, 0.7);
+  }
+}
+
+@keyframes sun-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
