@@ -64,6 +64,16 @@ def main() -> None:
     mean = docs.mean(axis=0)
     _, _, vt = np.linalg.svd(docs - mean, full_matrices=False)
     axes = vt[:2].T
+    # SVD signs are arbitrary. If a map already exists, flip each axis to match it so a re-run
+    # (after editing a note) doesn't mirror the whole map.
+    prev = ROOT / "src/content/retrieval.json"
+    if prev.exists():
+        old = json.loads(prev.read_text(encoding="utf-8"))["points"]
+        if len(old) == len(docs):
+            old_xy = np.array([[p["x"], p["y"]] for p in old])
+            for k in range(2):
+                if np.dot((docs - mean) @ axes[:, k], old_xy[:, k]) < 0:
+                    axes[:, k] *= -1
     flat = (docs - mean) @ axes
     q2 = (query - mean) @ axes
     scale = np.abs(flat).max()
