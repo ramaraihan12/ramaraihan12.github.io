@@ -86,6 +86,25 @@ const DWELL = 400;
 /** Breathing room between two toasts. */
 const GAP = 350;
 
+/*
+  The answer's sun blooms over the whole screen, the best moment on the page, and a card in the
+  corner would sit right on it. While the answer is on its way in, in view or just leaving, the
+  toasts wait in the queue and show once it has gone by. Measured from the section's box, so this
+  needs nothing from the scene: it's only held while the pinned layout is on (html.scrolly). The
+  lead is a little over a screen, since the toast that "whole pipeline" earns arrives just before
+  the pin starts and lives five seconds.
+*/
+const BLOOM_LEAD = 1.2;
+const BLOOM_TAIL = 0.6;
+
+function bloomOnScreen() {
+  if (!document.documentElement.classList.contains("scrolly")) return false;
+  const box = document.getElementById("answer")?.getBoundingClientRect();
+  if (!box) return false;
+  const h = window.innerHeight;
+  return box.top < h * BLOOM_LEAD && box.bottom > h * BLOOM_TAIL;
+}
+
 const typing = (t: EventTarget | null) =>
   t instanceof HTMLElement && (t.isContentEditable || t.matches("input, textarea, select"));
 
@@ -127,6 +146,7 @@ export function Extras() {
   const [Toast, setToast] = useState<ComponentType<ToastProps> | null>(null);
   const [Dip, setDip] = useState<ComponentType<DipProps> | null>(null);
   const [live, setLive] = useState("");
+  const [held, setHeld] = useState(false);
   const liveTimer = useRef(0);
   const dippingNow = useRef(false);
 
@@ -217,6 +237,21 @@ export function Extras() {
     };
     document.addEventListener("click", onClick);
 
+    // A hidden tab says where the visitor left off, and goes back when they return.
+    let resting = "";
+    const onVisibility = () => {
+      if (document.hidden) {
+        resting = document.title;
+        // Only the home page has stages. Anywhere else (the 404) there's nothing to point at.
+        const here = document.getElementById("tokens") ? stages.find((s) => s.id === getStage())?.label : undefined;
+        document.title = X.pausedTitle(here, site.name);
+      } else if (resting) {
+        document.title = resting;
+        resting = "";
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
     if (!greeted) {
       greeted = true;
       greet();
@@ -236,14 +271,38 @@ export function Extras() {
       window.clearTimeout(dwell);
       window.removeEventListener("keydown", onKey);
       document.removeEventListener("click", onClick);
+      document.removeEventListener("visibilitychange", onVisibility);
+      if (resting) document.title = resting;
       if (window.rama === rama) delete window.rama;
     };
   }, [startDip]);
 
-  // One toast at a time, and none while the page is dyed.
+  // While toasts are waiting, watch for the answer to go by. Nothing listens otherwise.
+  const waiting = queue.length > 0;
+  useEffect(() => {
+    if (!waiting) return;
+    let frame = 0;
+    const check = () => {
+      frame = 0;
+      setHeld(bloomOnScreen());
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(check);
+    };
+    check();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [waiting]);
+
+  // One toast at a time, none while the page is dyed, none over the answer's bloom.
   const next = queue[0];
   useEffect(() => {
-    if (!next || showing || dipping) return;
+    if (!next || showing || dipping || held) return;
     let current = true;
     const { title, body } = achievements[IDS[next.id]];
     const timer = window.setTimeout(() => {
@@ -266,7 +325,7 @@ export function Extras() {
       current = false;
       window.clearTimeout(timer);
     };
-  }, [next, showing, dipping, say]);
+  }, [next, showing, dipping, held, say]);
 
   useEffect(() => () => window.clearTimeout(liveTimer.current), []);
 
