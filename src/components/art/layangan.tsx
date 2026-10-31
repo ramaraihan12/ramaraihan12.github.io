@@ -39,17 +39,20 @@ const TAIL_SPINE = wavy([0, 9], [3, 31], r, 1.1, 6);
 const TAIL = smooth(TAIL_SPINE, false);
 const KNOTS = TAIL_SPINE.slice(1, -1);
 
-// The parang tile at about an eighth of its size, so a few blades fit in a thirteen-wide kite.
-const PARANG_DAY = batikPatternMarkup("parang", "lg-parang", { scale: 0.14, ink: "var(--soga)", ground: "var(--mori)" });
-const PARANG_NIGHT = batikPatternMarkup("parang", "lg-parang-night", { scale: 0.14, ink: "var(--soga-2)", ground: "var(--nila-2)" });
+// The parang tile at under a third of its size: two or three bold blades across a thirteen-wide kite, not a fine weave.
+const PARANG_DAY = batikPatternMarkup("parang", "lg-parang", { scale: 0.2, ink: "var(--soga)", ground: "var(--mori)" });
+const PARANG_NIGHT = batikPatternMarkup("parang", "lg-parang-night", { scale: 0.2, ink: "var(--soga-2)", ground: "var(--nila-2)" });
 
 function Kite() {
   return (
     <>
-      <path d={TAIL} className="lg-tail" />
-      {KNOTS.map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r="0.6" className="lg-knot" />
-      ))}
+      {/* The tail swings a little on its own clock, hanging from the bottom tip. */}
+      <g className="lg-trail">
+        <path d={TAIL} className="lg-tail" />
+        {KNOTS.map(([x, y], i) => (
+          <circle key={i} cx={x} cy={y} r="0.6" className="lg-knot" />
+        ))}
+      </g>
       <path d={OUTLINE} className="lg-skin" />
       {/* the two sticks, then the outline over the edge of the skin */}
       <path d={`M${TOP}L${BOTTOM}M${LEFT}L${RIGHT}`} className="lg-spar" />
