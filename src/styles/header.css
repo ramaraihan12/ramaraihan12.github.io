@@ -95,7 +95,7 @@
 
     & .wire-bare {
       stroke: var(--hdr-muted);
-      opacity: 0.4;
+      opacity: 0.55;
     }
 
     & .wire-ink {
