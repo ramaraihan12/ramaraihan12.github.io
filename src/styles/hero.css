@@ -7,6 +7,14 @@
     opacity: 0.72;
   }
 
+  /* A short phone: the sky east of the words is only a few stars wide, and the second and
+     fourth land on the end of the intro. They stay out; the rest are clear of the text. */
+  @media (width < 30rem) and (height < 46rem) {
+    .qs-land .art-star:is([data-i="1"], [data-i="3"]) {
+      display: none;
+    }
+  }
+
   /* A wisp grows from its own left end (where it tore off the smoke), not from the drawing's corner. */
   .qs-land .art-wisp {
     opacity: 0;

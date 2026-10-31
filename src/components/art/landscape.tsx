@@ -589,10 +589,11 @@ export function Landscape({
           <stop offset="1" stopColor="var(--mori, #efe9dc)" stopOpacity="0" />
         </linearGradient>
         <linearGradient id={`${uid}-smoke2`} gradientUnits="userSpaceOnUse" x1="604" y1="300" x2="950" y2="230">
-          <stop offset="0" stopColor="var(--mori, #efe9dc)" stopOpacity="0.03" />
-          <stop offset="0.12" stopColor="var(--mori, #efe9dc)" stopOpacity="0.12" />
-          <stop offset="0.3" stopColor="var(--mori, #efe9dc)" stopOpacity="0.3" />
-          <stop offset="0.6" stopColor="var(--mori, #efe9dc)" stopOpacity="0.3" />
+          {/* Thin at the crater and fuller further east: on a laptop the first stretch passes under the end of the intro paragraph. */}
+          <stop offset="0" stopColor="var(--mori, #efe9dc)" stopOpacity="0.02" />
+          <stop offset="0.2" stopColor="var(--mori, #efe9dc)" stopOpacity="0.04" />
+          <stop offset="0.42" stopColor="var(--mori, #efe9dc)" stopOpacity="0.1" />
+          <stop offset="0.62" stopColor="var(--mori, #efe9dc)" stopOpacity="0.3" />
           <stop offset="0.85" stopColor="var(--mori, #efe9dc)" stopOpacity="0.06" />
           <stop offset="1" stopColor="var(--mori, #efe9dc)" stopOpacity="0" />
         </linearGradient>
@@ -623,7 +624,7 @@ export function Landscape({
           <g fill="var(--mori, #efe9dc)" className="art-stars">
             {TRUNTUM_STARS.map(([x, y, k, rot, v], i) => (
               <g key={i} transform={`translate(${x} ${y}) rotate(${rot}) scale(${k})`}>
-                <Shape shapes={shapes} name={`truntum${v}` as "truntum0"} className="art-star" style={{ "--i": i } as CSSProperties} />
+                <Shape shapes={shapes} name={`truntum${v}` as "truntum0"} className="art-star" data-i={i} style={{ "--i": i } as CSSProperties} />
               </g>
             ))}
             <Shape
