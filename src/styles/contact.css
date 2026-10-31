@@ -406,6 +406,11 @@
       animation-play-state: paused;
     }
 
+    /* The kite lying down has no wind to catch. */
+    & .layangan-down .lg-trail {
+      animation: none;
+    }
+
     & .layangan-up,
     & .layangan-down {
       transition: opacity 1.2s ease;

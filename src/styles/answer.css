@@ -507,5 +507,20 @@
       font-size: clamp(0.9rem, 4.4vw, 1rem);
       line-height: 1.26;
     }
+
+    .scrolly .answer-photo {
+      width: 4rem;
+    }
+
+    .scrolly .answer-sources {
+      margin-top: 0.6rem;
+      padding-top: 0.5rem;
+      row-gap: 0.25rem;
+    }
+
+    .scrolly .answer-note {
+      margin-top: 0.3rem;
+      font-size: 0.74rem;
+    }
   }
 }

@@ -638,20 +638,23 @@ export class EmbeddingMap {
     });
 
     const placed: { x: number; y: number; w: number }[] = [];
-    const room = (x: number, y: number, bw: number) => {
+    type Gap = { x: number; y: number };
+    const phone = w < 500;
+    const baseGap: Gap = { x: 4, y: 34 };
+    // On a phone the names are packed into a narrow map, so they would like more air between them,
+    // but a name is only dropped when even the ordinary gap cannot place it.
+    const phoneGap: Gap = phone ? { x: 16, y: 46 } : baseGap;
+    const room = (x: number, y: number, bw: number, gap: Gap) => {
       const hw = bw / 2;
       if (x - hw < Math.max(8, region.x - 16) || x + hw > Math.min(w - 8, region.x + region.w + 16)) return false;
-      if (y < Math.max(top, region.y - 16) || y > Math.min(h - 10, region.y + region.h + 16)) return false;
+      if (y < Math.max(top, region.y - 16) || y > Math.min(h - 10, region.y + region.h + (phone ? -8 : 16))) return false;
       for (const d of discs) {
         const ex = Math.max(Math.abs(d.x - x) - hw, 0);
         const ey = Math.max(Math.abs(d.y - y) - 7, 0);
         if (ex * ex + ey * ey < d.r * d.r) return false;
       }
       // Labels that share a column need a clear gap, or two read as one two-line name.
-      // On a phone the names are packed into a narrow map, so they want more air between them.
-      const gapX = w < 500 ? 16 : 4;
-      const gapY = w < 500 ? 46 : 34;
-      return !placed.some((p) => Math.abs(p.x - x) < (p.w + bw) / 2 + gapX && Math.abs(p.y - y) < gapY);
+      return !placed.some((p) => Math.abs(p.x - x) < (p.w + bw) / 2 + gap.x && Math.abs(p.y - y) < gap.y);
     };
     // The note nearest a spot should be one of the group's own, so the name stays by its cluster.
     const own = (name: string, x: number, y: number) => {
@@ -670,10 +673,14 @@ export class EmbeddingMap {
     for (const g of [...this.groups].sort((a, b) => b.y - a.y)) {
       const bw = ctx.measureText(g.name).width + 10;
       const s = this.toScreen(g, cam);
-      const fits = (strict: boolean) => (o: Point) =>
-        room(s.x + o.x, s.y + o.y, bw) && (!strict || own(g.name, s.x + o.x, s.y + o.y));
+      const fits = (strict: boolean, gap: Gap) => (o: Point) =>
+        room(s.x + o.x, s.y + o.y, bw, gap) && (!strict || own(g.name, s.x + o.x, s.y + o.y));
       // Failing a spot by its own cluster, a label may sit a little way off, never far enough to read as another group's.
-      const at = SPOTS.find(fits(true)) ?? SPOTS.find((o) => o.r <= 50 && fits(false)(o));
+      const at =
+        SPOTS.find(fits(true, phoneGap)) ??
+        SPOTS.find((o) => o.r <= 50 && fits(false, phoneGap)(o)) ??
+        SPOTS.find(fits(true, baseGap)) ??
+        SPOTS.find((o) => o.r <= 50 && fits(false, baseGap)(o));
       if (!at) continue;
       placed.push({ x: s.x + at.x, y: s.y + at.y, w: bw });
       this.labels.push({ name: g.name, at: g, off: { x: at.x / cam.s, y: at.y / cam.s }, w: bw });
@@ -695,7 +702,7 @@ export class EmbeddingMap {
       // Mid pull-back a name can reach past the canvas: it fades out over the last few pixels
       // before the edge instead of popping, and is gone before it would be cut.
       const inset = Math.min(x - l.w / 2, this.w - (x + l.w / 2));
-      const edge = clamp01((inset + 12) / 22);
+      const edge = clamp01((inset + 5) / 20);
       if (edge <= 0) continue;
       ctx.fillStyle = rgba(colors.pudar, 0.85 * a * edge);
       ctx.fillText(l.name, x, s.y + l.off.y * cam.s);
