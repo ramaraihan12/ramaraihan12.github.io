@@ -110,12 +110,31 @@ export function stageFractions() {
   });
 }
 
+/*
+  Some stages start at the same scroll position (tokens and embed), and a few start earlier than
+  where the nav lands (play begins before retrieve's landing spot), so by `at` alone a jump can
+  light up its neighbour. The stage a jump was aimed at is remembered: while the page sits where
+  that jump put it, that stage is the current one. It lets go on the first scroll away from there,
+  or on any input of the reader's own while the page is still travelling. Normal scrolling never
+  has an aim, so it goes by `at` as before.
+*/
+let aim: { id: StageId; y: number; arrived: boolean } | null = null;
+
 function update() {
   const y = window.scrollY;
   let current: StageId = "query";
   for (const { id } of stages) {
     const m = cache.get(id);
     if (m && y >= m.at) current = id;
+  }
+  if (aim) {
+    const off = Math.abs(y - aim.y);
+    if (off < 2) {
+      aim.arrived = true;
+      current = aim.id;
+    } else if (aim.arrived && off > 4) {
+      aim = null;
+    }
   }
   publishProgress(y, current);
   if (current !== active) {
@@ -171,29 +190,35 @@ function savedPlace(): { i: number; dy: number } | null {
 }
 
 /** A function, since the answer changes every time the scenes measure the page again. */
-function landing(): (() => number) | undefined {
+function landing(): { y: () => number; stage?: StageId } | undefined {
   const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
   const place = nav?.type === "reload" || nav?.type === "back_forward" ? savedPlace() : null;
   if (place) {
-    return () => {
-      const block = blocks()[place.i];
-      return block ? pageTop(block) + place.dy : window.scrollY;
+    return {
+      y: () => {
+        const block = blocks()[place.i];
+        return block ? pageTop(block) + place.dy : window.scrollY;
+      },
     };
   }
   const el = location.hash && document.getElementById(location.hash.slice(1));
   if (!el) return;
-  return () => {
-    // In a pinned scene, where something is depends on the scroll, so a link into one lands where
-    // its stage does: a source in the answer, with the answer written out.
-    const host = el.closest(".pin-spacer") ? el.closest(stages.map((s) => s.href).join()) : el;
-    const stage = stages.find((s) => s.href === `#${host?.id}`);
-    const m = stage && markers.get(stage.id);
-    return m ? m.to() : pageTop(el) - headerOffset();
+  // In a pinned scene, where something is depends on the scroll, so a link into one lands where
+  // its stage does: a source in the answer, with the answer written out.
+  const host = el.closest(".pin-spacer") ? el.closest(stages.map((s) => s.href).join()) : el;
+  const stage = stages.find((s) => s.href === `#${host?.id}`);
+  return {
+    y: () => {
+      const m = stage && markers.get(stage.id);
+      return m ? m.to() : pageTop(el) - headerOffset();
+    },
+    stage: stage?.id,
   };
 }
 
 function placeOnLoad() {
-  let target = landing();
+  const where = landing();
+  let target = where?.y;
   let landed = false;
   const land = () => {
     if (!target) return;
@@ -204,6 +229,10 @@ function placeOnLoad() {
     const y = target();
     if (Math.abs(y - window.scrollY) >= 1) jumpToY(y);
     landed = true;
+    if (where?.stage) {
+      aim = { id: where.stage, y: Math.round(y), arrived: false };
+      update();
+    }
   };
   // Before the page was placed, this would save where it was waiting rather than where it was
   // going, so it doesn't. It saves whenever the page goes out of sight too, since a phone can
@@ -224,13 +253,19 @@ function placeOnLoad() {
   };
 }
 
+const dropAim = () => {
+  aim = null;
+};
+
 export function watchStages() {
   window.addEventListener("scroll", onScroll, { passive: true });
+  for (const type of ["wheel", "touchstart", "keydown"]) window.addEventListener(type, dropAim, { passive: true });
   ScrollTrigger.addEventListener("refresh", measure);
   measure();
   const stopPlacing = placeOnLoad();
   return () => {
     window.removeEventListener("scroll", onScroll);
+    for (const type of ["wheel", "touchstart", "keydown"]) window.removeEventListener(type, dropAim);
     ScrollTrigger.removeEventListener("refresh", measure);
     stopPlacing();
   };
@@ -247,6 +282,9 @@ export const getStage = () => active;
 export function goToStage(id: StageId) {
   const m = markers.get(id);
   if (!m) return false;
-  scrollToY(m.to());
+  const y = m.to();
+  aim = { id, y: Math.round(y), arrived: false };
+  scrollToY(y);
+  update();
   return true;
 }
