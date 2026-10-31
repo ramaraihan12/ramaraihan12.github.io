@@ -95,11 +95,13 @@ export function AnswerStage({ children }: { children: ReactNode }) {
 
         // The query dot arrives and floods the screen, then the answer writes itself in.
         // Only clip-path, opacity and transforms move, so nothing here lays the page out again.
+        let timeDyes = () => {};
         const tl = gsap.timeline({
           defaults: { ease: "none" },
           scrollTrigger: {
             trigger: section,
             refreshPriority: PRIORITY.answer,
+            onRefresh: () => timeDyes(),
             pin: true,
             start: "top top",
             end: () => `+=${window.innerHeight * 2.6}`,
@@ -158,15 +160,24 @@ export function AnswerStage({ children }: { children: ReactNode }) {
         });
         // Each note is dyed as the flood's edge reaches it: the circle grows from 7px to the
         // corners on power1.inOut over the first unit, so invert that for the note's distance.
-        const sb = rect(section);
-        const reach = Math.hypot(window.innerWidth, window.innerHeight) / 2 + 20;
-        notes.forEach((note) => {
-          const b = rect(note);
-          const d = Math.hypot(b.left + b.width / 2 - (sb.left + sb.width / 2), b.top + b.height / 2 - (sb.top + sb.height / 2));
-          const p = Math.min(1, Math.max(0, (d - 7) / (reach - 7)));
-          const when = p < 0.5 ? Math.sqrt(p / 2) : 1 - Math.sqrt((1 - p) / 2);
-          tl.fromTo(note, { "--dye": 0 }, { "--dye": 1, duration: 0.08 }, Math.min(when, 0.85));
+        // Where the edge is when it reaches a note depends on the screen, so the moments are
+        // read again whenever ScrollTrigger refreshes (a resize, a turned phone), not once.
+        const dyes = notes.map((note) => {
+          tl.fromTo(note, { "--dye": 0 }, { "--dye": 1, duration: 0.08 }, 0.85);
+          return tl.recent() as gsap.core.Animation;
         });
+        timeDyes = () => {
+          const sb = rect(section);
+          const reach = Math.hypot(window.innerWidth, window.innerHeight) / 2 + 20;
+          notes.forEach((note, i) => {
+            const b = rect(note);
+            const d = Math.hypot(b.left + b.width / 2 - (sb.left + sb.width / 2), b.top + b.height / 2 - (sb.top + sb.height / 2));
+            const p = Math.min(1, Math.max(0, (d - 7) / (reach - 7)));
+            const when = p < 0.5 ? Math.sqrt(p / 2) : 1 - Math.sqrt((1 - p) / 2);
+            dyes[i].startTime(Math.min(when, 0.85));
+          });
+        };
+        timeDyes();
         tl.to(".an-label", { opacity: 0, duration: 0.25 }, 0.55);
 
         // Before the pin: the notes arrive from the edges. This scrubs on its own trigger, the
