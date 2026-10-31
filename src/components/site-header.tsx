@@ -19,24 +19,35 @@ export function SiteHeader() {
   const headerRef = useRef<HTMLElement>(null);
   const ticksRef = useRef<HTMLSpanElement>(null);
 
-  // The wire: the header carries the stage and how far toward the next one, as plain numbers,
-  // and the CSS works out which arrows are inked. Written here, not through React.
-  // Phones hide the wire, so --stage-p is only written while the wide nav shows.
+  // The wire: --stage-i on the header says which stage it is (it changes once per stage), and each
+  // arrow's own --fill (0..1) is written inline: the stages behind you full, the ones ahead empty,
+  // and only the one you're on follows the scroll. So a scroll frame restyles one arrow, not the
+  // whole header. Written here, not through React. Phones hide the wire, so it's skipped there.
   useEffect(() => {
     const el = headerRef.current;
     const wide = window.matchMedia("(width >= 64rem)");
+    const inks = Array.from(el?.querySelectorAll<SVGPathElement>(".wire-ink") ?? []);
     let last = { i: -1, p: 0 };
-    const writeP = () => {
-      if (wide.matches) el?.style.setProperty("--stage-p", String(last.p));
+    let filledFor = -1;
+    const write = () => {
+      if (!wide.matches) {
+        filledFor = -1;
+        return;
+      }
+      if (filledFor !== last.i) {
+        filledFor = last.i;
+        inks.forEach((ink, k) => ink.style.setProperty("--fill", k < last.i ? "1" : "0"));
+      }
+      inks[last.i]?.style.setProperty("--fill", String(last.p));
     };
-    wide.addEventListener("change", writeP);
+    wide.addEventListener("change", write);
     const stop = subscribeProgress((i, p) => {
       if (i !== last.i) el?.style.setProperty("--stage-i", String(i));
       last = { i, p };
-      writeP();
+      write();
     });
     return () => {
-      wide.removeEventListener("change", writeP);
+      wide.removeEventListener("change", write);
       stop();
     };
   }, []);
@@ -80,22 +91,31 @@ export function SiteHeader() {
     return () => window.removeEventListener("resize", place);
   }, [active]);
 
+  // The scroll bar. The page's length is read when the scenes measure it or the window resizes,
+  // not on every scroll frame.
   useEffect(() => {
     let frame = 0;
+    let max = 0;
     const update = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      barRef.current?.style.setProperty("scale", `${max > 0 ? window.scrollY / max : 0} 1`);
+      barRef.current?.style.setProperty("scale", `${max > 0 ? Math.min(1, window.scrollY / max) : 0} 1`);
+    };
+    const measure = () => {
+      max = document.documentElement.scrollHeight - window.innerHeight;
+      update();
     };
     const onScroll = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(update);
     };
-    update();
+    measure();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    window.addEventListener("resize", measure);
+    const stop = subscribeMeasure(measure);
     return () => {
+      cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("resize", measure);
+      stop();
     };
   }, []);
 

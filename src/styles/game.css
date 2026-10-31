@@ -148,6 +148,11 @@
     transform-box: fill-box;
     transform-origin: center;
     animation: nn-ping 2.4s ease-out infinite;
+    animation-play-state: paused;
+  }
+
+  .nn-poster[data-seen] .nn-poster-ping {
+    animation-play-state: running;
   }
 
   /* The two threads: the closer note's pulled taut in kunyit, the other hanging loose in mori. */

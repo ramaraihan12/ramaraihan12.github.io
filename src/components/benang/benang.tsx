@@ -327,15 +327,25 @@ export function Benang() {
           }
         };
         // The track eases after the scroll has stopped, and the thread's end has to stay in the arrow with it.
+        // It runs only while the scroll is in the rail's stretch, and uses the scroll render() was
+        // last given, so it never reads the layout.
+        let lastS = 0;
+        let ticking = false;
         const follow = () => {
           const rail = plan?.geo.rail;
-          if (!rail) return;
-          const s = window.scrollY;
-          if (s >= rail.start && s <= rail.end + 2 * plan!.geo.vh) placeA(s);
+          if (rail && lastS >= rail.start && lastS <= rail.end + 2 * plan!.geo.vh) placeA(lastS);
         };
-        gsap.ticker.add(follow);
+        const tick = (on: boolean) => {
+          if (on === ticking) return;
+          ticking = on;
+          if (on) gsap.ticker.add(follow);
+          else gsap.ticker.remove(follow);
+        };
 
         const render = (s: number) => {
+          lastS = s;
+          const rl = plan?.geo.rail;
+          tick(!!rl && s >= rl.start && s <= rl.end + 2 * plan!.geo.vh);
           if (!plan?.animated || !plan.a) return;
           const { geo, landS } = plan;
           const a = plan.a;
@@ -441,7 +451,7 @@ export function Benang() {
         render(window.scrollY);
 
         return () => {
-          gsap.ticker.remove(follow);
+          tick(false);
           ScrollTrigger.removeEventListener("refresh", onRefresh);
           watch.disconnect();
           trigger.kill();

@@ -54,17 +54,17 @@
       --open: calc(1.9s + var(--i) * 0.55s);
       animation:
         star-open 1.6s cubic-bezier(0.22, 0.7, 0.3, 1) var(--open) backwards,
-        star-breathe calc(7s + var(--i) * 0.45s) ease-in-out calc(var(--open) + 1.6s) 3;
+        star-breathe calc(7s + var(--i) * 0.45s) ease-in-out calc(var(--open) + 1.6s) 1;
     }
 
     /* Smoke sways from the crater like a flag in slow wind. */
     .scrolly .qs-land .art-plume {
-      animation: plume-sway 22s ease-in-out 2;
+      animation: plume-sway 22s ease-in-out 1;
     }
 
     /* Two wisps tear off the end, drift east and thin out, over and over, out of step. */
     .scrolly .qs-land .art-wisp {
-      animation: wisp-drift 15s linear calc(var(--i) * 7.5s + 2.5s) 2 backwards;
+      animation: wisp-drift 15s linear calc(var(--i) * 7.5s + 2.5s) 1 backwards;
     }
 
     /* The sun's glow breathes, slowly, so the morning isn't a still picture. */
