@@ -140,6 +140,7 @@ export function Extras() {
   const [Dip, setDip] = useState<ComponentType<DipProps> | null>(null);
   const [live, setLive] = useState("");
   const [held, setHeld] = useState(false);
+  const [heldEnd, setHeldEnd] = useState(false);
   const liveTimer = useRef(0);
   const dippingNow = useRef(false);
 
@@ -286,10 +287,35 @@ export function Extras() {
     return () => watch.disconnect();
   }, [waiting]);
 
+  // The end of the page is the contact block. A card there would sit on its heading or its question
+  // picker, so while the contact is on screen and the footer isn't yet, it waits. Once the footer
+  // is in view the card comes up above it, over the sky, where there is nothing to read.
+  useEffect(() => {
+    if (!waiting) return;
+    const contact = document.getElementById("contact");
+    const foot = document.querySelector(".site-footer");
+    if (!contact || !foot) return;
+    let inContact = false;
+    let inFoot = false;
+    const watch = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.target === contact) inContact = e.isIntersecting;
+        else inFoot = e.isIntersecting;
+      }
+      setHeldEnd(inContact && !inFoot);
+    });
+    watch.observe(contact);
+    watch.observe(foot);
+    return () => {
+      watch.disconnect();
+      setHeldEnd(false);
+    };
+  }, [waiting]);
+
   // One toast at a time, none while the page is dyed, none over the answer's bloom.
   const next = queue[0];
   useEffect(() => {
-    if (!next || showing || dipping || held) return;
+    if (!next || showing || dipping || held || heldEnd) return;
     let current = true;
     const { title, body } = achievements[IDS[next.id]];
     const timer = window.setTimeout(() => {
@@ -312,7 +338,7 @@ export function Extras() {
       current = false;
       window.clearTimeout(timer);
     };
-  }, [next, showing, dipping, held, say]);
+  }, [next, showing, dipping, held, heldEnd, say]);
 
   useEffect(() => () => window.clearTimeout(liveTimer.current), []);
 

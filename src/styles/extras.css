@@ -74,6 +74,13 @@
     }
   }
 
+  /* Near the end of the page: above the footer, over the sky band, on phones too. */
+  .rr-toast[data-lifted] {
+    --rr-toast-from: 1rem;
+    top: auto;
+    bottom: calc(var(--rr-toast-lift) + 0.75rem);
+  }
+
   /* A kawung flower in a ring, pressed on like a cap stamp. */
   .rr-toast-mark {
     display: grid;
@@ -337,7 +344,8 @@
   /* ---------- reduced motion: fades only ---------- */
 
   @media (prefers-reduced-motion: reduce) {
-    .rr-toast {
+    .rr-toast,
+    .rr-toast[data-lifted] {
       --rr-toast-from: 0px;
     }
 
