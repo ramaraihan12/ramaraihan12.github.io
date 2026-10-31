@@ -389,10 +389,115 @@
       }
     }
 
-    /* Short portrait phones: a flatter picture so the card and its count fit one screen. */
+    /*
+      Short portrait phones: a card has to fit the screen under the header, so the picture is
+      flatter, the gaps are smaller, the summary stops after five lines and the stack after two rows.
+    */
     @media (width < 34rem) and (height < 46rem) {
+      .project {
+        row-gap: 0.8rem;
+      }
+
       .project-art {
+        aspect-ratio: 2.1 / 1;
+      }
+
+      .project-name {
+        margin-top: 0.45rem;
+        font-size: 1.55rem;
+      }
+
+      .project-summary {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 5;
+        margin-top: 0.4rem;
+        overflow: hidden;
+        font-size: 0.88rem;
+        line-height: 1.42;
+      }
+
+      .project-foot {
+        gap: 0.5rem 1rem;
+        padding-top: 0;
+
+        & .chips {
+          max-height: 3.4rem;
+          overflow: hidden;
+        }
+      }
+    }
+
+    /* The very shortest (a 568px screen): a little less again. */
+    @media (width < 34rem) and (height < 38rem) {
+      .panel {
+        padding-block: 0.9rem 1rem;
+      }
+
+      .project {
+        row-gap: 0.6rem;
+      }
+
+      .project-art {
+        aspect-ratio: 2.5 / 1;
+      }
+
+      .project-summary {
+        -webkit-line-clamp: 4;
+      }
+
+      .project-foot .chips {
+        max-height: 1.6rem;
+      }
+    }
+
+    /*
+      Phone landscape: the text and the art side by side as above, and under them the stack and
+      links on the left with the pipeline on the right, so the card is two short rows.
+    */
+    @media (width >= 34rem) and (height < 30rem) {
+      .project {
+        grid-template-areas: "text art" "foot pipe";
+        grid-template-rows: auto auto;
+        align-items: start;
+        row-gap: 0.45rem;
+        column-gap: 1.25rem;
+      }
+
+      .panel {
+        padding-block: 0.7rem 0.75rem;
+      }
+
+      .project-art {
+        align-self: start;
         aspect-ratio: 16 / 9;
+      }
+
+      .project-name {
+        margin-top: 0.35rem;
+        font-size: 1.45rem;
+      }
+
+      .project-summary {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        margin-top: 0.35rem;
+        overflow: hidden;
+        font-size: 0.84rem;
+        line-height: 1.4;
+      }
+
+      .project-foot {
+        flex-direction: column;
+        align-items: flex-start;
+        align-self: end;
+        gap: 0.45rem;
+
+        & .chips {
+          max-height: 3.4rem;
+          overflow: hidden;
+        }
       }
     }
 
@@ -453,6 +558,29 @@
     .run-divider-lead {
       margin-top: 0.9rem;
       font-size: 0.98rem;
+    }
+
+    /* Phone landscape: the kepala card shrinks like the project cards, so it isn't the one
+       that sets every card's height. */
+    @media (width >= 34rem) and (height < 30rem) {
+      .run-divider {
+        grid-template-rows: minmax(3.5rem, 1fr) auto;
+        gap: 0.7rem;
+      }
+
+      .run-divider-text {
+        padding-bottom: 0.9rem;
+      }
+
+      .run-divider-title {
+        font-size: 1.5rem;
+      }
+
+      .run-divider-lead {
+        margin-top: 0.4rem;
+        font-size: 0.86rem;
+        line-height: 1.4;
+      }
     }
 
     .js .run-deck-bar {
