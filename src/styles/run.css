@@ -389,6 +389,36 @@
       }
     }
 
+    .project-kind {
+      font-size: 0.66rem;
+    }
+
+    .project-name {
+      margin-top: 0.7rem;
+      font-size: 1.7rem;
+    }
+
+    .project-summary {
+      margin-top: 0.6rem;
+      font-size: 0.94rem;
+      line-height: 1.5;
+    }
+
+    /* Cards are as tall as the longest one, and the spare height goes under the summary, so the pipeline and links line up along the bottom from card to card. */
+    .project-foot {
+      gap: 0.85rem 1rem;
+      padding-top: 0.4rem;
+
+      & .chips {
+        gap: 0.3rem;
+      }
+
+      & .chips li {
+        padding: 0.12rem 0.4rem;
+        font-size: 0.6rem;
+      }
+    }
+
     /*
       Short portrait phones: a card has to fit the screen under the header, so the picture is
       flatter, the gaps are smaller, the summary stops after five lines and the stack after two rows.
@@ -422,7 +452,7 @@
         padding-top: 0;
 
         & .chips {
-          max-height: 3.4rem;
+          max-height: 3rem;
           overflow: hidden;
         }
       }
@@ -495,39 +525,9 @@
         gap: 0.45rem;
 
         & .chips {
-          max-height: 3.4rem;
+          max-height: 3rem;
           overflow: hidden;
         }
-      }
-    }
-
-    .project-kind {
-      font-size: 0.66rem;
-    }
-
-    .project-name {
-      margin-top: 0.7rem;
-      font-size: 1.7rem;
-    }
-
-    .project-summary {
-      margin-top: 0.6rem;
-      font-size: 0.94rem;
-      line-height: 1.5;
-    }
-
-    /* Cards are as tall as the longest one, and the spare height goes under the summary, so the pipeline and links line up along the bottom from card to card. */
-    .project-foot {
-      gap: 0.85rem 1rem;
-      padding-top: 0.4rem;
-
-      & .chips {
-        gap: 0.3rem;
-      }
-
-      & .chips li {
-        padding: 0.12rem 0.4rem;
-        font-size: 0.6rem;
       }
     }
 
