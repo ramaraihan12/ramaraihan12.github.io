@@ -398,6 +398,14 @@
       animation-play-state: paused;
     }
 
+    /* Hangs from the bottom tip and swings a little wider than the kite does, a beat behind it. */
+    & .lg-trail {
+      transform-box: fill-box;
+      transform-origin: 0 0;
+      animation: lg-flutter 2.9s ease-in-out -1.1s infinite alternate;
+      animation-play-state: paused;
+    }
+
     & .layangan-up,
     & .layangan-down {
       transition: opacity 1.2s ease;
@@ -415,6 +423,7 @@
 
   /* Only moves while the band is on screen. */
   .contact-sky[data-live] .layangan .lg-sway,
+  .contact-sky[data-live] .layangan .lg-trail,
   .contact-sky[data-live] .layangan .lg-kite {
     animation-play-state: running;
   }
@@ -434,6 +443,7 @@
       fill: var(--soga-2);
     }
     & .lg-sway,
+    & .lg-trail,
     & .lg-kite {
       animation: none;
     }
@@ -454,6 +464,15 @@
     }
   }
 
+  @keyframes lg-flutter {
+    from {
+      rotate: -9deg;
+    }
+    to {
+      rotate: 11deg;
+    }
+  }
+
   @keyframes lg-tilt {
     from {
       rotate: -6deg;
@@ -465,6 +484,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .layangan .lg-sway,
+    .layangan .lg-trail,
     .layangan .lg-kite {
       animation: none;
     }
