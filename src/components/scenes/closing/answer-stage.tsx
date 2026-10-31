@@ -4,6 +4,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { type ReactNode, useRef } from "react";
+import { LAND } from "@/lib/benang-path";
 import { PRIORITY, REDUCE_MQ, SCENE_MQ, scrollToY, scrollyOn } from "@/lib/scroll";
 import { elementMarker, setMarker } from "@/lib/stage";
 
@@ -180,7 +181,9 @@ export function AnswerStage({ children }: { children: ReactNode }) {
           scrollTrigger: {
             trigger: section,
             refreshPriority: PRIORITY.answer - 0.25,
-            start: "top 90%",
+            // The dot rides in on its thread first (src/components/benang) and has landed on the
+            // seed LAND screens before the pin. Then the notes gather round it.
+            start: `top ${LAND * 100}%`,
             end: "top top",
             scrub: 0.6,
             invalidateOnRefresh: true,

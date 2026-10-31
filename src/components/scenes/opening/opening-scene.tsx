@@ -8,6 +8,7 @@ import { KawungField, type KawungFieldHandle } from "@/components/art/kawung-fie
 import { queryCopy } from "@/content/copy";
 import { intro, retrieval, steps } from "@/content/story";
 import { EmbeddingMap, type Frame, IRIS_SHARE } from "@/lib/embedding-map";
+import { provideQueryDot } from "@/lib/benang-path";
 import { MOBILE_MQ, PRIORITY, REDUCE_MQ, SCENE_MQ, scrollyOn } from "@/lib/scroll";
 import { elementMarker, setMarkers } from "@/lib/stage";
 import { chipDrag } from "./chip-drag";
@@ -438,7 +439,8 @@ export function OpeningScene({ land }: { land: ReactNode }) {
             tl.fromTo(cards[rank], { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, at + 0.25);
           }
         });
-        tl.addLabel("done").to({}, { duration: 0.8 });
+        // The last thing the pin does: the dot leaves the map for the thread (src/components/benang).
+        tl.addLabel("done").to({}, { duration: 0.8 }).set(map.state, { exit: 1 });
 
         // A page loaded partway down: the cloth's own mount effect draws it blank after the
         // timeline has rendered, so bring it in line once that's done, and after every refresh.
@@ -450,6 +452,13 @@ export function OpeningScene({ land }: { land: ReactNode }) {
 
         const st = tl.scrollTrigger!;
         const at = (label: string) => () => st.start + (st.end - st.start) * (tl.labels[label] / tl.duration());
+        // Where the dot sits in the document once the pin lets go, which is where its thread begins.
+        const removeDot = provideQueryDot(() => {
+          const p = map.queryFinal();
+          const c = canvas.getBoundingClientRect();
+          const s = stage.getBoundingClientRect();
+          return { x: c.left - s.left + p.x, y: st.end + c.top - s.top + p.y, end: st.end };
+        });
         const removeMarkers = setMarkers([
           ["query", { at: () => -1, to: () => 0 }],
           ["tokens", { at: at("tokens"), to: at("tokenized") }],
@@ -458,6 +467,7 @@ export function OpeningScene({ land }: { land: ReactNode }) {
         ]);
 
         return () => {
+          removeDot();
           cancelAnimationFrame(settleCloth);
           cancelAnimationFrame(originFrame);
           cancelAnimationFrame(blank);
