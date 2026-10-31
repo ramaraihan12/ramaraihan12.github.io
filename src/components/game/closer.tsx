@@ -341,7 +341,8 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
     const top = Math.max(readBest() ?? 0, streak);
     writeBest(top);
     setPhase("over");
-    achieve("game-finished");
+    // The card would land on the pair the result is explaining, so it waits until they've been read.
+    window.setTimeout(() => achieve("game-finished"), 2500);
     onFinish?.({ streak, best: top });
   }
 
