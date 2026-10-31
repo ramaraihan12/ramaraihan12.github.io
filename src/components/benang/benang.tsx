@@ -222,12 +222,15 @@ export function Benang() {
         // The play section's own stretch of the thread is hidden while the game is open.
         const flooding = () => answer.hasAttribute("data-flooding");
         const gameOpen = () => play?.hasAttribute("data-started") ?? false;
+        // The holes under the note names are cut only once the notes have nearly gathered. Cut
+        // earlier, they showed as gaps in the thread where no name had arrived yet.
+        let named = false;
         const writeClip = () => {
           if (!plan) return;
           const w = plan.geo.vw;
           const h = plan.height;
           const [t, b] = plan.playBox;
-          const next = `M0 0H${w}V${h}H0Z${gameOpen() ? `M0 ${t}H${w}V${b}H0Z` : ""}${plan.holes}`;
+          const next = `M0 0H${w}V${h}H0Z${gameOpen() ? `M0 ${t}H${w}V${b}H0Z` : ""}${named ? plan.holes : ""}`;
           if (next !== last.clip) clip.setAttribute("d", next);
           last.clip = next;
         };
@@ -338,6 +341,11 @@ export function Benang() {
           const a = plan.a;
           const b = plan.b;
           const rail = geo.rail;
+          const gathered = s >= geo.answerAt - 0.05 * geo.vh;
+          if (gathered !== named) {
+            named = gathered;
+            writeClip();
+          }
           const onB = b && s >= b.ride.from;
           const started = s >= a.ride.from;
 
