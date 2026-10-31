@@ -588,7 +588,8 @@
     /* Over the sky, so a little brighter than the usual pudar. */
     & .qs-hint {
       display: block;
-      color: rgb(239 233 220 / 0.8);
+      color: var(--mori);
+      text-shadow: 0 0 0.6em var(--nila);
     }
 
     & .qs-sun {
