@@ -23,7 +23,10 @@
     top: 0;
     left: 0;
     overflow: visible;
-    /* Its own layer, so drawing the thread doesn't repaint the page's text under it. */
+  }
+
+  /* While the thread is being drawn it has its own layer, so that doesn't repaint the page's text under it. */
+  .benang[data-mode="ride"] .bx-svg {
     will-change: transform;
   }
 
