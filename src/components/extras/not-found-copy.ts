@@ -19,5 +19,6 @@ export const notFoundCopy = {
   kawung: "Draw a kawung for me",
   again: "Wax again",
   home: "Back to the start",
+  announcePlain: "No wax, so the whole cloth took the dye.",
   announceDyed: "The cloth is dyed. The wax lines stayed pale.",
 } as const;

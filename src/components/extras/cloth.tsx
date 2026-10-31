@@ -466,7 +466,7 @@ export function Cloth() {
       {layer(false)}
       {dipping ? layer(true) : null}
       <p className="sr-only" role="status">
-        {view === "dyed" ? T.announceDyed : ""}
+        {view === "dyed" ? (plain ? T.announcePlain : T.announceDyed) : ""}
       </p>
     </div>
   );
