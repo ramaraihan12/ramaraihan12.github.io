@@ -77,8 +77,10 @@
   /* Near the end of the page: above the footer, over the sky band, on phones too. */
   .rr-toast[data-lifted] {
     --rr-toast-from: 1rem;
-    top: auto;
-    bottom: calc(var(--rr-toast-lift) + 0.75rem);
+    position: absolute;
+    top: calc(var(--rr-toast-top) - 0.75rem);
+    bottom: auto;
+    transform: translateY(-100%);
   }
 
   /* A kawung flower in a ring, pressed on like a cap stamp. */

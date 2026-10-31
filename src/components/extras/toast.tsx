@@ -28,12 +28,14 @@ let mark: string | null = null;
 const kawung = () => (mark ??= batikDataUri("kawung", { ink: "#f4b223", ground: "#0f1a47", tint: "#8a5a2b", scale: 0.55 }));
 
 // When the footer is on screen the card sits just above it, over the sky, instead of where it
-// would cover the contact block. Measured once, as the card comes in.
+// would cover the contact block. Measured once, as the card comes in, as a spot on the page
+// (not the window), so scrolling afterwards carries the card with the sky instead of leaving it
+// frozen over the email or the footer.
 function liftAboveFooter(): number | null {
   const foot = document.querySelector(".site-footer");
   if (!foot) return null;
-  const top = foot.getBoundingClientRect().top;
-  return top < window.innerHeight ? Math.round(window.innerHeight - top) : null;
+  const r = foot.getBoundingClientRect();
+  return r.top < window.innerHeight ? Math.round(r.top + window.scrollY) : null;
 }
 
 export function Toast({ label, count, title, body, closeLabel, onDone }: ToastProps) {
@@ -94,7 +96,7 @@ export function Toast({ label, count, title, body, closeLabel, onDone }: ToastPr
       aria-labelledby={titleId}
       data-leaving={leaving || undefined}
       data-lifted={lift !== null || undefined}
-      style={lift !== null ? ({ "--rr-toast-lift": `${lift}px` } as CSSProperties) : undefined}
+      style={lift !== null ? ({ "--rr-toast-top": `${lift}px` } as CSSProperties) : undefined}
       onAnimationEnd={onAnimationEnd}
       onFocus={onFocus}
       onKeyDown={onKeyDown}
