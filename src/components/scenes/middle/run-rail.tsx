@@ -182,9 +182,16 @@ export function RunRail(props: ComponentPropsWithoutRef<"section">) {
           return imgs.length ? [{ panel, imgs }] : [];
         });
         let next = 0;
+        // Where each panel sits is measured when ScrollTrigger refreshes, not on every update.
+        let lefts: number[] = [];
+        const measureLefts = () => {
+          lefts = lazy.map((l) => l.panel.offsetLeft);
+        };
+        ScrollTrigger.addEventListener("refresh", measureLefts);
         const loadAhead = () => {
+          if (!lefts.length) measureLefts();
           const reach = -Number(gsap.getProperty(track, "x")) + window.innerWidth * AHEAD;
-          while (next < lazy.length && lazy[next].panel.offsetLeft < reach) {
+          while (next < lazy.length && lefts[next] < reach) {
             for (const img of lazy[next++].imgs) img.loading = "eager";
           }
         };
@@ -253,11 +260,11 @@ export function RunRail(props: ComponentPropsWithoutRef<"section">) {
         const removeMarker = setMarker("work", { at: () => st.start - window.innerHeight * 0.5, to: () => st.start });
 
         // For keep-place: which project is in the middle of the screen, and where one sits.
-        let lefts: number[] = [];
+        let panelLefts: number[] = [];
         let widths: number[] = [];
         let travel = 0;
         const cache = () => {
-          lefts = panels.map((p) => p.offsetLeft);
+          panelLefts = panels.map((p) => p.offsetLeft);
           widths = panels.map((p) => p.offsetWidth);
           travel = distance();
         };
@@ -265,18 +272,18 @@ export function RunRail(props: ComponentPropsWithoutRef<"section">) {
         const perPixel = () => (travel ? (st.end - st.start) / travel : 0);
         const unset = setAnchor({
           read: (y) => {
-            if (!lefts.length || y < st.start || y > st.end) return null;
+            if (!panelLefts.length || y < st.start || y > st.end) return null;
             const k = perPixel();
             const centre = (k ? (y - st.start) / k : 0) + window.innerWidth / 2;
             let at = 0;
-            lefts.forEach((l, j) => {
+            panelLefts.forEach((l, j) => {
               if (l <= centre) at = j;
             });
             return at;
           },
           put: (i) => {
-            if (lefts[i] === undefined) return null;
-            const x = gsap.utils.clamp(0, travel, lefts[i] - (window.innerWidth - widths[i]) / 2);
+            if (panelLefts[i] === undefined) return null;
+            const x = gsap.utils.clamp(0, travel, panelLefts[i] - (window.innerWidth - widths[i]) / 2);
             return st.start + x * perPixel();
           },
         });
@@ -295,6 +302,7 @@ export function RunRail(props: ComponentPropsWithoutRef<"section">) {
         return () => {
           track.removeEventListener("focusin", onFocus);
           ScrollTrigger.removeEventListener("refresh", cache);
+          ScrollTrigger.removeEventListener("refresh", measureLefts);
           unset();
           removeMarker();
         };
