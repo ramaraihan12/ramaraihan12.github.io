@@ -100,8 +100,8 @@ const notes = top.map(({ n, score, note }) => {
     n,
     score,
     source: note.source,
-    // The fourth note reads leftwards, away from the second one it would pass on the way in.
-    side: ux < -0.2 || note.source === "stack/midtrans" ? "left" : "right",
+    // Reads away from the centre, towards the side its ring sits on.
+    side: ux < -0.2 ? "left" : "right",
     near: [ux * near, uy * near],
     far: [ux, uy, 0.4 + 0.5 * d],
     paths: ringPaths(note.source, n - 1),
