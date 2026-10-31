@@ -324,6 +324,13 @@ export function OpeningScene({ land }: { land: ReactNode }) {
           clothBox.style.clipPath = `circle(${(reach * iris.open).toFixed(1)}px at ${a.x.toFixed(1)}px ${a.y.toFixed(1)}px)`;
         };
 
+        const setExit = (out: boolean) => {
+          const v = out ? 1 : 0;
+          if (map.state.exit === v) return;
+          map.state.exit = v;
+          map.draw(performance.now());
+        };
+
         const tl = gsap.timeline({
           defaults: { ease: "none" },
           scrollTrigger: {
@@ -339,6 +346,10 @@ export function OpeningScene({ land }: { land: ReactNode }) {
             scrub: 0.6,
             invalidateOnRefresh: true,
             onToggle: (self) => play(self.isActive),
+            // The map's dot goes out on the raw scroll, not the eased timeline, so it is gone at the
+            // same moment the thread's dot appears (src/components/benang) and never both at once.
+            onUpdate: (self) => setExit(self.progress >= 1),
+            onRefresh: (self) => setExit(self.progress >= 1),
           },
           // The scrub keeps easing for a moment after the scene leaves the screen.
           onUpdate: () => {
@@ -440,7 +451,7 @@ export function OpeningScene({ land }: { land: ReactNode }) {
           }
         });
         // The last thing the pin does: the dot leaves the map for the thread (src/components/benang).
-        tl.addLabel("done").to({}, { duration: 0.8 }).set(map.state, { exit: 1 });
+        tl.addLabel("done").to({}, { duration: 0.8 });
 
         // A page loaded partway down: the cloth's own mount effect draws it blank after the
         // timeline has rendered, so bring it in line once that's done, and after every refresh.
