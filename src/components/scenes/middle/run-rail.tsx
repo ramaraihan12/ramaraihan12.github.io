@@ -110,7 +110,7 @@ export function RunRail(props: ComponentPropsWithoutRef<"section">) {
         if (deck) {
           const removeMarker = setMarker("work", elementMarker(section));
           const deckRun = runDeck(section, moving, card, anchoredProject(), (i) => (card = i));
-                    const unset = setAnchor({ read: deckRun.read, put: deckRun.put });
+          const unset = setAnchor({ read: deckRun.read, put: deckRun.put });
           return () => {
             unset();
             deckRun.stop();
