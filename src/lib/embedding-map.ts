@@ -30,6 +30,8 @@ export type MapState = {
    * flies there as the iris passes it and shrinks into the note's dot.
    */
   gather: number;
+  /** 1 once the dot has left the map to ride the page's thread (src/components/benang). */
+  exit: number;
   /** One per retrieved note, draws the line out to it. */
   hits: { v: number }[];
 };
@@ -129,6 +131,7 @@ export class EmbeddingMap {
       query: 0,
       cam: 0,
       gather: 0,
+      exit: 0,
       hits: data.top.map(() => ({ v: 0 })),
     };
 
@@ -282,6 +285,11 @@ export class EmbeddingMap {
   /** Where the query dot sits before the camera pulls back, in canvas pixels. */
   queryScreen(): Point {
     return this.toScreen(this.data.query, this.far);
+  }
+
+  /** Where the query dot rests once the camera has pulled back, in canvas pixels. */
+  queryFinal(): Point {
+    return this.toScreen(this.data.query, this.near);
   }
 
   /** Screen position of a note, for the tooltip. */
@@ -445,7 +453,7 @@ export class EmbeddingMap {
     });
 
     // The query: a warm glow, the dot, a thin wax ring, and a ring that keeps pinging once it's in place.
-    if (state.query > 0) {
+    if (state.query > 0 && state.exit < 1) {
       const r = 5.5;
       const glow = ctx.createRadialGradient(qs.x, qs.y, 0, qs.x, qs.y, r * 5);
       glow.addColorStop(0, rgba(colors.kunyit, 0.5 * state.query));

@@ -1,5 +1,6 @@
 import { AlsoBuilt } from "@/components/also-built";
 import { AnswerScene } from "@/components/answer-scene";
+import { Benang } from "@/components/benang/benang";
 import { Contact } from "@/components/contact";
 import { PlaySection } from "@/components/game/play-section";
 import { QueryScene } from "@/components/query-scene";
@@ -25,6 +26,7 @@ export default function Home() {
         <AnswerScene />
         <Contact />
       </main>
+      <Benang />
       <SiteFooter />
     </>
   );

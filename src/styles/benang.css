@@ -1,0 +1,154 @@
+@layer components {
+  /*
+    The thread (src/components/benang). One box in document space after <main>, over the page
+    and under the answer: .answer sits a step above it, so the turmeric flood covers the thread
+    as it grows. The box is as tall as the thread needs, never taller than the page.
+  */
+  .benang {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    width: 100%;
+    height: 0;
+    pointer-events: none;
+
+    &:not([data-mode]) {
+      visibility: hidden;
+    }
+  }
+
+  .bx-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: visible;
+  }
+
+  /* While the thread is being drawn it has its own layer, so that doesn't repaint the page's text under it. */
+  .benang[data-mode="ride"] .bx-svg {
+    will-change: transform;
+  }
+
+  .bx-ride,
+  .bx-still {
+    fill: none;
+  }
+
+  .bx-ride {
+    stroke: none;
+  }
+
+  .bx-still,
+  .bx-thread {
+    fill: none;
+    stroke: var(--kunyit);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-opacity: 0.8;
+  }
+
+  .bx-dots,
+  .bx-knot {
+    fill: var(--kunyit);
+    fill-opacity: 0.85;
+  }
+
+  .benang[data-mode="ride"] .bx-knot,
+  .benang[data-mode="ride"] .bx-still,
+  .benang[data-mode="still"] .bx-a,
+  .benang[data-mode="still"] .bx-b,
+  .benang[data-mode="still"] .bx-bead {
+    display: none;
+  }
+
+  /*
+    The dot: the query dot's 11px of turmeric with the thin mori ring of the map's, no glow. On
+    its way into the answer (--k, 0 to 1) it swells to the seed's 14px and drops the ring.
+  */
+  .bx-bead {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 11px;
+    height: 11px;
+    visibility: hidden;
+    will-change: transform;
+  }
+
+  .bx-core,
+  .bx-ring {
+    position: absolute;
+    border-radius: 50%;
+  }
+
+  .bx-core {
+    inset: 0;
+    background: var(--kunyit);
+    transform: scale(calc(1 + var(--k, 0) * 0.2727));
+  }
+
+  .bx-ring {
+    inset: -4px;
+    border: 1px solid rgb(239 233 220 / 0.55);
+    opacity: calc(1 - var(--k, 0));
+
+    /* On a phone the dot and its ring stay inside the 16px margin, off the cards' edge. */
+    @media (width < 40rem) {
+      inset: -1.5px;
+    }
+  }
+
+  /* While the answer waits for the dot, the dot is the seed: the real one stays out of sight. */
+  .scrolly .answer {
+    z-index: 1;
+
+    &[data-bx]:not([data-flooding]) .answer-bg {
+      visibility: hidden;
+    }
+  }
+
+  /*
+    On the work rail the dot parks in the hint's arrow, which is on the track, so the sliding
+    rail carries it off the left edge. It's the arrow's own ::after, so it goes where the arrow goes.
+  */
+  .scrolly .run-hint span {
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 11px;
+      height: 11px;
+      margin: -5.5px 0 0 -5.5px;
+      border-radius: 50%;
+      background: var(--kunyit);
+      box-shadow:
+        0 0 0 4px var(--nila),
+        0 0 0 5px rgb(239 233 220 / 0.55);
+      opacity: 0;
+    }
+  }
+
+  html[data-bx-park].scrolly .run-hint span {
+    color: transparent;
+    animation: none;
+
+    &::after {
+      opacity: 1;
+    }
+  }
+
+  /*
+    On a phone the swipe deck is full-bleed and slides sideways: it goes over the thread, so a
+    card passes in front of the line instead of the line running over its text.
+  */
+  @media (width < 48rem) {
+    .run-deck {
+      position: relative;
+      z-index: 1;
+    }
+  }
+}

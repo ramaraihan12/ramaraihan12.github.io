@@ -4,6 +4,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { type ReactNode, useRef } from "react";
+import { LAND } from "@/lib/benang-path";
 import { PRIORITY, REDUCE_MQ, SCENE_MQ, scrollToY, scrollyOn } from "@/lib/scroll";
 import { elementMarker, setMarker } from "@/lib/stage";
 
@@ -106,6 +107,12 @@ export function AnswerStage({ children }: { children: ReactNode }) {
             scrub: 0.6,
             invalidateOnRefresh: true,
           },
+          // The flood has started: the thread's dot (src/components/benang) hands over to the seed
+          // while the scrub is anywhere past zero, not on raw scroll, so there's one dot throughout.
+          onUpdate: () => {
+            const on = tl.progress() > 0;
+            if (section.hasAttribute("data-flooding") !== on) section.toggleAttribute("data-flooding", on);
+          },
         });
         tl.fromTo(bg, { clipPath: "circle(7px at 50% 50%)" }, { clipPath: fullCircle, duration: 1, ease: "power1.inOut" }, 0)
           .addLabel("covered", 0.9)
@@ -180,7 +187,9 @@ export function AnswerStage({ children }: { children: ReactNode }) {
           scrollTrigger: {
             trigger: section,
             refreshPriority: PRIORITY.answer - 0.25,
-            start: "top 90%",
+            // The dot rides in on its thread first (src/components/benang) and has landed on the
+            // seed LAND screens before the pin. Then the notes gather round it.
+            start: `top ${LAND * 100}%`,
             end: "top top",
             scrub: 0.6,
             invalidateOnRefresh: true,
@@ -224,6 +233,7 @@ export function AnswerStage({ children }: { children: ReactNode }) {
         });
         return () => {
           setTone(false);
+          section.removeAttribute("data-flooding");
           removeMarker();
           section.removeEventListener("focusin", onFocus);
         };

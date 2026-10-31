@@ -8,6 +8,7 @@ import { KawungField, type KawungFieldHandle } from "@/components/art/kawung-fie
 import { queryCopy } from "@/content/copy";
 import { intro, retrieval, steps } from "@/content/story";
 import { EmbeddingMap, type Frame, IRIS_SHARE } from "@/lib/embedding-map";
+import { provideQueryDot } from "@/lib/benang-path";
 import { MOBILE_MQ, PRIORITY, REDUCE_MQ, SCENE_MQ, scrollyOn } from "@/lib/scroll";
 import { elementMarker, setMarkers } from "@/lib/stage";
 import { chipDrag } from "./chip-drag";
@@ -323,6 +324,13 @@ export function OpeningScene({ land }: { land: ReactNode }) {
           clothBox.style.clipPath = `circle(${(reach * iris.open).toFixed(1)}px at ${a.x.toFixed(1)}px ${a.y.toFixed(1)}px)`;
         };
 
+        const setExit = (out: boolean) => {
+          const v = out ? 1 : 0;
+          if (map.state.exit === v) return;
+          map.state.exit = v;
+          map.draw(performance.now());
+        };
+
         const tl = gsap.timeline({
           defaults: { ease: "none" },
           scrollTrigger: {
@@ -338,6 +346,10 @@ export function OpeningScene({ land }: { land: ReactNode }) {
             scrub: 0.6,
             invalidateOnRefresh: true,
             onToggle: (self) => play(self.isActive),
+            // The map's dot goes out on the raw scroll, not the eased timeline, so it is gone at the
+            // same moment the thread's dot appears (src/components/benang) and never both at once.
+            onUpdate: (self) => setExit(self.progress >= 1),
+            onRefresh: (self) => setExit(self.progress >= 1),
           },
           // The scrub keeps easing for a moment after the scene leaves the screen.
           onUpdate: () => {
@@ -438,6 +450,7 @@ export function OpeningScene({ land }: { land: ReactNode }) {
             tl.fromTo(cards[rank], { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, at + 0.25);
           }
         });
+        // The last thing the pin does: the dot leaves the map for the thread (src/components/benang).
         tl.addLabel("done").to({}, { duration: 0.8 });
 
         // A page loaded partway down: the cloth's own mount effect draws it blank after the
@@ -450,6 +463,13 @@ export function OpeningScene({ land }: { land: ReactNode }) {
 
         const st = tl.scrollTrigger!;
         const at = (label: string) => () => st.start + (st.end - st.start) * (tl.labels[label] / tl.duration());
+        // Where the dot sits in the document once the pin lets go, which is where its thread begins.
+        const removeDot = provideQueryDot(() => {
+          const p = map.queryFinal();
+          const c = canvas.getBoundingClientRect();
+          const s = stage.getBoundingClientRect();
+          return { x: c.left - s.left + p.x, y: st.end + c.top - s.top + p.y, end: st.end };
+        });
         const removeMarkers = setMarkers([
           ["query", { at: () => -1, to: () => 0 }],
           ["tokens", { at: at("tokens"), to: at("tokenized") }],
@@ -458,6 +478,7 @@ export function OpeningScene({ land }: { land: ReactNode }) {
         ]);
 
         return () => {
+          removeDot();
           cancelAnimationFrame(settleCloth);
           cancelAnimationFrame(originFrame);
           cancelAnimationFrame(blank);
