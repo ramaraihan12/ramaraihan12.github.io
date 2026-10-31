@@ -12,6 +12,13 @@
     width: 100%;
     height: 0;
     pointer-events: none;
+    /*
+      On the work rail the first stretch's svg is moved down with the pinned section, by the
+      rail's whole length. Unclipped, that made the page about 6,700px taller at 1440: the header's
+      bar stopped short of the end, and a resize or the scroll bar could take you into the empty
+      space under the footer.
+    */
+    overflow: clip;
 
     &:not([data-mode]) {
       visibility: hidden;
