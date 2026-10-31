@@ -11,6 +11,7 @@ export const notFoundCopy = {
   hint: {
     blank: "Press and drag to draw in wax.",
     waxed: "Wax keeps the dye out. Dip when you're ready.",
+    dipping: "The cloth is in the dye.",
     dyed: "The dye took everywhere except under the wax.",
     plain: "No wax, so the dye took all of it.",
   },
