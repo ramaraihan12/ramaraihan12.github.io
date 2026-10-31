@@ -21,6 +21,34 @@ import { stageStarts } from "./stage";
 
 type Mark = [key: string, at: number];
 
+/*
+  Inside the work section the place is a project, not a share of the section: the deck, the
+  stacked panels and the sideways rail are three different lengths, so the same share is a
+  different project in each. The work scene says which layout it has now by registering an
+  anchor: `read` tells which project is in view at a scroll position (or null outside the
+  section), `put` where a project sits in the layout as it is (or null when the scene places it
+  itself, as the deck does by sliding to the card). The project is read as they scroll, like the
+  place, and put back right after the fraction has been.
+*/
+export type Anchor = { read: (y: number) => number | null; put: (project: number) => number | null };
+let anchor: Anchor | null = null;
+let project: number | null = null;
+
+export function setAnchor(next: Anchor) {
+  anchor = next;
+  return () => {
+    if (anchor === next) anchor = null;
+  };
+}
+
+/** For an anchor whose answer changes without the page scrolling, like the deck sliding to another card. */
+export function anchorMoved() {
+  if (window.innerWidth === width) project = anchor?.read(window.scrollY) ?? null;
+}
+
+/** The project that was in view before the layout last changed, if the reader was in the work section. */
+export const anchoredProject = () => project;
+
 let marks: Mark[] = [];
 // The width the marks were measured at. While the window is being resized they're out of
 // date, and the browser may already have moved the scroll position to suit the new width.
@@ -49,13 +77,18 @@ function locate(y: number) {
 }
 
 const onScroll = () => {
-  if (window.innerWidth === width) place = locate(window.scrollY);
+  if (window.innerWidth !== width) return;
+  place = locate(window.scrollY);
+  project = anchor?.read(window.scrollY) ?? null;
 };
 
 const onRefresh = () => {
   measure();
   // Until the first scroll, the place is wherever the page loaded.
-  place ??= locate(window.scrollY);
+  if (!place) {
+    place = locate(window.scrollY);
+    project = anchor?.read(window.scrollY) ?? null;
+  }
 };
 
 // ScrollTrigger sends this once a media query change has rebuilt the scenes and it has
@@ -65,6 +98,8 @@ const onRebuilt = () => {
   if (!place || i < 0) return;
   const at = marks[i][1];
   jumpToY(at + place.through * ((marks[i + 1]?.[1] ?? at) - at));
+  const y = project != null ? anchor?.put(project) : null;
+  if (y != null) jumpToY(y);
 };
 
 export function keepPlace() {
