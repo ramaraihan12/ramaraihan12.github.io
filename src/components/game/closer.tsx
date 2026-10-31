@@ -242,6 +242,7 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
   const hudBits = useRef<HTMLSpanElement>(null);
   /** The phase as of the last handler, so a timer and a tap can't both move the game on. */
   const phaseRef = useRef<Phase>("pick");
+  const owesFinished = useRef(false);
   /** performance.now() until which taps and keys are ignored. See SETTLE. */
   const settleUntil = useRef(0);
   const focusCard = useRef(false);
@@ -268,6 +269,19 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
 
   // Repeating the same sentence wouldn't be read out again, so every message changes the text.
   const announce = (text: string) => setSaid((s) => ({ text, n: s.n + 1 }));
+
+  // Scrolling away from the result counts as leaving it.
+  useEffect(() => {
+    const el = root.current;
+    if (phase !== "over" || !el) return;
+    const watch = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting || !owesFinished.current) return;
+      owesFinished.current = false;
+      achieve("game-finished");
+    });
+    watch.observe(el);
+    return () => watch.disconnect();
+  }, [phase]);
 
   useEffect(() => {
     if (!autoFocus) return;
@@ -341,8 +355,8 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
     const top = Math.max(readBest() ?? 0, streak);
     writeBest(top);
     setPhase("over");
-    // The card would land on the pair the result is explaining, so it waits until they've been read.
-    window.setTimeout(() => achieve("game-finished"), 2500);
+    // The card would land on the result it is explaining, so it waits until they leave it.
+    owesFinished.current = true;
     onFinish?.({ streak, best: top });
   }
 
@@ -353,7 +367,15 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
     else finish();
   }
 
+  /** Hands out the "first run" card, once the player has left the result. */
+  function flushFinished() {
+    if (!owesFinished.current) return;
+    owesFinished.current = false;
+    achieve("game-finished");
+  }
+
   function again() {
+    flushFinished();
     const run = createRun(data, points, seed === undefined ? randomSeed() : seed + (game.id + 1) * SEED_STEP);
     const first = run.next();
     phaseRef.current = "pick";
@@ -370,6 +392,7 @@ export function Closer({ data = closer, points = retrieval.points, seed, autoFoc
 
   function toAnswer(e: MouseEvent) {
     // The answer is a pinned scene, so its stage marker knows where it reads best.
+    flushFinished();
     if (goToStage("answer")) e.preventDefault();
   }
 
