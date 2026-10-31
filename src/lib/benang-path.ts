@@ -35,9 +35,11 @@ export function provideQueryDot(read: () => QueryDot | null) {
 }
 
 export function readQueryDot(): QueryDot | null {
-  // The scene may be halfway through being rebuilt.
+  // The scene may be halfway through being rebuilt: it throws, or its pin isn't measured yet and
+  // the numbers aren't (a phone turned back upright). The refresh that follows has them.
   try {
-    return reader?.() ?? null;
+    const dot = reader?.() ?? null;
+    return dot && Number.isFinite(dot.x) && Number.isFinite(dot.y) && Number.isFinite(dot.end) ? dot : null;
   } catch {
     return null;
   }
