@@ -11,6 +11,7 @@ import {
   LAND,
   type Geo,
   makeRide,
+  PER,
   type Ride,
   readQueryDot,
   type Route,
@@ -56,7 +57,11 @@ type Plan = {
   animated: boolean;
   a?: { route: Route; ride: Ride };
   b?: { route: Route; ride: Ride };
+  dripEnd: number;
   landS: number;
+  floodAt: number;
+  /** Holes in the thread under the note names, as path data. */
+  holes: string;
   playBox: [number, number];
   height: number;
 };
@@ -68,10 +73,11 @@ export function Benang() {
     () => {
       const box = root.current!;
       const q = <E extends Element = SVGElement>(sel: string) => box.querySelector<E>(sel)!;
-      const svg = q<SVGSVGElement>(".bx-svg");
+      const svgs = Array.from(box.querySelectorAll<SVGSVGElement>(".bx-svg"));
+      const svgA = q<SVGSVGElement>(".bx-svg-a");
+      const svgB = q<SVGSVGElement>(".bx-svg-b");
       const bead = q<HTMLElement>(".bx-bead");
       const clip = q<SVGPathElement>(".bx-clip path");
-      const group = { a: q<SVGGElement>(".bx-a"), b: q<SVGGElement>(".bx-b") };
       const ride = { a: q<SVGPathElement>(".bx-ride-a"), b: q<SVGPathElement>(".bx-ride-b") };
       const thread = { a: q<SVGPathElement>(".bx-thread-a"), b: q<SVGPathElement>(".bx-thread-b") };
       const dots = q<SVGPathElement>(".bx-dots");
@@ -89,8 +95,9 @@ export function Benang() {
         box.dataset.mode = animated ? "ride" : "still";
 
         let plan: Plan | null = null;
+        let trackEl: HTMLElement | null = null;
         const lengths = { a: 0, b: 0 };
-        let last = { bead: "", park: false, bx: false, k: -1, fade: -1, drip: -1, clip: "", off: { a: -1, b: -1 } };
+        let last = { bead: "", park: false, bx: false, k: -1, drip: -1, clip: "", ta: "", tb: "", off: { a: -1, b: -1 } };
 
         const geometry = (): Geo | null => {
           const vw = root_.clientWidth;
@@ -112,6 +119,7 @@ export function Benang() {
           const work = document.getElementById("work");
           const hint = work?.querySelector<HTMLElement>(".run-hint span");
           const track = work?.querySelector<HTMLElement>(".run-track");
+          trackEl = track ?? null;
           if (work && hint && track && work.parentElement?.classList.contains("pin-spacer")) {
             const spacer = work.parentElement;
             const h = at(hint);
@@ -121,12 +129,30 @@ export function Benang() {
               rail = {
                 start,
                 end: start + spacer.offsetHeight - work.offsetHeight,
-                hx: h.left + h.width / 2 - s.left - Number(gsap.getProperty(track, "x") || 0),
+                // The arrow nudges sideways on its own (translate), which isn't part of where it rests.
+                hx: h.left + h.width / 2 - (parseFloat(getComputedStyle(hint).translate) || 0) - s.left - Number(gsap.getProperty(track, "x") || 0),
                 hy: h.top + h.height / 2 - s.top,
+                // The left edge of the section's own text, which the rail sets closer to the window's edge than the page.
+                lx: (hint.closest(".run-hint")?.getBoundingClientRect().left ?? h.left) - s.left - Number(gsap.getProperty(track, "x") || 0),
               };
             }
           }
           return { ...base, dot, rail };
+        };
+
+        // Where each note's name rests (the notes move only by transforms, so their layout places are fixed),
+        // so the thread can go under the names instead of through the letters.
+        const labelHoles = (geo: Geo) => {
+          let d = "";
+          answer.querySelectorAll<HTMLElement>(".an-note").forEach((note) => {
+            const label = note.querySelector<HTMLElement>(".an-label");
+            const drift = note.querySelector<HTMLElement>(".an-drift");
+            if (!label || !drift || !label.offsetWidth) return;
+            const x = geo.cx - answer.offsetWidth / 2 + note.offsetLeft + drift.offsetLeft + label.offsetLeft - 4;
+            const y = geo.answerAt + note.offsetTop + drift.offsetTop + label.offsetTop - 4;
+            d += `M${x} ${y}h${label.offsetWidth + 8}v${label.offsetHeight + 8}h${-(label.offsetWidth + 8)}Z`;
+          });
+          return d;
         };
 
         const build = (): Plan | null => {
@@ -136,7 +162,7 @@ export function Benang() {
           const playEl = play;
           const playBox: [number, number] = playEl ? [top(playEl), top(playEl) + playEl.offsetHeight] : [0, 0];
           const landS = geo.answerAt - LAND * vh;
-          const next: Plan = { geo, animated, landS, playBox, height: geo.seedY + vh * 0.5 };
+          const next: Plan = { geo, animated, dripEnd: 0, holes: labelHoles(geo), landS, floodAt: geo.answerAt + (2.6 * vh * 0.9) / 4.2, playBox, height: geo.seedY + vh * 0.5 };
           if (!animated) return next;
 
           const hold = HOLD * vh;
@@ -188,17 +214,20 @@ export function Benang() {
               }),
             };
           }
+          const r0 = next.a?.route;
+          if (r0) next.dripEnd = r0.ys[r0.threadFrom * PER] - geo.dot.y + 12;
           return next;
         };
 
         // The play section's own stretch of the thread is hidden while the game is open.
+        const flooding = () => answer.hasAttribute("data-flooding");
         const gameOpen = () => play?.hasAttribute("data-started") ?? false;
         const writeClip = () => {
           if (!plan) return;
           const w = plan.geo.vw;
           const h = plan.height;
           const [t, b] = plan.playBox;
-          const next = `M0 0H${w}V${h}H0Z${gameOpen() ? `M0 ${t}H${w}V${b}H0Z` : ""}`;
+          const next = `M0 0H${w}V${h}H0Z${gameOpen() ? `M0 ${t}H${w}V${b}H0Z` : ""}${plan.holes}`;
           if (next !== last.clip) clip.setAttribute("d", next);
           last.clip = next;
         };
@@ -222,12 +251,15 @@ export function Benang() {
           tweenB?.kill();
           tweenA = tweenB = null;
           plan = build();
-          last = { bead: "", park: false, bx: false, k: -1, fade: -1, drip: -1, clip: "", off: { a: -1, b: -1 } };
+          svgA.style.transform = svgB.style.transform = "";
+          last = { bead: "", park: false, bx: false, k: -1, drip: -1, clip: "", ta: "", tb: "", off: { a: -1, b: -1 } };
           if (!plan) return;
           const { geo, height } = plan;
-          svg.setAttribute("width", String(geo.vw));
-          svg.setAttribute("height", String(height));
-          svg.setAttribute("viewBox", `0 0 ${geo.vw} ${height}`);
+          for (const svg of svgs) {
+            svg.setAttribute("width", String(geo.vw));
+            svg.setAttribute("height", String(height));
+            svg.setAttribute("viewBox", `0 0 ${geo.vw} ${height}`);
+          }
           box.style.height = `${height}px`;
           writeClip();
 
@@ -278,6 +310,28 @@ export function Benang() {
           bead.style.visibility = state === "on" ? "visible" : "hidden";
         };
 
+        const placeA = (s: number) => {
+          const rail = plan?.geo.rail;
+          if (!rail) return;
+          const ty = Math.min(s, rail.end) - rail.start;
+          const next =
+            s >= rail.start
+              ? `translate(${Math.round(Number(gsap.getProperty(trackEl, "x") || 0) * 2) / 2}px, ${Math.round(ty * 2) / 2}px)`
+              : "";
+          if (next !== last.ta) {
+            last.ta = next;
+            svgA.style.transform = next;
+          }
+        };
+        // The track eases after the scroll has stopped, and the thread's end has to stay in the arrow with it.
+        const follow = () => {
+          const rail = plan?.geo.rail;
+          if (!rail) return;
+          const s = window.scrollY;
+          if (s >= rail.start && s <= rail.end + 2 * plan!.geo.vh) placeA(s);
+        };
+        gsap.ticker.add(follow);
+
         const render = (s: number) => {
           if (!plan?.animated || !plan.a) return;
           const { geo, landS } = plan;
@@ -292,7 +346,7 @@ export function Benang() {
           const fb = b && onB ? fracAt(b.ride, s) : 0;
 
           const parked = !!rail && s >= rail.start && !onB;
-          const landed = s >= geo.answerAt;
+          const landed = s >= geo.answerAt || flooding();
           const live = started && !landed && !parked && (!rail || onB || s <= a.ride.to);
 
           // The wax dots and the thread, drawn up to the dot.
@@ -308,20 +362,23 @@ export function Benang() {
           };
           reveal("a", a.route, fa);
           if (b) reveal("b", b.route, fb);
-          const dripBottom = Math.round(Math.max(0, a.ride.y(Math.min(s, a.ride.to)) - geo.dot.y + 12) / 2) * 2;
+          const dripBottom = Math.round(Math.min(plan.dripEnd, Math.max(0, a.ride.y(Math.min(s, a.ride.to)) - geo.dot.y + 12)) / 2) * 2;
           const dripNow = started ? dripBottom : 0;
           if (dripNow !== last.drip) {
             last.drip = dripNow;
             dripClip.setAttribute("height", String(dripNow));
           }
 
-          // The first stretch lets go over the screen after the rail pins, so the thread the dot left behind doesn't hang there.
-          if (rail) {
-            const fade = Math.round(Math.min(1, Math.max(0, (s - rail.start) / (0.22 * geo.vh))) * 20) / 20;
-            if (fade !== last.fade) {
-              last.fade = fade;
-              group.a.style.opacity = String(1 - fade);
-            }
+          // While the rail is pinned, its hint and the end of the thread are held on the screen:
+          // the thread goes with the section, then slides off the left edge with the track.
+          placeA(s);
+
+          // The answer's flood has the thread's end: it holds on the seed while the flood grows over it.
+          const hold = Math.round(Math.min(Math.max(0, s - geo.answerAt), plan.floodAt - geo.answerAt) * 2) / 2;
+          const tb = hold > 0 ? `translateY(${hold}px)` : "";
+          if (tb !== last.tb) {
+            last.tb = tb;
+            (plan.b ? svgB : svgA).style.transform = tb;
           }
 
           // Where the dot is.
@@ -372,9 +429,11 @@ export function Benang() {
           render(window.scrollY);
         });
         if (play) watch.observe(play, { attributes: true, attributeFilter: ["data-started"] });
+        watch.observe(answer, { attributes: true, attributeFilter: ["data-flooding"] });
         render(window.scrollY);
 
         return () => {
+          gsap.ticker.remove(follow);
           ScrollTrigger.removeEventListener("refresh", onRefresh);
           watch.disconnect();
           trigger.kill();
@@ -383,7 +442,8 @@ export function Benang() {
           gsap.set(bead, { clearProps: "transform" });
           bead.style.visibility = "";
           bead.style.removeProperty("--k");
-          group.a.style.opacity = "";
+          svgA.style.transform = "";
+          svgB.style.transform = "";
           root_.removeAttribute("data-bx-park");
           answer.removeAttribute("data-bx");
           delete box.dataset.mode;
@@ -396,7 +456,7 @@ export function Benang() {
 
   return (
     <div ref={root} className="benang" aria-hidden="true">
-      <svg className="bx-svg" focusable="false">
+      <svg className="bx-svg bx-svg-b" focusable="false">
         <defs>
           <clipPath id="bx-clip" className="bx-clip" clipPathUnits="userSpaceOnUse">
             <path clipRule="evenodd" d="" />
@@ -409,15 +469,17 @@ export function Benang() {
           <path className="bx-still" d="" />
           <circle className="bx-knot" r="3.5" />
           <circle className="bx-knot" r="3.5" />
-          <g className="bx-a">
-            <path className="bx-ride bx-ride-a" d="" />
-            <path className="bx-dots" d="" clipPath="url(#bx-drip)" />
-            <path className="bx-thread bx-thread-a" d="" />
-          </g>
           <g className="bx-b">
             <path className="bx-ride bx-ride-b" d="" />
             <path className="bx-thread bx-thread-b" d="" />
           </g>
+        </g>
+      </svg>
+      <svg className="bx-svg bx-svg-a" focusable="false">
+        <g clipPath="url(#bx-clip)" className="bx-a">
+          <path className="bx-ride bx-ride-a" d="" />
+          <path className="bx-dots" d="" clipPath="url(#bx-drip)" />
+          <path className="bx-thread bx-thread-a" d="" />
         </g>
       </svg>
       <div className="bx-bead">

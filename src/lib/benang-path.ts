@@ -60,7 +60,8 @@ export function gutterEdge(vw: number) {
 
 /** Where the thread runs down the left margin: the middle of it, never far from the text. */
 export function threadX(vw: number) {
-  return clamp(gutterEdge(vw) / 2, 9, 64);
+  const g = gutterEdge(vw);
+  return Math.max(9, g - clamp(g / 2, 9, 56));
 }
 
 /** How far a hand strays from the line. Less on a phone, where there's no room to stray. */
@@ -81,7 +82,7 @@ export type Geo = {
   answerAt: number;
   dot: QueryDot;
   /** The work rail, where the pin holds the section and the hint's arrow is (viewport pixels at the pin's start). */
-  rail: { start: number; end: number; hx: number; hy: number } | null;
+  rail: { start: number; end: number; hx: number; hy: number; lx: number } | null;
 };
 
 /** A straight run down the margin with a hand's wobble, from y0 to y1, one knot every `step`. */
@@ -139,7 +140,7 @@ export type Route = {
   length: number;
 };
 
-const PER = 6;
+export const PER = 6;
 
 function tabulate(knots: Pt[], threadFrom: number, hookAt: number): Route {
   const dense = sampleCurve(knots, (knots.length - 1) * PER + 1);
@@ -192,12 +193,19 @@ export function routeFromDot(g: Geo, seed: number): Route {
   const rail = g.rail;
   if (rail) {
     const hookY = rail.start + rail.hy + 40;
-    knots.push(...margin(knots[threadFrom][1] + 84, hookY - 60, g, r));
-    knots.push([g.xg, hookY - 36]);
+    // The section's text starts nearer the window's edge than the page's does, so inside it the
+    // thread moves over to the edge and runs clear of the words, then hooks into the arrow.
+    const ex = clamp(rail.lx - 11, 9, g.xg);
+    const lean = rail.start + 90;
+    const ge = { ...g, xg: ex };
+    knots.push(...margin(knots[threadFrom][1] + 84, lean - 40, g, r));
+    knots.push([g.xg, lean], [ex, lean + 190]);
+    knots.push(...margin(lean + 270, hookY - 60, ge, r));
+    knots.push([ex, hookY - 36]);
     const hookAt = knots.length;
-    knots.push([g.xg + 0.1 * (rail.hx - g.xg), hookY]);
+    knots.push([ex + 0.1 * (rail.hx - ex), hookY]);
     // Along under the hint's words and up into the arrow.
-    knots.push([g.xg + 0.5 * (rail.hx - g.xg), hookY + 7]);
+    knots.push([ex + 0.5 * (rail.hx - ex), hookY + 7]);
     knots.push([rail.hx - 16, hookY - 2]);
     knots.push([rail.hx, rail.start + rail.hy + 12]);
     knots.push([rail.hx, rail.start + rail.hy]);
