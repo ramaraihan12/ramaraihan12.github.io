@@ -357,6 +357,7 @@ export function Extras() {
           title={achievements[IDS[next.id]].title}
           body={achievements[IDS[next.id]].body}
           closeLabel={X.close}
+          away={held || heldEnd}
           onDone={toastDone}
         />
       ) : null}

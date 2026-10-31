@@ -388,7 +388,28 @@ export function Cloth() {
 
   const dipping = view === "dipping";
   const hint =
-    view === "dyed" ? (plain ? T.hint.plain : T.hint.dyed) : T.hint[dipping ? (plain ? "blank" : "waxed") : view];
+    view === "dyed"
+      ? plain
+        ? T.hint.plain
+        : T.hint.dyed
+      : dipping
+        ? T.hint.dipping
+        : T.hint[view];
+
+  // The button that was pressed goes away (Dip becomes Wax again and back), so focus follows it
+  // instead of dropping to the page. Only when focus was on that button or already lost.
+  const dipBtn = useRef<HTMLButtonElement>(null);
+  const againBtn = useRef<HTMLButtonElement>(null);
+  const lastView = useRef<Phase>("blank");
+  useEffect(() => {
+    const was = lastView.current;
+    lastView.current = view;
+    const at = document.activeElement;
+    const lost = !at || at === document.body || at === dipBtn.current || at === againBtn.current;
+    if (!lost) return;
+    if (view === "dyed" && was !== "dyed") againBtn.current?.focus({ preventScroll: true });
+    else if (view === "blank" && was === "dyed") dipBtn.current?.focus({ preventScroll: true });
+  }, [view]);
 
   /** The words and buttons. Drawn twice while dipping: the real ones, and a pale copy over them. */
   const layer = (isPale: boolean) => (
@@ -405,15 +426,15 @@ export function Cloth() {
 
       <div className="nf-actions" ref={isPale ? undefined : actionsEl}>
         {view === "dyed" ? (
-          <button type="button" className="nf-btn nf-btn-line" onClick={again}>
+          <button type="button" className="nf-btn nf-btn-line" onClick={again} ref={isPale ? undefined : againBtn}>
             {T.again}
           </button>
         ) : (
           <>
-            <button type="button" className="nf-btn nf-btn-solid" onClick={dip} disabled={dipping} tabIndex={isPale ? -1 : undefined}>
+            <button type="button" className="nf-btn nf-btn-solid" onClick={dip} aria-disabled={dipping || undefined} ref={isPale ? undefined : dipBtn} tabIndex={isPale ? -1 : undefined}>
               {T.dip}
             </button>
-            <button type="button" className="nf-btn nf-btn-line" onClick={kawung} disabled={dipping} tabIndex={isPale ? -1 : undefined}>
+            <button type="button" className="nf-btn nf-btn-line" onClick={kawung} aria-disabled={dipping || undefined} tabIndex={isPale ? -1 : undefined}>
               {T.kawung}
             </button>
           </>

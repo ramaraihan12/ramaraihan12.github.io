@@ -105,10 +105,10 @@ export const strings = {
   /** Saving the cloth as a picture. */
   save: {
     button: "Save the cloth",
-    busy: "Weaving…",
+    busy: "Saving…",
     done: "Saved",
     shared: "Shared",
-    failed: "Not saved, sorry",
+    failed: "Didn't save. Try again",
     share: "Share it",
     /** On the picture itself. */
     head: "Closer, a mini game",

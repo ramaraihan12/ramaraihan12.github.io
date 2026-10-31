@@ -174,7 +174,7 @@ export type Achievement = { title: string; body: string };
 /** New: toasts for small things found along the way. */
 export const achievements = {
   allStages: { title: "Whole pipeline", body: "You visited every stage of the pipeline." },
-  gameDone: { title: "Close call", body: "You played a run of Closer. The model says it was right the whole time." },
+  gameDone: { title: "First run", body: "You played a run of Closer. The model says it was right the whole time." },
   gamePerfect: {
     title: "Ten in a row",
     body: `You read ten pairs the way the model does. Are you secretly ${dims} numbers?`,
@@ -196,8 +196,8 @@ export const askAgainCopy = {
   label: "Not sure what to write? Try a question on my notes first.",
   loading: "Searching the notes…",
   failed: "The notes didn't load. Email works too.",
-  /** Reads before the list: "closest 3 of 51 notes · cosine similarity". */
-  head: (k: number, total: number) => `closest ${k} of ${total} notes · cosine similarity`,
+  /** Reads before the list: "top 3 of 51 · cosine similarity". */
+  head: (k: number, total: number) => `top ${k} of ${total} · cosine similarity`,
   /** Screen-reader announcement when a question is picked. */
   announce: (q: string, k: number) => `${q} The ${k} closest notes are listed below.`,
 } as const;
