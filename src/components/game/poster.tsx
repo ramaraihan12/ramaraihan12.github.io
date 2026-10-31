@@ -1,4 +1,6 @@
-import { type ReactNode, useId } from "react";
+"use client";
+
+import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { dot, nums, petal, type Pt, smooth, taper } from "@/components/art/draw";
 import { hash, rng, wobble } from "@/components/art/rng";
 import { strings as S } from "./strings";
@@ -176,6 +178,16 @@ const DYES = ["calm", "warm", "hot"] as const;
 
 export function Poster({ notes, questions, action, className }: PosterProps) {
   const id = useId().replace(/[^a-zA-Z0-9-]/g, "");
+  // The ping only runs while the poster is on screen, so it costs nothing on the other sections.
+  const root = useRef<HTMLDivElement>(null);
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    const el = root.current;
+    if (!el || !("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver(([e]) => setSeen(e.isIntersecting));
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
   const stars = sky(Math.max(0, Math.min(notes, 64) - 2));
   const cell = `${id}-cell`;
   const band = { y: CLOTH.y, h: CLOTH.h };
@@ -184,7 +196,7 @@ export function Poster({ notes, questions, action, className }: PosterProps) {
   const cecek = (y: number) => `M3 ${y}H${VIEW.w}`;
 
   return (
-    <div className={className ? `nn-poster ${className}` : "nn-poster"}>
+    <div ref={root} data-seen={seen ? "" : undefined} className={className ? `nn-poster ${className}` : "nn-poster"}>
       <svg className="nn-poster-art" viewBox={`0 0 ${VIEW.w} ${VIEW.h}`} aria-hidden="true" focusable="false">
         <defs>
           <radialGradient id={`${id}-glow`}>
@@ -217,7 +229,7 @@ export function Poster({ notes, questions, action, className }: PosterProps) {
             <stop offset="0.3" stopColor="#fff" />
             <stop offset="1" stopColor="#fff" stopOpacity="0" />
           </linearGradient>
-          <mask id={`${id}-pola`}>
+          <mask id={`${id}-pola-mask`}>
             <rect width={VIEW.w} height={VIEW.h} fill={`url(#${id}-fade)`} />
           </mask>
         </defs>
@@ -230,7 +242,7 @@ export function Poster({ notes, questions, action, className }: PosterProps) {
         {/* The cloth: blank cotton, its pencil pola fading off, three panels already dyed. */}
         <g className="nn-poster-cloth">
           <rect className="nn-poster-cloth-blank" y={band.y - 9} width={VIEW.w} height={band.h + 18} />
-          <rect y={band.y} width={VIEW.w} height={band.h} fill={`url(#${id}-pola)`} mask={`url(#${id}-pola)`} />
+          <rect y={band.y} width={VIEW.w} height={band.h} fill={`url(#${id}-pola)`} mask={`url(#${id}-pola-mask)`} />
           <path className="nn-poster-cecek" d={cecek(band.y - 4.5) + cecek(band.y + band.h + 4.5)} />
           {DYES.map((dye, i) => (
             <rect
