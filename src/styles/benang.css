@@ -23,6 +23,8 @@
     top: 0;
     left: 0;
     overflow: visible;
+    /* Its own layer, so drawing the thread doesn't repaint the page's text under it. */
+    will-change: transform;
   }
 
   .bx-ride,

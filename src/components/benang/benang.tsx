@@ -90,7 +90,7 @@ export function Benang() {
 
         let plan: Plan | null = null;
         const lengths = { a: 0, b: 0 };
-        let last = { bead: "", park: false, bx: false, k: -1, fade: -1, drip: -1, clip: "" };
+        let last = { bead: "", park: false, bx: false, k: -1, fade: -1, drip: -1, clip: "", off: { a: -1, b: -1 } };
 
         const geometry = (): Geo | null => {
           const vw = root_.clientWidth;
@@ -222,7 +222,7 @@ export function Benang() {
           tweenB?.kill();
           tweenA = tweenB = null;
           plan = build();
-          last = { bead: "", park: false, bx: false, k: -1, fade: -1, drip: -1, clip: "" };
+          last = { bead: "", park: false, bx: false, k: -1, fade: -1, drip: -1, clip: "", off: { a: -1, b: -1 } };
           if (!plan) return;
           const { geo, height } = plan;
           svg.setAttribute("width", String(geo.vw));
@@ -296,13 +296,18 @@ export function Benang() {
           const live = started && !landed && !parked && (!rail || onB || s <= a.ride.to);
 
           // The wax dots and the thread, drawn up to the dot.
-          const reveal = (route: Route, f: number, path: SVGPathElement, len: number) => {
+          // Written only when it moves by half a pixel, so a stretch that isn't being drawn costs nothing.
+          const reveal = (which: "a" | "b", route: Route, f: number) => {
             const from = route.threadAt;
+            const len = lengths[which];
             const rev = Math.min(1, Math.max(0, (f * route.length - from) / Math.max(1, route.length - from)));
-            path.style.strokeDashoffset = String(len * (1 - rev) + (rev <= 0 ? 2 : 0));
+            const off = Math.round((len * (1 - rev) + (rev <= 0 ? 2 : 0)) * 2) / 2;
+            if (off === last.off[which]) return;
+            last.off[which] = off;
+            thread[which].style.strokeDashoffset = String(off);
           };
-          reveal(a.route, fa, thread.a, lengths.a);
-          if (b) reveal(b.route, fb, thread.b, lengths.b);
+          reveal("a", a.route, fa);
+          if (b) reveal("b", b.route, fb);
           const dripBottom = Math.round(Math.max(0, a.ride.y(Math.min(s, a.ride.to)) - geo.dot.y + 12) / 2) * 2;
           const dripNow = started ? dripBottom : 0;
           if (dripNow !== last.drip) {
