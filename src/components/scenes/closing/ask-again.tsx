@@ -101,7 +101,13 @@ export function AskAgain({ questions: chips }: { questions: Chip[] }) {
       </div>
 
       <p className="sr-only" role="status">
-        {question && hits.length > 0 ? askAgainCopy.announce(question.text, hits.length) : ""}
+        {failed
+          ? askAgainCopy.failed
+          : picked && !hits.length
+            ? askAgainCopy.loading
+            : question && hits.length > 0
+              ? askAgainCopy.announce(question.text, hits.length)
+              : ""}
       </p>
       <div className="ask-out">
         {failed && <p className="ask-note">{askAgainCopy.failed}</p>}
@@ -116,7 +122,7 @@ export function AskAgain({ questions: chips }: { questions: Chip[] }) {
                 <li key={h.source + i} className="ask-hit" style={{ "--score": h.score, "--i": i } as CSSProperties}>
                   <span className="ask-score">
                     <span className="sr-only">similarity </span>
-                    {h.score.toFixed(2)}
+                    {h.score.toFixed(3)}
                   </span>
                   <span className="ask-src">{h.source}</span>
                   <span className="ask-text">{h.text}</span>
