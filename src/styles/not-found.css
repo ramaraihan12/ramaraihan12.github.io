@@ -53,8 +53,8 @@
     .nf-layer {
       padding-inline: max(2rem, calc((100vw - 80rem) / 2 + 2rem));
     }
-    .nf-text,
-    .nf-actions {
+    .nf-layer .nf-text,
+    .nf-layer .nf-actions {
       padding-inline: 0;
     }
   }
