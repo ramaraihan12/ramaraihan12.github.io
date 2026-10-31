@@ -74,6 +74,26 @@
     }
   }
 
+  /* Stepping aside while the answer blooms or the contact block is up. Important, because the
+     card's own in-animation holds opacity and translate; the timer is paused in the fuse rule. */
+  .rr-toast {
+    transition:
+      opacity 0.3s ease,
+      translate 0.3s ease,
+      visibility 0s linear 0s;
+
+    &[data-away] {
+      opacity: 0 !important;
+      translate: 0 0.5rem !important;
+      visibility: hidden;
+      pointer-events: none;
+      transition:
+        opacity 0.3s ease,
+        translate 0.3s ease,
+        visibility 0s linear 0.3s;
+    }
+  }
+
   /* Near the end of the page: above the footer, over the sky band, on phones too. */
   .rr-toast[data-lifted] {
     --rr-toast-from: 1rem;
@@ -196,7 +216,8 @@
   }
 
   .rr-toast:hover .rr-toast-timer,
-  .rr-toast:focus-within .rr-toast-timer {
+  .rr-toast:focus-within .rr-toast-timer,
+  .rr-toast[data-away] .rr-toast-timer {
     animation-play-state: paused;
   }
 
@@ -353,6 +374,10 @@
 
     .rr-toast-mark {
       animation: none;
+    }
+
+    .rr-toast[data-away] {
+      translate: none !important;
     }
 
     /* Still keeps time, just without the moving line. */

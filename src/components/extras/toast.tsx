@@ -18,6 +18,8 @@ export type ToastProps = {
   title: string;
   body: string;
   closeLabel: string;
+  /** Stand aside (the answer's bloom, the contact block) without losing its place or its time. */
+  away?: boolean;
   /** Called once, after the card has left. */
   onDone: () => void;
 };
@@ -38,7 +40,7 @@ function liftAboveFooter(): number | null {
   return r.top < window.innerHeight ? Math.round(r.top + window.scrollY) : null;
 }
 
-export function Toast({ label, count, title, body, closeLabel, onDone }: ToastProps) {
+export function Toast({ label, count, title, body, closeLabel, away = false, onDone }: ToastProps) {
   const [leaving, setLeaving] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const cameFrom = useRef<HTMLElement | null>(null);
@@ -95,6 +97,8 @@ export function Toast({ label, count, title, body, closeLabel, onDone }: ToastPr
       role="group"
       aria-labelledby={titleId}
       data-leaving={leaving || undefined}
+      data-away={away || undefined}
+      aria-hidden={away || undefined}
       data-lifted={lift !== null || undefined}
       style={lift !== null ? ({ "--rr-toast-top": `${lift}px` } as CSSProperties) : undefined}
       onAnimationEnd={onAnimationEnd}
