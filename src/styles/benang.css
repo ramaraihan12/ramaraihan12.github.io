@@ -93,8 +93,9 @@
     border: 1px solid rgb(239 233 220 / 0.55);
     opacity: calc(1 - var(--k, 0));
 
+    /* On a phone the dot and its ring stay inside the 16px margin, off the cards' edge. */
     @media (width < 40rem) {
-      inset: -2.5px;
+      inset: -1.5px;
     }
   }
 
@@ -102,7 +103,7 @@
   .scrolly .answer {
     z-index: 1;
 
-    &[data-bx] .answer-bg {
+    &[data-bx]:not([data-flooding]) .answer-bg {
       visibility: hidden;
     }
   }
@@ -131,7 +132,23 @@
     }
   }
 
-  html[data-bx-park].scrolly .run-hint span::after {
-    opacity: 1;
+  html[data-bx-park].scrolly .run-hint span {
+    color: transparent;
+    animation: none;
+
+    &::after {
+      opacity: 1;
+    }
+  }
+
+  /*
+    On a phone the swipe deck is full-bleed and slides sideways: it goes over the thread, so a
+    card passes in front of the line instead of the line running over its text.
+  */
+  @media (width < 48rem) {
+    .run-deck {
+      position: relative;
+      z-index: 1;
+    }
   }
 }
