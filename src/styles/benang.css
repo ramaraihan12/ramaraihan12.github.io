@@ -1,3 +1,9 @@
+@keyframes bx-in {
+  from {
+    opacity: 0;
+  }
+}
+
 @layer components {
   /*
     The thread (src/components/benang). One box in document space after <main>, over the page
@@ -22,6 +28,17 @@
 
     &:not([data-mode]) {
       visibility: hidden;
+    }
+
+    /* Lazy on a deep link, so it fades in rather than popping. Opacity only. */
+    &[data-mode] {
+      animation: bx-in 0.3s ease-out both;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      &[data-mode] {
+        animation: none;
+      }
     }
   }
 
