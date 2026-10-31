@@ -141,6 +141,17 @@
         background-color 0.2s,
         color 0.2s;
 
+      /* A bigger place to tap than the little box, without moving anything. */
+      &::after {
+        content: "";
+        position: absolute;
+        inset: -4px;
+
+        @media (pointer: coarse) {
+          inset: -7px;
+        }
+      }
+
       /* The box is ink pressed by the note landing on it. --ink runs 0 to 1 on the scroll
          timeline (answer-stage.tsx); everywhere else it's printed already. */
       &::before {
