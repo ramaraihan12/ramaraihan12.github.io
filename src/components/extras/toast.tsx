@@ -30,14 +30,14 @@ let mark: string | null = null;
 const kawung = () => (mark ??= batikDataUri("kawung", { ink: "#f4b223", ground: "#0f1a47", tint: "#8a5a2b", scale: 0.55 }));
 
 // When the footer is on screen the card sits just above it, over the sky, instead of where it
-// would cover the contact block. Measured once, as the card comes in, as a spot on the page
+// would cover the contact block. Followed while the card is up, as a spot on the page
 // (not the window), so scrolling afterwards carries the card with the sky instead of leaving it
 // frozen over the email or the footer.
 function liftAboveFooter(): number | null {
   const foot = document.querySelector(".site-footer");
   if (!foot) return null;
   const r = foot.getBoundingClientRect();
-  return r.top < window.innerHeight ? Math.round(r.top + window.scrollY) : null;
+  return r.top < window.innerHeight - 8 ? Math.round(r.top + window.scrollY) : null;
 }
 
 export function Toast({ label, count, title, body, closeLabel, away = false, onDone }: ToastProps) {
@@ -46,7 +46,29 @@ export function Toast({ label, count, title, body, closeLabel, away = false, onD
   const cameFrom = useRef<HTMLElement | null>(null);
   const finished = useRef(false);
   const titleId = useId();
-  const [lift] = useState(liftAboveFooter);
+  const [lift, setLift] = useState(liftAboveFooter);
+
+  // Followed while the card is on show, not measured once: it may come back from standing aside
+  // far from where it first appeared, and the footer then scrolls up under a card that was fixed.
+  // Seen from the page's side, so the switch is seamless (see liftAboveFooter's margin), and only
+  // checked on scroll, one frame at a time.
+  useEffect(() => {
+    if (away) return;
+    let frame = 0;
+    const check = () => {
+      frame = 0;
+      setLift(liftAboveFooter());
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(check);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(frame);
+    };
+  }, [away]);
 
   const finish = () => {
     if (finished.current) return;
