@@ -545,7 +545,7 @@ export class EmbeddingMap {
     const cx = from.x + (to.x - from.x) * e - ((to.y - from.y) / len) * arc;
     const cy = from.y + (to.y - from.y) * e + ((to.x - from.x) / len) * arc;
     // Shrinks to a small flower, a note near the question keeping a bigger one.
-    const rest = top ? 0.4 : 0.16;
+    const rest = top ? 0.6 : 0.16;
     const k = 1 + (rest - 1) * e ** 0.7;
     const fade = top ? left : d.rest ? 1 - hand : 1 - clamp01((u - 0.72) / 0.28);
     // The shading comes in over the flight, so a flower leaving the cloth doesn't dim in one frame.
@@ -555,6 +555,17 @@ export class EmbeddingMap {
       const pt = cloth.petals[d.flower * 4 + q];
       const px = cx + (pt.x - from.x) * k;
       const py = cy + (pt.y - from.y) * k;
+      // The kept flowers, small, are four petals that can read as a cross. A wax dot between each
+      // pair (the cecek of the real kawung) closes them into a flower.
+      if (top && e > 0.5) {
+        const reach = Math.hypot(pt.x - from.x, pt.y - from.y) * k * 1.5;
+        const ang = Math.atan2(pt.y - from.y, pt.x - from.x) + Math.PI / 4;
+        ctx.globalAlpha = 0.85 * fade * clamp01((e - 0.5) / 0.4);
+        ctx.fillStyle = rgba(colors.mori, 1);
+        ctx.beginPath();
+        ctx.arc(cx + Math.cos(ang) * reach, cy + Math.sin(ang) * reach, 1.1, 0, TAU);
+        ctx.fill();
+      }
       if (pt.size >= 0) {
         ctx.globalAlpha = 0.92 * dye;
         ctx.fillStyle = rgba(pt.positive || top ? colors.kunyit : colors.soga, 1);
@@ -573,7 +584,7 @@ export class EmbeddingMap {
       // The seed of the flower: a turmeric dot in a wax ring, so it reads as kawung, not a cross.
       ctx.globalAlpha = fade * clamp01((e - 0.5) / 0.4);
       ctx.beginPath();
-      ctx.arc(cx, cy, 3.4, 0, TAU);
+      ctx.arc(cx, cy, 3.8, 0, TAU);
       ctx.fillStyle = rgba(colors.kunyit, 1);
       ctx.fill();
       ctx.strokeStyle = rgba(colors.mori, 1);
@@ -637,7 +648,10 @@ export class EmbeddingMap {
         if (ex * ex + ey * ey < d.r * d.r) return false;
       }
       // Labels that share a column need a clear gap, or two read as one two-line name.
-      return !placed.some((p) => Math.abs(p.x - x) < (p.w + bw) / 2 + 4 && Math.abs(p.y - y) < 34);
+      // On a phone the names are packed into a narrow map, so they want more air between them.
+      const gapX = w < 500 ? 16 : 4;
+      const gapY = w < 500 ? 46 : 34;
+      return !placed.some((p) => Math.abs(p.x - x) < (p.w + bw) / 2 + gapX && Math.abs(p.y - y) < gapY);
     };
     // The note nearest a spot should be one of the group's own, so the name stays by its cluster.
     const own = (name: string, x: number, y: number) => {
@@ -678,9 +692,12 @@ export class EmbeddingMap {
       if (a <= 0) continue;
       const s = this.toScreen(l.at, cam);
       const x = s.x + l.off.x * cam.s;
-      // Mid pull-back a name can reach past the canvas: leave it out until it's whole.
-      if (x - l.w / 2 < 0 || x + l.w / 2 > this.w) continue;
-      ctx.fillStyle = rgba(colors.pudar, 0.85 * a);
+      // Mid pull-back a name can reach past the canvas: it fades out over the last few pixels
+      // before the edge instead of popping, and is gone before it would be cut.
+      const inset = Math.min(x - l.w / 2, this.w - (x + l.w / 2));
+      const edge = clamp01((inset + 12) / 22);
+      if (edge <= 0) continue;
+      ctx.fillStyle = rgba(colors.pudar, 0.85 * a * edge);
       ctx.fillText(l.name, x, s.y + l.off.y * cam.s);
     }
     ctx.letterSpacing = "0px";
