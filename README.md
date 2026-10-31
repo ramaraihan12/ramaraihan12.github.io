@@ -112,7 +112,7 @@ uv run scripts/embed_closer.py
 
 `embed_notes.py` rewrites `src/content/retrieval.json`: the tokens, the scores, the map, and the question's whole vector (`queryVector`) that the cloth is drawn from. It prints the new top five. If they change, update the answer in `src/content/story.ts` so its citations still match. The counts on the page follow the new data by themselves.
 
-`embed_closer.py` rewrites `src/content/closer.json`, the questions and scores Closer deals its pairs from. The "ask me something else" picker lists the same ten questions with their closest three notes, so it needs no step of its own. It prints each question's top five, so you can check that a person would pick the same notes.
+`embed_closer.py` rewrites `src/content/closer.json`, the questions and scores Closer deals its pairs from. It prints each question's top five, so you can check that a person would pick the same notes. The "ask me something else" picker lists the same ten questions with their closest three notes, so it needs no step of its own.
 
 ## Checks
 
