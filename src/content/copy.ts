@@ -68,14 +68,14 @@ export const pipelineCopy = {
 export const workCopy = {
   eyebrow: "work",
   title: `${countWord(aiProjects.length, true)} AI apps I built`,
-  lead: "Most run on a local model through Ollama by default, so you can try them without an API key.",
+  lead: "Most of these are live, so you can try them right here. They run on free tiers, so the first load can take a few seconds and there are daily limits.",
   /** The arrow after it is drawn separately. */
   scrollHint: "keep scrolling",
   stackLabel: "Stack",
   codeLink: "Read the code",
   /** Screen-reader ending for the code link: "Read the code for antre". */
   codeLinkFor: (name: string) => ` for ${name}`,
-  /** For a project with a `demo`. */
+  /** For a project with a `demo` and no `demoLabel` of its own. */
   demoLink: "Try it",
   outro: "Everything else, including the commits, is on GitHub.",
   outroLink: site.github.replace(/^https:\/\//, ""),

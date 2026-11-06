@@ -91,6 +91,19 @@
     }
   }
 
+  /* The line under a summary with what you need for the demo. Its words stay whole (demo-note.tsx). */
+  .demo-note {
+    max-width: 40rem;
+    margin-top: 0.5rem;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: var(--pudar);
+
+    & span {
+      white-space: nowrap;
+    }
+  }
+
   .code-link {
     display: inline-flex;
     align-items: center;

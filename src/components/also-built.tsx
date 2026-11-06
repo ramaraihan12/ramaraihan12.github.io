@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import { PostcardImage } from "@/components/art/files";
 import { alsoCopy, workCopy } from "@/content/copy";
 import { otherProjects } from "@/content/projects";
+import { DemoNote } from "./demo-note";
 import { ArrowUpRightIcon } from "./icons";
 
 /** Screen readers hear where a link goes: GitHub, or the project's own page. */
@@ -33,6 +34,7 @@ export function AlsoBuilt() {
               )}
               <div className="also-body">
                 <p className="also-summary">{project.summary}</p>
+                {project.demoNote ? <DemoNote text={project.demoNote} /> : null}
                 <div className="also-foot">
                   <ul className="chips" aria-label={alsoCopy.stackLabel}>
                     {project.stack.map((tech) => (
@@ -41,7 +43,7 @@ export function AlsoBuilt() {
                   </ul>
                   {project.demo ? (
                     <a href={project.demo} className="code-link also-demo">
-                      {alsoCopy.demoLink}
+                      {project.demoLabel ?? alsoCopy.demoLink}
                       <span className="sr-only">{workCopy.codeLinkFor(project.name)}</span>
                       <ArrowUpRightIcon className="size-4" />
                     </a>

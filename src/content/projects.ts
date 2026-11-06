@@ -16,13 +16,21 @@ export type Project = {
   stack: string[];
   href: string;
   image?: ProjectImage;
-  /** A live page where you can try it. */
+  /** Where you can try it: a live page, or a download for something with no page. */
   demo?: string;
+  /** The link's words when "Try it" doesn't fit, like a download. */
+  demoLabel?: string;
+  /**
+   * One short line for someone about to try the demo: the shared login, a sample to use, or what's
+   * off in it. Short phones cut the summary off, so anything they need to see goes here, not there.
+   * The logins are public on purpose.
+   */
+  demoNote?: string;
 };
 
 /**
  * No href means there's nothing public to link to, so the name is shown without a link.
- * Has `image` and `demo` from Project too.
+ * Has `image` and the `demo` fields from Project too.
  */
 export type OtherProject = Omit<Project, "flow" | "href" | "kind"> & { href?: string };
 
@@ -43,6 +51,8 @@ export const aiProjects: Project[] = [
     flow: ["upload docs", "chunk + embed", "pgvector search", "score cutoff", "cited answer"],
     stack: ["Python", "FastAPI", "LlamaIndex", "pgvector"],
     href: repo("docs-rag-assistant"),
+    demo: "https://docs-rag-assistant-psi.vercel.app",
+    demoNote: "Uploads are off in the demo, so you ask about the loaded samples.",
     image: shot(
       "docs-rag-assistant",
       "The docs assistant answering a question about hotel limits with two numbered sources. Above it, an off-topic question it declined to answer.",
@@ -58,6 +68,7 @@ export const aiProjects: Project[] = [
     flow: ["plan", "you approve", "web search", "reflect", "cited report"],
     stack: ["Python", "LangGraph", "Postgres"],
     href: repo("research-agent"),
+    demo: "https://research-agent-mauve-eight.vercel.app",
   },
   {
     name: "shop-support-bot",
@@ -67,6 +78,8 @@ export const aiProjects: Project[] = [
     flow: ["web or telegram", "handoff check", "policy search", "tool calls", "reply"],
     stack: ["Next.js", "Vercel AI SDK", "Drizzle", "pgvector"],
     href: repo("shop-support-bot"),
+    demo: "https://shop-support-bot-ivory.vercel.app",
+    demoNote: "Try order KN-10231 with rina.wulandari@example.com",
     image: shot(
       "shop-support-bot",
       "A support chat in Indonesian and English. The bot finds one order, answers a shipping question, and won't show an order placed with a different email.",
@@ -82,6 +95,8 @@ export const aiProjects: Project[] = [
     flow: ["key check", "rate limit", "cache", "retry / fallback", "cost log"],
     stack: ["TypeScript", "Hono", "Postgres"],
     href: repo("llm-gateway"),
+    demo: "https://llm-gateway-red.vercel.app",
+    demoNote: "The demo is one locked alias on Gemini, so fallback won't show.",
   },
   {
     name: "invoice-flow",
@@ -91,6 +106,8 @@ export const aiProjects: Project[] = [
     flow: ["upload", "llm extract", "math + ppn check", "review + approve", "signed webhook"],
     stack: ["Laravel 12", "Prism", "Queues", "Postgres"],
     href: repo("invoice-flow"),
+    demo: "https://invoice-flow-three-henna.vercel.app",
+    demoNote: "Uploads are off in the demo, so you start from a sample invoice.",
     image: shot(
       "invoice-flow",
       "The review screen: the original invoice on the left, the extracted fields on the right, and one line item flagged because 3 times the unit price doesn't match its amount.",
@@ -106,6 +123,7 @@ export const aiProjects: Project[] = [
     flow: ["question", "generate sql", "guardrails", "run read-only", "answer + chart"],
     stack: ["Python", "LangChain", "Streamlit", "MCP"],
     href: repo("text-to-sql-chat"),
+    demo: "https://text-to-sql-chat.streamlit.app",
     image: shot(
       "text-to-sql-chat",
       "The chat answering “Revenue per city in September 2026” with one sentence and a bar chart of ten cities.",
@@ -121,6 +139,7 @@ export const aiProjects: Project[] = [
     flow: ["new issue", "duplicate check", "labels", "ask for details"],
     stack: ["TypeScript", "GitHub Actions", "Gemini", "zod"],
     href: repo("issue-triage-action"),
+    demo: "https://github.com/ramaraihan12/issue-triage-demo",
   },
   {
     name: "local-ai-coding-setup",
@@ -130,6 +149,8 @@ export const aiProjects: Project[] = [
     flow: ["pi in terminal", "permission gate", "llama-server", "gpu + ram split"],
     stack: ["llama.cpp", "Ollama", "Pi", "PowerShell"],
     href: repo("local-ai-coding-setup"),
+    demo: "https://ramaraihan.is-a.dev/local-ai-coding-setup/",
+    demoLabel: "Project page",
   },
 ];
 
@@ -143,6 +164,8 @@ export const webProjects: Project[] = [
     flow: ["book or walk in", "midtrans deposit", "priority queue", "call next", "tv reads it out"],
     stack: ["Laravel 12", "React + Inertia", "Reverb", "PostgreSQL", "Midtrans"],
     href: repo("antre"),
+    demo: "https://antre-eight.vercel.app",
+    demoNote: "Staff dimas@senyum.test, owner owner@senyum.test, password: password",
     image: shot(
       "antre",
       "The waiting-room TV: the number each counter is serving in large type, and the last five calls on the right.",
@@ -158,6 +181,8 @@ export const webProjects: Project[] = [
     flow: ["ring up sale", "local outbox", "batch sync", "insert once", "owner reports"],
     stack: ["Next.js 16", "Dexie", "Drizzle", "PostgreSQL", "Service worker", "Playwright"],
     href: repo("warung-pos"),
+    demo: "https://warung-pos-ashen.vercel.app",
+    demoNote: "Login kasir1@warungbusri.test or owner@warungbusri.test, password warung123",
     image: shot(
       "warung-pos",
       "The till with the network off. A yellow banner says sales are still saved on this device, and two are waiting to sync.",
@@ -173,6 +198,8 @@ export const webProjects: Project[] = [
     flow: ["check signature", "store", "ack", "retry + backoff", "replay from /ui"],
     stack: ["Rust", "axum + tokio", "sqlx + PostgreSQL", "askama + htmx", "Prometheus"],
     href: repo("webhook-inbox"),
+    demo: "https://webhook-inbox-zeta.vercel.app",
+    demoNote: "At /ui: any user name, password demo-admin-token",
     image: shot(
       "webhook-inbox",
       "The delivery list: GitHub, Midtrans, Xendit and partner webhooks marked done, rejected or dead, with how many tries each took.",
@@ -188,6 +215,8 @@ export const webProjects: Project[] = [
     flow: ["pg_dump", "zstd", "age encrypt", "s3 upload", "restore drill"],
     stack: ["Go", "PostgreSQL", "zstd", "age", "MinIO"],
     href: repo("pg-backup"),
+    demo: "https://github.com/ramaraihan12/pg-backup/releases/tag/v0.1.0",
+    demoLabel: "Download",
   },
 ];
 
@@ -198,6 +227,8 @@ export const otherProjects: OtherProject[] = [
       "Python pipeline I run for my own YouTube channel. It turns a long video into vertical 9:16 clips: faster-whisper transcribes, Gemini picks the highlights, OpenCV tracks faces for the crop and ffmpeg burns in subtitles. Then it uploads the clips to my channel through the YouTube Data API. The pipeline code isn't public.",
     stack: ["Python", "faster-whisper", "Gemini", "OpenCV", "ffmpeg"],
     href: "https://ramaraihan.is-a.dev/project-clipper/",
+    demo: "https://ramaraihan.is-a.dev/project-clipper/",
+    demoLabel: "Project page",
   },
   {
     name: "ralaex",
@@ -205,6 +236,8 @@ export const otherProjects: OtherProject[] = [
       "Household finance PWA my wife and I log our spending in from our phones. Budgets that warn at 80% and 100%, receipt photos, charts, and PDF and Excel export. Recurring bills don't post on their own yet.",
     stack: ["Next.js", "TypeScript", "Supabase", "Recharts"],
     href: repo("ralaex"),
+    demo: "https://ralaex-app.vercel.app",
+    demoNote: "Receipt upload is off in the demo. Login demo@example.com, password demo-ralaex-2026",
   },
   {
     name: "chaBubbleTwitch",

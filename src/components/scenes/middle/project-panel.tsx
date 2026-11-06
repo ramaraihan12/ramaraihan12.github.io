@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { hash } from "@/components/art";
 import { PostcardImage } from "@/components/art/files";
+import { DemoNote } from "@/components/demo-note";
 import { ArrowUpRightIcon } from "@/components/icons";
 import { Pipeline } from "@/components/pipeline";
 import { workCopy } from "@/content/copy";
@@ -87,6 +88,7 @@ export function ProjectPanel({ project, index }: { project: Project; index: numb
           {project.name}
         </h3>
         <p className="project-summary">{project.summary}</p>
+        {project.demoNote ? <DemoNote text={project.demoNote} /> : null}
       </div>
 
       <ProjectArt project={project} />
@@ -102,7 +104,7 @@ export function ProjectPanel({ project, index }: { project: Project; index: numb
         <p className="project-links">
           {project.demo ? (
             <a href={project.demo} className="code-link">
-              {workCopy.demoLink}
+              {project.demoLabel ?? workCopy.demoLink}
               <span className="sr-only">{workCopy.codeLinkFor(project.name)}</span>
               <ArrowUpRightIcon className="size-4" />
             </a>
