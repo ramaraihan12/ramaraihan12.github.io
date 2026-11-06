@@ -124,6 +124,7 @@ export const aiProjects: Project[] = [
     stack: ["Python", "LangChain", "Streamlit", "MCP"],
     href: repo("text-to-sql-chat"),
     demo: "https://text-to-sql-chat.streamlit.app",
+    demoNote: "It sleeps when idle, so you may need to click the wake button first.",
     image: shot(
       "text-to-sql-chat",
       "The chat answering “Revenue per city in September 2026” with one sentence and a bar chart of ten cities.",
@@ -160,7 +161,7 @@ export const webProjects: Project[] = [
     name: "antre",
     kind: "Queue + booking",
     summary:
-      "Queue and booking for small clinics and barbershops. Book a slot with a deposit or take a walk-in ticket, and the TV in the waiting room calls your number out loud in Indonesian. Two counters never get the same ticket. 180 Pest tests, but the real Midtrans sandbox path isn't tested yet.",
+      "Queue and booking for small clinics and barbershops. Book a slot with a deposit or take a walk-in ticket, and the TV in the waiting room calls your number out loud in Indonesian. Two counters never get the same ticket. 206 Pest tests, but the real Midtrans sandbox path isn't tested yet.",
     flow: ["book or walk in", "midtrans deposit", "priority queue", "call next", "tv reads it out"],
     stack: ["Laravel 12", "React + Inertia", "Reverb", "PostgreSQL", "Midtrans"],
     href: repo("antre"),
