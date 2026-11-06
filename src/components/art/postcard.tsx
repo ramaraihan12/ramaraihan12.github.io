@@ -271,34 +271,21 @@ const CARDS: Record<string, () => ReactNode> = {
     );
   },
 
-  // A desktop PC: a monitor running the terminal, and a tower with its GPU card showing in the side window.
-  "local-ai-coding-setup": () => {
-    return (
-      <>
-        <g transform="translate(-8 0)">
-        <path d="M152 100C164 100 160 116 172 116" stroke={M} strokeWidth="1.6" strokeDasharray="0 4" />
-        <path d="M40 30H148Q152 30 152 34V102Q152 106 148 106H40Q36 106 36 102V34Q36 30 40 30Z" fill={D} />
-        <rect x="44" y="38" width="100" height="60" rx="2" stroke={M} strokeWidth="1" />
-        <path d="M52 50L58 55 52 60" strokeWidth="2.4" />
-        <path d="M64 55H106" strokeWidth="2" />
-        <path d="M52 70H92M52 82H120" stroke={M} strokeWidth="2" />
-        <rect x="52" y="90" width="7" height="8" fill={A} stroke="none" />
-        <path d="M86 106H102L106 124H82Z" fill={S} />
-        <path d="M66 126H122Q126 126 126 130V132H62V130Q62 126 66 126Z" fill={S} />
-        <path d="M176 22H220Q224 22 224 26V132H172V26Q172 22 176 22Z" fill={D} />
-        <path d="M180 32H212M180 39H212" stroke={M} strokeWidth="1.4" />
-        <circle cx="214" cy="50" r="2" fill={I} stroke="none" />
-        <rect x="179" y="60" width="38" height="46" rx="2" stroke={M} strokeWidth="1" />
-        <rect x="183" y="68" width="30" height="14" rx="1.5" fill={S} strokeWidth="1.4" />
-        <circle cx="191" cy="75" r="4.4" fill={D} strokeWidth="1.2" />
-        <circle cx="205" cy="75" r="4.4" fill={D} strokeWidth="1.2" />
-        <path d="M186 82v5M190 82v5M194 82v5" stroke={M} strokeWidth="1.2" />
-        <path d="M183 96H213M183 101H205" stroke={M} strokeWidth="1.4" />
-        <path d="M54 132H230" />
-        </g>
-      </>
-    );
-  },
+  // A laptop running the terminal on its own, with the keys and trackpad on the deck below it.
+  "local-ai-coding-setup": () => (
+    <>
+      <path d="M52 26H188Q192 26 192 30V116H48V30Q48 26 52 26Z" fill={D} />
+      <rect x="56" y="34" width="128" height="74" rx="2" stroke={M} strokeWidth="1" />
+      <path d="M66 48L72 53 66 58" strokeWidth="2.4" />
+      <path d="M78 53H130" strokeWidth="2" />
+      <path d="M66 69H116M66 81H152" stroke={M} strokeWidth="2" />
+      <rect x="66" y="91" width="7" height="8" fill={A} stroke="none" />
+      <path d="M48 116H192L214 146H26Z" fill={S} />
+      <path d="M60 123H180M54 131H186" strokeDasharray="0 6" strokeWidth="2.4" />
+      <path d="M104 137H136L138 146H102Z" fill={D} strokeWidth="1.4" />
+      <path d="M26 146H214V149Q214 153 210 153H30Q26 153 26 149Z" fill={D} />
+    </>
+  ),
 
   // Number 07 on the TV, and the people waiting for it.
   antre: () => {

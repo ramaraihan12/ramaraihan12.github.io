@@ -123,7 +123,7 @@ export const answerCopy = {
   sourcesLabel: "Sources",
   /** One alt for both crops, the square on phones and the portrait, so it says only what both show. */
   photoAlt: "Rama Raihan in a black tuxedo and bow tie",
-  note: `The tokens, numbers and scores up top are real, from a model on my PC. This answer isn't generated. I wrote it from those ${countWord(topK)} notes.`,
+  note: `The tokens, numbers and scores up top are real, from a model on my laptop. This answer isn't generated. I wrote it from those ${countWord(topK)} notes.`,
   allNotes: `All ${retrieval.points.length} notes`,
 } as const;
 

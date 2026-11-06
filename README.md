@@ -39,7 +39,7 @@ My personal site. It answers one question, "Who is Rama Raihan?", the way a RAG 
 ## What's real and what isn't
 
 - The token IDs come from the embedding model's own tokenizer (`Qwen/Qwen3-Embedding-0.6B` on Hugging Face). Neither of my names is in its vocabulary, so both get split in two.
-- The numbers, the scores and the map come from `qwen3-embedding:0.6b`, run on my PC through Ollama. `scripts/embed_notes.py` embeds the 51 notes in `scripts/notes.json`, ranks them by cosine similarity, and squashes everything to 2D with PCA. The page reads the result from `src/content/retrieval.json`.
+- The numbers, the scores and the map come from `qwen3-embedding:0.6b`, run on my laptop through Ollama. `scripts/embed_notes.py` embeds the 51 notes in `scripts/notes.json`, ranks them by cosine similarity, and squashes everything to 2D with PCA. The page reads the result from `src/content/retrieval.json`.
 - The kawung cloth is the question's whole embedding, saved in the same file as `queryVector`. Each of the 1,024 numbers is one petal: the bigger the number, the more dye, turmeric if it's positive and soga brown if it's negative. The grid has a few more slots than that, and those stay bare wax.
 - The map is a PCA squash of 1,024 dimensions into 2, so dots that look close may not be close in meaning. The ranking uses all 1,024.
 - Each note gets a one-line header with my name before it's embedded. Without it, notes like "I deploy my own apps..." don't say whose they are, and they lose to random stack notes.

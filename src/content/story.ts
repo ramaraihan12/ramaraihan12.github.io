@@ -31,7 +31,7 @@ export const intro =
 
 export const steps = {
   tokens: `First the tokenizer of ${retrieval.model} cuts the question into ${retrieval.tokens.length} tokens. Neither of my names is in its vocabulary, so each one comes out in two pieces.`,
-  embed: `Then the model, running on my PC through Ollama, turns those tokens into ${retrieval.dims.toLocaleString("en-US")} numbers. Here are the first ${retrieval.queryHead.length}.`,
+  embed: `Then the model, running on my laptop through Ollama, turns those tokens into ${retrieval.dims.toLocaleString("en-US")} numbers. Here are the first ${retrieval.queryHead.length}.`,
   retrieve: `Those numbers get compared with ${retrieval.points.length} short notes I wrote about myself and my work. The ${inWords(retrieval.top.length)} closest come back.`,
 };
 

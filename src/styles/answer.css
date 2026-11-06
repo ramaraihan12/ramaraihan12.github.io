@@ -111,7 +111,7 @@
   /*
     A note's line weight is its score (--s, set per note in answer-scene.tsx): the same on its
     citation's box, its number in the source list and its wax ring on the way in. about.md, at
-    0.520, draws the heaviest line, work.md at 0.367 the lightest.
+    0.519, draws the heaviest line, work.md at 0.366 the lightest.
   */
   .cite,
   .answer-sources li {
