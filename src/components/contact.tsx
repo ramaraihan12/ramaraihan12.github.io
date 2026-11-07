@@ -3,7 +3,7 @@ import closer from "@/content/closer.json";
 import { contactCopy } from "@/content/copy";
 import { site } from "@/content/site";
 import { EmailLink } from "./email-link";
-import { ArrowUpRightIcon, CheckIcon, GitHubIcon, MailIcon } from "./icons";
+import { ArrowUpRightIcon, CheckIcon, GitHubIcon, LinkedInIcon, MailIcon } from "./icons";
 import { SalatigaClock } from "./salatiga-clock";
 import { AskAgain } from "./scenes/closing/ask-again";
 import { SkyBand, SkyCaption } from "./scenes/closing/sky-band";
@@ -20,6 +20,7 @@ export function Contact() {
           {contactCopy.title}
         </h2>
         <p className="lead mt-5">{contactCopy.lead}</p>
+        <p className="lead mt-2">{contactCopy.status}</p>
 
         <EmailLink className="contact-email" stamp={contactCopy.copied.toLowerCase()}>
           {site.email}
@@ -41,6 +42,15 @@ export function Contact() {
           <a href={site.github} className="btn btn-line">
             <GitHubIcon className="size-4" />
             {contactCopy.github}
+            <ArrowUpRightIcon className="size-3.5" />
+          </a>
+          <a href={site.linkedin} className="btn btn-line">
+            <LinkedInIcon className="size-4" />
+            {contactCopy.linkedin}
+            <ArrowUpRightIcon className="size-3.5" />
+          </a>
+          <a href={site.cv} className="btn btn-line">
+            {contactCopy.cv}
             <ArrowUpRightIcon className="size-3.5" />
           </a>
           <p className="contact-time">

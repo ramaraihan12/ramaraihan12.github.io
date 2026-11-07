@@ -17,6 +17,11 @@
     --lift-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
     padding-block: clamp(5rem, 12vh, 8rem) 2rem;
     overflow-x: clip;
+
+    /* It only holds focus after the hero's jump, and the whole section isn't a thing to ring. */
+    &:focus {
+      outline: none;
+    }
   }
 
   .run-track {

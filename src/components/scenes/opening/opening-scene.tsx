@@ -3,14 +3,15 @@
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { type CSSProperties, Fragment, type ReactNode, useRef, useState } from "react";
+import { type CSSProperties, Fragment, type MouseEvent, type ReactNode, useRef, useState } from "react";
 import { KawungField, type KawungFieldHandle } from "@/components/art/kawung-field";
 import { queryCopy } from "@/content/copy";
+import { site } from "@/content/site";
 import { intro, retrieval, steps } from "@/content/story";
 import { EmbeddingMap, type Frame, IRIS_SHARE } from "@/lib/embedding-map";
 import { provideQueryDot } from "@/lib/benang-path";
 import { MOBILE_MQ, PRIORITY, REDUCE_MQ, SCENE_MQ, scrollyOn } from "@/lib/scroll";
-import { elementMarker, setMarkers } from "@/lib/stage";
+import { elementMarker, goToStage, setMarkers } from "@/lib/stage";
 import { chipDrag } from "./chip-drag";
 import { landRig } from "./land-rig";
 
@@ -92,9 +93,10 @@ function Token({ index, lineStart }: { index: number; lineStart: boolean }) {
 /**
  * The opening: the question over Merbabu at dawn, its tokens, its embedding drawn as a kawung
  * cloth, and the map of notes it's matched against. One pinned, scrubbed scene; a plain document
- * with reduced motion or without scripts. `land` is the server-rendered landscape.
+ * with reduced motion or without scripts. `land` is the server-rendered landscape, `demos` the
+ * links under the question.
  */
-export function OpeningScene({ land }: { land: ReactNode }) {
+export function OpeningScene({ land, demos }: { land: ReactNode; demos: ReactNode }) {
   const root = useRef<HTMLElement>(null);
   const cloth = useRef<KawungFieldHandle>(null);
   // Where the canting starts on the cloth (the query dot, as fractions of the stage), and how
@@ -234,7 +236,8 @@ export function OpeningScene({ land }: { land: ReactNode }) {
         const [stepTokens, , stepRetrieve] = gsap.utils.toArray<HTMLElement>(".qs-step", section);
         const embedBody = q(".qs-step-embed .qs-step-body");
         const numbers = gsap.utils.toArray<HTMLElement>(".vec-n", section);
-        const heroBits = gsap.utils.toArray<HTMLElement>(".qs-eyebrow, .qs-intro, .qs-hint", section);
+        const heroBits = gsap.utils.toArray<HTMLElement>(".qs-eyebrow, .qs-intro, .qs-status, .qs-hint", section);
+        const heroLinks = gsap.utils.toArray<HTMLElement>(".qs-go-link, .qs-cv, .qs-demos", section);
         const resultsHead = q(".qs-results-head");
         const landBox = q(".qs-land");
         const sun = q(".qs-sun");
@@ -364,6 +367,8 @@ export function OpeningScene({ land }: { land: ReactNode }) {
         // question ends: it's the query dot now. The hero bits and tokens have CSS entrance
         // animations, so their start values are given here instead of read from the page.
         tl.fromTo(heroBits, { opacity: 1, y: 0 }, { opacity: 0, y: -24, duration: 0.5, stagger: 0.05 }, 0)
+          // autoAlpha, not opacity: a link that has faded out mustn't take clicks or Tab from the map.
+          .fromTo(heroLinks, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -24, duration: 0.5, stagger: 0.05 }, 0.05)
           .to(title, { "--wdth": 100, "--chip": 1, duration: 1.2, ease: "power1.inOut" }, 0.1)
           .fromTo(
             sink,
@@ -430,7 +435,9 @@ export function OpeningScene({ land }: { land: ReactNode }) {
           .to(map.state, { cam: 1, duration: 1.6, ease: "power1.inOut" }, T.bloom)
           .addLabel("retrieve", T.retrieve)
           .fromTo(stepRetrieve, { opacity: 0, y: 16 }, captionIn, T.retrieve + 0.1)
-          .fromTo(resultsHead, { opacity: 0 }, { opacity: 1, duration: 0.3 }, T.retrieve + 0.6);
+          .fromTo(resultsHead, { opacity: 0 }, { opacity: 1, duration: 0.3 }, T.retrieve + 0.6)
+          // The cards sit over the hero's links, so they only take the pointer once they're showing.
+          .set(cards, { pointerEvents: "auto" }, T.hits);
 
         // Retrieve: one line out to each of the five closest notes, and its card.
         retrieval.top.forEach((_, rank) => {
@@ -502,6 +509,14 @@ export function OpeningScene({ land }: { land: ReactNode }) {
     { scope: root },
   );
 
+  // The work section sits past the pins, so this goes where the nav goes. Focus goes along, or
+  // the next Tab would start from this link, back up the page.
+  const toWork = (e: MouseEvent) => {
+    if (!goToStage("work")) return;
+    e.preventDefault();
+    document.getElementById("work")?.focus({ preventScroll: true });
+  };
+
   return (
     <section id="top" ref={root} className="qs" aria-labelledby="hero-title">
       {/* The pin's spacer, here from the start so pinning never moves the stage. A plain box otherwise. */}
@@ -538,6 +553,16 @@ export function OpeningScene({ land }: { land: ReactNode }) {
               </span>
             </h1>
             <p className="qs-intro">{intro}</p>
+            <div className="qs-go">
+              <a href="#work" className="qs-go-link" onClick={toWork}>
+                {queryCopy.workLink} <span aria-hidden="true">→</span>
+              </a>
+              <a href={site.cv} className="qs-cv code-link">
+                {queryCopy.cv}
+              </a>
+              <p className="qs-status">{queryCopy.status}</p>
+            </div>
+            {demos}
             <p className="qs-hint" aria-hidden="true">
               {queryCopy.scrollHint} <span className="qs-hint-arrow">↓</span>
             </p>

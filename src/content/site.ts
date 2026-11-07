@@ -5,6 +5,8 @@ export const site = {
   timeZone: "Asia/Jakarta",
   email: "ramaraihan97@gmail.com",
   github: "https://github.com/ramaraihan12",
+  linkedin: "https://www.linkedin.com/in/ramadhani-raihan-858828364",
+  cv: "/Ramadhani-Raihan-CV.pdf",
   source: "https://github.com/ramaraihan12/ramaraihan12.github.io",
   description:
     "Full-stack developer in Salatiga, Indonesia. I build web apps in Laravel and Next.js, and lately AI apps: RAG, agents, chatbots and automation.",

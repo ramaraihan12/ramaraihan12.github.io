@@ -108,7 +108,9 @@ export function RunRail(props: ComponentPropsWithoutRef<"section">) {
         const moving = !reduce && scrollyOn();
 
         if (deck) {
-          const removeMarker = setMarker("work", elementMarker(section));
+          // A phone can't spare the section's top padding, so a jump lands on the heading.
+          const heading = elementMarker(section.querySelector(".run-intro")!);
+          const removeMarker = setMarker("work", { ...elementMarker(section), to: () => heading.to() - 16 });
           const deckRun = runDeck(section, moving, card, anchoredProject(), (i) => (card = i));
           const unset = setAnchor({ read: deckRun.read, put: deckRun.put });
           return () => {

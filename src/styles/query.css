@@ -161,9 +161,136 @@
     text-wrap: pretty;
   }
 
+  /* The way past the story. It wraps, so the status gets a line of its own on a phone. */
+  .qs-go {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.25rem;
+    margin-top: 2rem;
+  }
+
+  .qs-go-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.875rem;
+    padding: 0.5rem 1.1rem;
+    border-radius: 0.5rem;
+    background: var(--kunyit);
+    color: var(--nila);
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    transition: background-color 0.2s;
+
+    @media (hover: hover) {
+      &:hover {
+        background: var(--mori);
+      }
+    }
+  }
+
+  /* Quieter than the demos: cotton instead of turmeric, as tall as the button beside it. */
+  .qs-cv {
+    min-height: 2.875rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--mori);
+    text-decoration-color: rgb(239 233 220 / 0.4);
+    white-space: nowrap;
+  }
+
+  .qs-status {
+    flex: 1 1 16rem;
+    max-width: 24rem;
+    font-size: 0.82rem;
+    line-height: 1.35;
+    color: rgb(239 233 220 / 0.86);
+    text-wrap: pretty;
+  }
+
+  .qs-demos {
+    max-width: 50rem;
+    margin-top: 1.25rem;
+  }
+
+  .qs-demos-label {
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 87.5;
+    font-size: 0.72rem;
+    line-height: 1.4;
+    color: var(--pudar);
+  }
+
+  /* The same ground as the result cards, a little see-through so the hills carry on behind it. */
+  .qs-demo-list {
+    display: grid;
+    margin-top: 0.5rem;
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    background: rgb(15 26 71 / 0.8);
+
+    @media (width >= 48rem) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    & li + li {
+      border-top: 1px solid var(--line);
+
+      @media (width >= 48rem) {
+        border-top: 0;
+        border-left: 1px solid var(--line);
+      }
+    }
+  }
+
+  .qs-demo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 0.75rem;
+    min-height: 2.75rem;
+    padding: 0.42rem 0.8rem 0.36rem;
+    border-radius: 0.45rem;
+    transition: background-color 0.2s;
+
+    /* Inside the strip, so a ring doesn't run over the row next to it. */
+    &:focus-visible {
+      outline-offset: -3px;
+    }
+
+    & svg {
+      grid-area: 1 / 2 / 3;
+      color: var(--kunyit);
+    }
+
+    @media (hover: hover) {
+      &:hover {
+        background: rgb(239 233 220 / 0.07);
+      }
+    }
+  }
+
+  .qs-demo-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-variation-settings: "wdth" 100;
+    font-size: 0.95rem;
+    line-height: 1.25;
+  }
+
+  .qs-demo-what {
+    grid-column: 1;
+    font-size: 0.78rem;
+    line-height: 1.3;
+    color: rgb(239 233 220 / 0.82);
+  }
+
   .qs-hint {
     display: none;
-    margin-top: 2rem;
+    margin-top: 1.25rem;
     font-family: var(--font-mono);
     font-variation-settings: "wdth" 87.5;
     font-size: 0.72rem;
@@ -173,6 +300,47 @@
   .qs-hint-arrow {
     display: inline-block;
     color: var(--kunyit);
+  }
+
+  /* A short screen: the links have to fit the first screen too, so what's above them closes up. */
+  @media (height < 48rem) {
+    .qs-title {
+      margin-top: 0.75rem;
+    }
+
+    .qs-intro {
+      margin-top: 0.8rem;
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .qs-go {
+      row-gap: 0.25rem;
+      margin-top: 0.8rem;
+    }
+
+    .qs-demos {
+      margin-top: 0.6rem;
+    }
+
+    .qs-demo-list {
+      margin-top: 0.3rem;
+    }
+
+    .qs-hint {
+      margin-top: 0.4rem;
+    }
+  }
+
+  /* A short phone has no line to spare. The label still names the list for screen readers. */
+  @media (width < 48rem) and (height < 48rem) {
+    .qs-demos-label {
+      display: none;
+    }
+
+    .qs-demo-list {
+      margin-top: 0;
+    }
   }
 
   .qs-steps {
@@ -443,8 +611,19 @@
       flex-direction: column;
       justify-content: center;
       padding-top: var(--header-h);
-      padding-bottom: 14vh;
+      padding-bottom: 5vh;
       pointer-events: none;
+    }
+
+    /* The hero lets the pointer through to what's behind it, apart from these. */
+    & :is(.qs-go-link, .qs-cv, .qs-demo) {
+      pointer-events: auto;
+    }
+
+    /* Over the sky, like the hint. */
+    & :is(.qs-status, .qs-demos-label, .qs-cv) {
+      color: var(--mori);
+      text-shadow: 0 0 0.6em var(--nila);
     }
 
     /* The token's number in the tokenizer's vocabulary, counted up to by the scene. */
@@ -585,11 +764,14 @@
       display: none;
     }
 
-    /* Over the sky, so a little brighter than the usual pudar. */
+    /* Low on the hills, where the sunrise is too bright for small words, so it gets the strip's ground. */
     & .qs-hint {
       display: block;
+      width: fit-content;
+      padding: 0.1rem 0.5rem;
+      border-radius: 0.3rem;
+      background: rgb(15 26 71 / 0.8);
       color: var(--mori);
-      text-shadow: 0 0 0.6em var(--nila);
     }
 
     & .qs-sun {
@@ -674,7 +856,6 @@
 
     & .qs-card {
       opacity: 0;
-      pointer-events: auto;
     }
   }
 
@@ -693,8 +874,16 @@
     .scrolly {
       & .qs-hero {
         justify-content: flex-start;
-        padding-top: calc(var(--header-h) + 9vh);
+        /* As much of the 9vh as the links leave free. */
+        padding-top: calc(var(--header-h) + clamp(0.75rem, 100svh - 48rem, 9vh));
         padding-bottom: 0;
+      }
+
+      /* The very shortest phones: the demos come first, and the status waits for the contact section. */
+      @media (max-height: 607px) {
+        & :is(.qs-status, .qs-demo-what) {
+          display: none;
+        }
       }
 
       & .qs-land {
@@ -772,6 +961,8 @@
   /* rise is in base.css, data-reveal uses it too. */
   & .qs-eyebrow,
   & .qs-intro,
+  & .qs-go,
+  & .qs-demos,
   & .qs-hint {
     animation: rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.9s backwards;
   }

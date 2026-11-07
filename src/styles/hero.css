@@ -22,6 +22,13 @@
     }
   }
 
+  /* Any phone: the fourth can land on the work status under the demo link. */
+  @media (width < 30rem) {
+    .qs-land .art-star[data-i="3"] {
+      display: none;
+    }
+  }
+
   /* A wisp grows from its own left end (where it tore off the smoke), not from the drawing's corner. */
   .qs-land .art-wisp {
     opacity: 0;

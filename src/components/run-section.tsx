@@ -30,7 +30,7 @@ export function RunSection() {
   const total = aiProjects.length + webProjects.length;
 
   return (
-    <RunRail id="work" className="run" aria-labelledby="run-title" style={style}>
+    <RunRail id="work" className="run" aria-labelledby="run-title" tabIndex={-1} style={style}>
       <DuotoneFilter id="duotone-nila-mori" shadow="#0f1a47" highlight="#efe9dc" />
       <div className="run-track">
         <div className="run-intro">

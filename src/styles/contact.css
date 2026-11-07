@@ -62,6 +62,14 @@
     align-items: center;
     gap: 0.75rem 1rem;
     margin-top: 2.5rem;
+
+    /* Four buttons on a phone sit two by two, not in whatever rows their widths happen to make. */
+    @media (width < 40rem) {
+      & .btn {
+        flex: 1 1 calc(50% - 0.5rem);
+        justify-content: center;
+      }
+    }
   }
 
   .btn {

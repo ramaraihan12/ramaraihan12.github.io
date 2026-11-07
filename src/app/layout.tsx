@@ -77,7 +77,9 @@ export const viewport: Viewport = {
 
   It also notes the first wheel, touch, key or click (data-moved). A link to a section or a reload
   partway down is put in its place once the scenes are built, which on a slow phone can be
-  seconds in, and src/lib/stage.ts leaves alone anyone who has started moving by then.
+  seconds in, and src/lib/stage.ts leaves alone anyone who has started moving by then. A tap on a
+  link to a section doesn't count until the engine is up: the browser jumps there on a page still
+  missing its pins, so the landing is what gets them there.
 */
 const scrollyScript = `(() => {
   const root = document.documentElement;
@@ -101,8 +103,13 @@ const scrollyScript = `(() => {
   setTimeout(() => {
     if (!root.dataset.scripts || document.readyState !== "complete") plain();
   }, 20000);
+  const moved = new AbortController();
   for (const type of ["wheel", "touchstart", "keydown", "pointerdown"]) {
-    addEventListener(type, () => (root.dataset.moved = ""), { capture: true, passive: true, once: true });
+    addEventListener(type, (e) => {
+      if (!root.dataset.engine && e.target.closest?.('a[href^="#"]')) return;
+      root.dataset.moved = "";
+      moved.abort();
+    }, { capture: true, passive: true, signal: moved.signal });
   }
 })();`;
 

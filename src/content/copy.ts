@@ -21,6 +21,10 @@ export function countWord(n: number, capitalize = false): string {
 const dims = retrieval.dims.toLocaleString("en-US");
 const topK = retrieval.top.length;
 
+/** Said in the hero and again in the contact section. */
+const workStatus = "Open to full-time remote work, and to freelance or contract projects.";
+const cvLink = "CV (PDF)";
+
 /** From src/app/layout.tsx. */
 export const layoutCopy = {
   skipLink: "Skip to content",
@@ -43,6 +47,17 @@ export const queryCopy = {
   eyebrow: "query",
   /** The arrow after it is drawn separately. */
   scrollHint: "scroll to run",
+  /** Jumps past the story to the work section. The arrow after it is drawn separately too. */
+  workLink: "See the live demos",
+  cv: cvLink,
+  status: workStatus,
+  demosLabel: "or try one now",
+  /** By project name. Each link's address comes from that project's `demo`. */
+  demos: [
+    { name: "antre", what: "Queue and booking for small clinics" },
+    { name: "docs-rag-assistant", what: "Answers with the page they came from" },
+    { name: "warung-pos", what: "A point of sale for a small shop" },
+  ],
   stepEyebrows: { tokens: "tokens", embed: "embed", retrieve: "retrieve" },
   tokensLabel: "Tokens",
   /** Closes the row of numbers: "… 1,012 more". */
@@ -132,9 +147,12 @@ export const contactCopy = {
   eyebrow: "follow-up",
   title: "Ask me something else",
   lead: "Have a project in mind, with AI or without? Email is the best way to reach me.",
+  status: workStatus,
   email: "Email me",
   copied: "Copied",
   github: "GitHub",
+  linkedin: "LinkedIn",
+  cv: cvLink,
   /**
    * New: a caption under the sky, by the time in Salatiga. Roughly morning 5 to 10, day 10 to
    * 17, dusk 17 to 19, night 19 to 5.
