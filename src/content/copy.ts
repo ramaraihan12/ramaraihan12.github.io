@@ -55,7 +55,7 @@ export const queryCopy = {
   /** By project name. Each link's address comes from that project's `demo`. */
   demos: [
     { name: "antre", what: "Queue and booking for small clinics" },
-    { name: "docs-rag-assistant", what: "Answers with the page they came from" },
+    { name: "docs-rag-assistant", what: "Answers with page citations" },
     { name: "warung-pos", what: "A point of sale for a small shop" },
   ],
   stepEyebrows: { tokens: "tokens", embed: "embed", retrieve: "retrieve" },
