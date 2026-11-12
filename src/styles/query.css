@@ -343,6 +343,16 @@
     }
   }
 
+  /* A phone on its side: under 520px tall the page is plain (SCENE_MQ), and with the full gap
+     over the question the button sat half under the fold. Narrower than 48rem the name takes
+     a third line and the links can't reach the first screen anyway, so that's left alone
+     rather than pulled up to a half-visible spot. */
+  @media (height < 520px) and (width >= 48rem) {
+    .qs-stage {
+      padding-top: calc(var(--header-h) + 0.75rem);
+    }
+  }
+
   .qs-steps {
     display: grid;
     gap: 2.5rem;
