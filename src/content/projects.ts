@@ -133,6 +133,23 @@ export const aiProjects: Project[] = [
     ),
   },
   {
+    name: "evalgate",
+    kind: "Eval gate",
+    summary:
+      "A GitHub check that fails a pull request when it makes an LLM app measurably worse. It runs a fixed question set on the base and the merge commit with a small Ollama model on the runner, compares them case by case and posts one comment. It guards text-to-sql-chat and docs-rag-assistant. A PR that dropped the revenue rules went from 26 to 17 of 50 right (p = 0.006) while the unit tests stayed green. About 50 cases only catch big drops, and it gates with a small local model, not the one in production.",
+    flow: ["base + merge commit", "same questions", "paired compare", "pr comment", "required check"],
+    stack: ["Python", "GitHub Actions", "Ollama", "Langfuse"],
+    href: repo("evalgate"),
+    demo: "https://ramaraihan.is-a.dev/evalgate/",
+    demoNote: "The page keeps every gate run, including the PR it stopped, which is still open.",
+    image: shot(
+      "evalgate",
+      "The evalgate results page: a pull request the gate stopped, with 52% on the base against 34% on the PR, 26 to 17 cases right, and a p-value of 0.0059.",
+      1280,
+      640,
+    ),
+  },
+  {
     name: "issue-triage-action",
     kind: "Automation",
     summary:
@@ -152,6 +169,23 @@ export const aiProjects: Project[] = [
     href: repo("local-ai-coding-setup"),
     demo: "https://ramaraihan.is-a.dev/local-ai-coding-setup/",
     demoLabel: "Project page",
+  },
+  {
+    name: "pandas-drills",
+    kind: "Practice",
+    summary:
+      "15 pandas exercises that run and grade themselves in the browser, so nothing is sent to a server and it works offline. Feedback is rule-based, like \"Did you mean 'product'?\", with no LLM because my students can be under 18. A teacher makes a class link, students join with a nickname only, and a private link shows who is stuck and which mistakes are common. Grading runs in the browser, so it's practice, not an exam.",
+    flow: ["write pandas", "pyodide runs it", "grade vs reference", "hint", "teacher heatmap"],
+    stack: ["TypeScript", "Pyodide", "Cloudflare Workers", "D1"],
+    href: repo("pandas-drills"),
+    demo: "https://ramaraihan.is-a.dev/pandas-drills/",
+    demoNote: "The first visit downloads Python and pandas, so give it a moment. The teacher view is at #/demo-class.",
+    image: shot(
+      "pandas-drills",
+      "The first exercise passed: the check says the result matches the reference answer, with the 15 exercises listed on the left.",
+      1280,
+      900,
+    ),
   },
 ];
 
@@ -216,7 +250,7 @@ export const webProjects: Project[] = [
     flow: ["pg_dump", "zstd", "age encrypt", "s3 upload", "restore drill"],
     stack: ["Go", "PostgreSQL", "zstd", "age", "MinIO"],
     href: repo("pg-backup"),
-    demo: "https://github.com/ramaraihan12/pg-backup/releases/tag/v0.1.0",
+    demo: "https://github.com/ramaraihan12/pg-backup/releases/tag/v0.1.1",
     demoLabel: "Download",
   },
 ];
