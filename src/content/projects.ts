@@ -174,7 +174,7 @@ export const aiProjects: Project[] = [
     name: "pandas-drills",
     kind: "Practice",
     summary:
-      "15 pandas exercises that run and grade themselves in the browser, so nothing is sent to a server and it works offline. Feedback is rule-based, like \"Did you mean 'product'?\", with no LLM because my students can be under 18. A teacher makes a class link, students join with a nickname only, and a private link shows who is stuck and which mistakes are common. Grading runs in the browser, so it's practice, not an exam.",
+      "15 pandas exercises that run and grade themselves in the browser, so practice needs no server and works offline. Feedback is rule-based, like \"Did you mean 'product'?\", with no LLM because my students can be under 18. A teacher makes a class link, students join with a nickname only, and a private link shows who is stuck and which mistakes are common. Grading runs in the browser, so it's practice, not an exam.",
     flow: ["write pandas", "pyodide runs it", "grade vs reference", "hint", "teacher heatmap"],
     stack: ["TypeScript", "Pyodide", "Cloudflare Workers", "D1"],
     href: repo("pandas-drills"),
