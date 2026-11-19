@@ -160,6 +160,23 @@ export const aiProjects: Project[] = [
     demo: "https://github.com/ramaraihan12/issue-triage-demo",
   },
   {
+    name: "tiny-triage",
+    kind: "Small model",
+    summary:
+      "A 14 MB issue classifier that runs in the browser, so the issue text never leaves the page. I collected the labels maintainers put on 29,054 issues in 33 public repos, fine-tuned ELECTRA-small on 22 of them and tested it on six it never saw. On bug, feature, question or docs it scores 0.71 macro-F1 against 0.63 for a TF-IDF baseline. On whether the maintainers would ask for more info it loses to that baseline, 0.48 against 0.55, so the page marks that output experimental. On 50 test issues it matched the maintainer's category 38 times, the same as Llama 3.3 70B and ahead of TF-IDF's 31.",
+    flow: ["maintainer labels", "split by repo", "fine-tune electra-small", "int8 onnx", "runs in browser"],
+    stack: ["Python", "PyTorch", "ONNX Runtime Web", "transformers.js"],
+    href: repo("tiny-triage"),
+    demo: "https://ramaraihan.is-a.dev/tiny-triage/",
+    demoNote: "The first run downloads about 17 MB, then everything runs in your browser. Paste an issue or a GitHub issue URL.",
+    image: shot(
+      "tiny-triage",
+      "The tiny-triage Try it form filled with the bug example, a crash when saving a project with an empty name, and the result: category bug at 90.6%, and needs_info (marked experimental) as probably enough to act on.",
+      1280,
+      900,
+    ),
+  },
+  {
     name: "local-ai-coding-setup",
     kind: "Local models",
     summary:
