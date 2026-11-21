@@ -758,6 +758,11 @@
       flex: 0 0 min(64rem, 84vw);
       height: min(36rem, 100%);
       padding: clamp(1.5rem, 2.8vw, 2.75rem);
+
+      /* A narrower window wraps the longest summaries onto more lines, so the card may use more of the height. */
+      @media (width < 72rem) {
+        height: min(40rem, 100%);
+      }
     }
 
     & .project {

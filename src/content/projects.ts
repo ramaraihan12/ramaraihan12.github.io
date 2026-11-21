@@ -163,7 +163,7 @@ export const aiProjects: Project[] = [
     name: "tiny-triage",
     kind: "Small model",
     summary:
-      "A 14 MB issue classifier that runs in the browser, so the issue text never leaves the page. I collected the labels maintainers put on 29,054 issues in 33 public repos, fine-tuned ELECTRA-small on 22 of them and tested it on six it never saw. On bug, feature, question or docs it scores 0.71 macro-F1 against 0.63 for a TF-IDF baseline. On whether the maintainers would ask for more info it loses to that baseline, 0.48 against 0.55, so the page marks that output experimental. On 50 test issues it matched the maintainer's category 38 times, the same as Llama 3.3 70B and ahead of TF-IDF's 31.",
+      "A 14 MB issue classifier that runs in the browser, so the issue text never leaves the page. I fine-tuned ELECTRA-small on maintainer labels from 22 public repos and tested it on six it never saw. It scores 0.71 macro-F1 on category against 0.63 for TF-IDF, and matched the maintainer on 38 of 50 test issues, the same as Llama 3.3 70B. Its needs-info output loses to TF-IDF, 0.48 against 0.55, so the page marks it experimental.",
     flow: ["maintainer labels", "split by repo", "fine-tune electra-small", "int8 onnx", "runs in browser"],
     stack: ["Python", "PyTorch", "ONNX Runtime Web", "transformers.js"],
     href: repo("tiny-triage"),
